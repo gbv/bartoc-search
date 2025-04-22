@@ -16,6 +16,7 @@ export const mongoSchema = z.object({
 });
 
 export const solrSchema = z.object({
+  batch_size: z.number(),
   host: z.string(),
   port: z.number(),
   url: z.string().optional(),
@@ -26,6 +27,7 @@ export const configSchema = z.object({
   baseUrl: z.string().nullable().optional(),
   closedWorldAssumption: z.boolean().optional(),
   env: z.string().default("development"),
+  indexDataAtBoot: z.boolean().optional(),
   loadNdjsonData: z.boolean().optional(),
   logLevel: z.string().default("info"),
   mongo: mongoSchema,

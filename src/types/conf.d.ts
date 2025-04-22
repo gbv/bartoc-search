@@ -16,6 +16,7 @@ export interface MongoConfig {
 }
 
 export interface SolrConfig {
+  batch_size: number;
   host: string;
   port: number;
   url?: string;
@@ -26,6 +27,7 @@ export interface AppConfig {
   baseUrl?: string | null;
   closedWorldAssumption?: boolean;
   env: string;
+  indexDataAtBoot?: boolean;
   loadNdjsonData?: boolean;
   logLevel: string;
   mongo: MongoConfig;

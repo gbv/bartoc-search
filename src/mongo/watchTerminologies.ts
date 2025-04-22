@@ -1,16 +1,10 @@
 import config from "../conf/conf";
-import { getDb } from "../mongo/mongo";
-import type { Db } from "mongodb";
 import type { TerminologyDocument } from "../types/terminology";
 import { terminologyZodSchema } from "../mongo/terminologySchemaValidation";
-
 import { ChangeStreamInsertDocument } from "mongodb";
 import { Terminology } from "../models/terminology";
 
 export async function watchTerminologies(): Promise<void> {
-  const db: Db | undefined = getDb();
-  const collection = db.collection("terminologies");
-
   try {
     config.log?.("👀 Watching changes on 'terminologies' collection...");
 

@@ -16,6 +16,10 @@ const startMongoDB = async () => {
     );
   }
 
+  if (config.indexDataAtBoot) {
+    await solr.indexDataAtBoot();
+  }
+
   // Watching for changes in realt time, only for inserting events
   await watchTerminologies();
 };

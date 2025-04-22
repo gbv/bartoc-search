@@ -2,6 +2,7 @@
   "baseUrl": null,
   "closedWorldAssumption": true,
   "loadNdjsonData": true,
+  "indexDataAtBoot": true,
   "mongo": {
     "user": "",
     "pass": "",
@@ -15,6 +16,7 @@
     }
   },
   "solr": {
+    "batch_size": 500,
     "host": "solr",
     "port": 8983,
     "version": 8.1
