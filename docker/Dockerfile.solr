@@ -2,14 +2,14 @@ FROM solr:8.11.2
 
 USER root
 
-# Crea directory per i plugin
+# Create folder for the plugin
 RUN mkdir -p /opt/solr/contrib/analysis-extras/lib
 
-# Scarica il JAR necessario per il plugin ICU
+# Download the jar file necessary for the ICU plugin
 RUN curl -sSL -o /opt/solr/contrib/analysis-extras/lib/solr-analysis-extras.jar \
     https://repo1.maven.org/maven2/org/apache/solr/solr-analysis-extras/8.11.2/solr-analysis-extras-8.11.2.jar
 
-# Imposta i permessi per Solr
+# Permissions for solr
 RUN chown -R solr:solr /opt/solr/contrib
 
 USER solr
