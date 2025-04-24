@@ -1,4 +1,4 @@
-export interface JskosDocument {
+export interface JskosConceptSchemeDocument {
   "@context": string;
 
   ACCESS?: Array<{

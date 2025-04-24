@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
-import type { JskosDocument } from "../types/jskos";
+import type { JskosConceptSchemeDocument } from "../types/jskos";
 
-const TerminologySchema = new Schema<JskosDocument>(
+const TerminologySchema = new Schema<JskosConceptSchemeDocument>(
   {
     "@context": { type: String, required: true },
     ACCESS: [
@@ -78,9 +78,11 @@ const TerminologySchema = new Schema<JskosDocument>(
   },
 );
 
-export interface TerminologyDocument extends JskosDocument, Document {}
+export interface TerminologyDocument
+  extends JskosConceptSchemeDocument,
+    Document {}
 
-export const Terminology: Model<JskosDocument> = mongoose.model(
+export const Terminology: Model<JskosConceptSchemeDocument> = mongoose.model(
   "terminology",
   TerminologySchema,
 );

@@ -1,6 +1,6 @@
 // types/terminology.d.ts
 
 import { Document } from "mongoose";
-import { JskosDocument } from "./jskos"; // adjust path if needed
+import { JskosConceptSchemeDocument } from "./jskos";
 
-export type TerminologyDocument = Document & JskosDocument;
+export type TerminologyDocument = Document & JskosConceptSchemeDocument;

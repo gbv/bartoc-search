@@ -1,15 +1,17 @@
 import * as fs from "fs";
 import * as readline from "readline";
-import { JskosDocument } from "@/types/jskos";
+import { JskosConceptSchemeDocument } from "../types/jskos";
 
-export async function readNdjson(path: string): Promise<JskosDocument[]> {
+export async function readNdjson(
+  path: string,
+): Promise<JskosConceptSchemeDocument[]> {
   const fileStream = fs.createReadStream(path);
   const rl = readline.createInterface({
     input: fileStream,
     crlfDelay: Infinity,
   });
 
-  const documents: JskosDocument[] = [];
+  const documents: JskosConceptSchemeDocument[] = [];
 
   for await (const line of rl) {
     if (!line.trim()) continue;
