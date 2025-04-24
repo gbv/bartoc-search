@@ -1,16 +1,22 @@
-export interface SolrDocument {
-  id: string; // mapped from doc.uri
-  title_en?: string; // mapped from doc.prefLabel.en
-  description_en?: string; // mapped from doc.definition.en (first element)
-  languages_ss: string[]; // mapped from doc.languages
-  publisher_ss: string[]; // mapped from doc.publisher[].prefLabel.en
-  alt_labels_ss: string[]; // mapped from doc.altLabel.und (if available)
-  ddc_ss: string[]; // mapped from subject.notation
-  created_dt?: string; // doc.created
-  modified_dt?: string; // doc.modified
-  start_year_i?: number; // doc.startDate, converted to integer
-  url_s?: string; // doc.url
-  type_ss: string[]; // doc.type
+// types/solr.ts
+import { SupportedLang } from "./lang";
+
+type TitleFields = {
+  [K in SupportedLang as `title_${K}`]?: string;
+};
+
+export interface SolrDocument extends TitleFields {
+  id: string;
+  description_en?: string;
+  languages_ss: string[];
+  publisher_ss: string[];
+  alt_labels_ss: string[];
+  ddc_ss: string[];
+  created_dt?: string;
+  modified_dt?: string;
+  start_year_i?: number;
+  url_s?: string;
+  type_ss: string[];
 }
 
 // Not used

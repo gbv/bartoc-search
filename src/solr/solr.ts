@@ -3,6 +3,7 @@ import axios from "axios";
 import config from "../conf/conf";
 import { SolrClient } from "./SolrClient";
 import { PingResponse, SolrDocument } from "../types/solr";
+import { SupportedLang } from "../types/lang";
 import { SolrPingError } from "../errors/errors";
 import { connection } from "../mongo/mongo";
 import { TerminologyDocument } from "../types/terminology";
@@ -137,9 +138,8 @@ export async function extractAllAndSendToSolr(
 }
 
 export function transformToSolr(doc: TerminologyZodType): SolrDocument {
-  return {
+  const solrDoc: Partial<SolrDocument> = {
     id: doc.uri,
-    title_en: doc.prefLabel?.en,
     description_en: doc.definition?.en?.[0],
     languages_ss: doc.languages || [],
     publisher_ss:
@@ -154,6 +154,15 @@ export function transformToSolr(doc: TerminologyZodType): SolrDocument {
     url_s: doc.url,
     type_ss: doc.type || [],
   };
+
+  for (const lang of Object.values(SupportedLang)) {
+    const title = doc.prefLabel?.[lang];
+    if (title) {
+      solrDoc[`title_${lang}` as `title_${SupportedLang}`] = title;
+    }
+  }
+
+  return solrDoc as SolrDocument;
 }
 
 // TODO better this with OOP approach in SolrClient.ts, this is minimal and not well done
