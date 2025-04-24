@@ -8,20 +8,47 @@
     <fieldType name="string" class="solr.StrField" sortMissingLast="true" />
     <fieldType name="long" class="solr.LongPointField" positionIncrementGap="0"/>
 
-    <!-- Text field type for English: uses a standard tokenizer and basic filters -->
-    <fieldType name="text_en" class="solr.TextField" positionIncrementGap="100">
+    <fieldType name="text" class="solr.TextField" positionIncrementGap="100" termVectors="true">
       <analyzer type="index">
+        <charFilter class="solr.MappingCharFilterFactory" mapping="mapping-specials.txt" />
         <tokenizer class="solr.StandardTokenizerFactory"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
-        <filter class="solr.EnglishPossessiveFilterFactory"/>
+        <!-- divide words in components, useful for compound words -->
+        <filter class="solr.WordDelimiterGraphFilterFactory"
+                generateWordParts="1"
+                generateNumberParts="1"
+                catenateWords="1"
+                catenateNumbers="1"
+                catenateAll="0"
+                splitOnCaseChange="1"/>
+        <!-- Reduce syntactical complex structures -->
+        <filter class="solr.FlattenGraphFilterFactory"/>
+        <!-- Normalize unicode (e.g. à → a) -->
+        <!-- <filter class="solr.ICUFoldingFilterFactory"/> It needs to be installed! -->
+        <!-- Protect key words from stemming -->
         <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
-        <filter class="solr.EnglishMinimalStemFilterFactory"/>
+        <!-- Stemming with snowball algorithm for english -->
+        <filter class="solr.SnowballPorterFilterFactory" language="English"/>
+        <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
       </analyzer>
       <analyzer type="query">
+        <charFilter class="solr.MappingCharFilterFactory" mapping="mapping-specials.txt" />
         <tokenizer class="solr.StandardTokenizerFactory"/>
-        <filter class="solr.LowerCaseFilterFactory"/>
+        <!-- Expansion Synonims -->
+        <filter class="solr.SynonymGraphFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
+        <filter class="solr.WordDelimiterGraphFilterFactory"
+                generateWordParts="1"
+                generateNumberParts="1"
+                catenateWords="0"
+                catenateNumbers="0"
+                catenateAll="0"
+                splitOnCaseChange="1"/>
+        <!-- <filter class="solr.ICUFoldingFilterFactory"/> -->
+        <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
+        <filter class="solr.SnowballPorterFilterFactory" language="English"/>
+        <filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
       </analyzer>
     </fieldType>
+
 
     <!-- Date type: based on ISO 8601 -->
     <fieldType name="pdate" class="solr.TrieDateField" precisionStep="0" positionIncrementGap="0"/>
@@ -40,11 +67,8 @@
     <!-- Unique Identifier -->
     <field name="id" type="string" indexed="true" stored="true" required="true"/>
 
-    <!-- Title field for English; used for full-text search -->
-    <field name="title_en" type="text_en" indexed="true" stored="true"/>
-
     <!-- Description field for English; stores the first definition -->
-    <field name="description_en" type="text_en" indexed="true" stored="true"/>
+    <field name="description_en" type="text" indexed="true" stored="true"/>
 
     <!-- Multivalued language field -->
     <field name="languages_ss" type="string" indexed="true" stored="true" multiValued="true"/>
@@ -75,7 +99,7 @@
   <!-- ================================================
        Dynamic Field Definitions
        ================================================ -->
-  <dynamicField name="*_txt" type="text_en" indexed="true" stored="true"/>
+  <dynamicField name="title_*" type="text" indexed="true" stored="true"/>
   <dynamicField name="*_s" type="string" indexed="true" stored="true"/>
   <dynamicField name="*_i" type="pint" indexed="true" stored="true"/>
   <dynamicField name="*_dt" type="pdate" indexed="true" stored="true"/>
@@ -84,10 +108,10 @@
        Copy Field Definitions
        ================================================ -->
   <!-- Create a catch-all searchable field -->
-  <field name="text" type="text_en" indexed="true" stored="false" multiValued="true"/>
+  <field name="text" type="text" indexed="true" stored="false" multiValued="true"/>
 
   <!-- Copy title and description into the catch-all field -->
-  <copyField source="title_en" dest="text" />
+  <copyField source="title_*" dest="text" />
   <copyField source="description_en" dest="text" />
 
   <!-- ================================================

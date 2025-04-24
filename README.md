@@ -24,6 +24,44 @@ graph TD
 
 # WIP NOT RELIABLE ATM 
 
+### Data
+
+in the ndjson file provided in the data folder, the `prefLabel` attribute has several languages as follow:
+Found **prefLabel** languages:
+- en: 3498 unique labels
+- pt: 30 unique labels
+- und: 621 unique labels
+- eu: 1 unique labels
+- ca: 24 unique labels
+- fr: 114 unique labels
+- es: 104 unique labels
+- de: 480 unique labels
+- pl: 4 unique labels
+- it: 28 unique labels
+- da: 9 unique labels
+- la: 4 unique labels
+- ro: 7 unique labels
+- nl: 23 unique labels
+- sv: 7 unique labels
+- el: 11 unique labels
+- fi: 14 unique labels
+- ru: 3 unique labels
+- ko: 353 unique labels
+- nb: 6 unique labels
+- no: 1 unique labels
+- ja: 1 unique labels
+- kr: 2 unique labels
+- tr: 1 unique labels
+- zh: 2 unique labels
+- nn: 2 unique labels
+- se: 1 unique labels
+- hu: 1 unique labels
+- gl: 1 unique labels
+
+source is coming from running the script `analyze-prefLabel.js`.
+
+
+
 ### Setting Up a Local Solr Instance
 
 A common approach is using Docker. For example:

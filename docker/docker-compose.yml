@@ -36,6 +36,9 @@ services:
     restart: "no"
 
   solr:
+    #build:
+     # context: .
+      #dockerfile: Dockerfile.solr
     image: solr:8
     container_name: bartoc-solr
     ports:
