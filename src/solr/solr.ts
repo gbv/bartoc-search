@@ -139,20 +139,24 @@ export async function extractAllAndSendToSolr(
 
 export function transformToSolr(doc: TerminologyZodType): SolrDocument {
   const solrDoc: Partial<SolrDocument> = {
+    alt_labels_ss: doc.altLabel?.und || [],
+    created_dt: doc.created,
+    ddc_ss: doc.subject?.flatMap((s) => s.notation || []) || [],
     id: doc.uri,
     languages_ss: doc.languages || [],
-    publisher_label: doc.publisher?.[0]?.prefLabel?.en || "",
-    publisher_id: doc.publisher?.[0]?.uri,
-    alt_labels_ss: doc.altLabel?.und || [],
-    ddc_ss: doc.subject?.flatMap((s) => s.notation || []) || [],
-    created_dt: doc.created,
     modified_dt: doc.modified,
+    publisher_id: doc.publisher?.[0]?.uri,
+    publisher_label: doc.publisher?.[0]?.prefLabel?.en || "",
     start_year_i: doc.startDate ? parseInt(doc.startDate) : undefined,
-    url_s: doc.url,
+    subject_uri: doc.subject?.map((s) => s.uri) || [],
+    subject_notation: doc.subject?.flatMap((s) => s.notation || []) || [],
+    subject_scheme:
+      doc.subject?.flatMap((s) => s.inScheme?.map((i) => i.uri) || []) || [],
     type_ss: doc.type || [],
+    url_s: doc.url,
   };
 
-  // Dynamic fields titles, description
+  // Dynamic fields for titles and description
   for (const lang of Object.values(SupportedLang)) {
     const title = doc.prefLabel?.[lang];
     const description = doc.definition?.[lang];

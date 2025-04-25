@@ -10,17 +10,20 @@ type DescriptionFields = {
 };
 
 export interface SolrDocument extends TitleFields, DescriptionFields {
+  alt_labels_ss: string[];
+  created_dt?: string;
+  ddc_ss: string[];
   id: string;
   languages_ss: string[];
-  publisher_label: string;
-  publisher_id: string;
-  alt_labels_ss: string[];
-  ddc_ss: string[];
-  created_dt?: string;
   modified_dt?: string;
+  publisher_id: string;
+  publisher_label: string;
+  subject_notation: string[];
+  subject_uri: string[];
+  subject_scheme: string[];
   start_year_i?: number;
-  url_s?: string;
   type_ss: string[];
+  url_s?: string;
 }
 
 // Not used

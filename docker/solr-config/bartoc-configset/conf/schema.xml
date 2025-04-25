@@ -99,6 +99,7 @@
        ================================================ -->
   <dynamicField name="title_*" type="text" indexed="true" stored="true"/>
   <dynamicField name="description_*" type="text" indexed="true" stored="true"/>
+  <dynamicField name="subject_*" type="text" indexed="true" stored="true" multiValued="true"/>
   <dynamicField name="*_s" type="string" indexed="true" stored="true"/>
   <dynamicField name="*_i" type="pint" indexed="true" stored="true"/>
   <dynamicField name="*_dt" type="pdate" indexed="true" stored="true"/>
