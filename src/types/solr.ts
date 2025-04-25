@@ -5,9 +5,12 @@ type TitleFields = {
   [K in SupportedLang as `title_${K}`]?: string;
 };
 
-export interface SolrDocument extends TitleFields {
+type DescriptionFields = {
+  [K in SupportedLang as `description_${K}`]?: string;
+};
+
+export interface SolrDocument extends TitleFields, DescriptionFields {
   id: string;
-  description_en?: string;
   languages_ss: string[];
   publisher_ss: string[];
   alt_labels_ss: string[];

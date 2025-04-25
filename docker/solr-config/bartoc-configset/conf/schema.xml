@@ -67,9 +67,6 @@
     <!-- Unique Identifier -->
     <field name="id" type="string" indexed="true" stored="true" required="true"/>
 
-    <!-- Description field for English; stores the first definition -->
-    <field name="description_en" type="text" indexed="true" stored="true"/>
-
     <!-- Multivalued language field -->
     <field name="languages_ss" type="string" indexed="true" stored="true" multiValued="true"/>
 
@@ -100,6 +97,7 @@
        Dynamic Field Definitions
        ================================================ -->
   <dynamicField name="title_*" type="text" indexed="true" stored="true"/>
+  <dynamicField name="description_*" type="text" indexed="true" stored="true"/>
   <dynamicField name="*_s" type="string" indexed="true" stored="true"/>
   <dynamicField name="*_i" type="pint" indexed="true" stored="true"/>
   <dynamicField name="*_dt" type="pdate" indexed="true" stored="true"/>
@@ -112,7 +110,7 @@
 
   <!-- Copy title and description into the catch-all field -->
   <copyField source="title_*" dest="text" />
-  <copyField source="description_en" dest="text" />
+  <copyField source="description_*" dest="text" />
 
   <!-- ================================================
        Schema Configuration

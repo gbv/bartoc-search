@@ -32,7 +32,7 @@ export const terminologyZodSchema = z.object({
     )
     .optional(),
   definition: z.record(z.array(z.string())).optional(),
-  languages: z.array(z.string()),
+  languages: z.array(z.string()).optional(),
   modified: z.string(),
   created: z.string(),
   prefLabel: z.record(z.string()),

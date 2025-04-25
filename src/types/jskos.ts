@@ -41,7 +41,7 @@ export interface JskosConceptSchemeDocument {
     [lang: string]: string[];
   };
 
-  languages: string[];
+  languages?: string[];
 
   modified: string;
 

@@ -10,6 +10,7 @@ export enum SupportedLang {
   FR = "fr", // French
   GL = "gl", // Galician
   HU = "hu", // Hungarian
+  HR = "hr", // Croatian
   IT = "it", // Italian
   JA = "ja", // Japanese
   KO = "ko", // Korean
@@ -18,6 +19,7 @@ export enum SupportedLang {
   NL = "nl", // Dutch
   NN = "nn", // Norwegian Nynorsk
   NO = "no", // Norwegian
+  UND = "und", // Undefined?
   PL = "pl", // Polish
   PT = "pt", // Portuguese
   RO = "ro", // Romanian

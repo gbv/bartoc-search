@@ -140,7 +140,6 @@ export async function extractAllAndSendToSolr(
 export function transformToSolr(doc: TerminologyZodType): SolrDocument {
   const solrDoc: Partial<SolrDocument> = {
     id: doc.uri,
-    description_en: doc.definition?.en?.[0],
     languages_ss: doc.languages || [],
     publisher_ss:
       doc.publisher
@@ -155,10 +154,18 @@ export function transformToSolr(doc: TerminologyZodType): SolrDocument {
     type_ss: doc.type || [],
   };
 
+  // Dynamic fields titles, description
   for (const lang of Object.values(SupportedLang)) {
     const title = doc.prefLabel?.[lang];
+    const description = doc.definition?.[lang];
+
     if (title) {
       solrDoc[`title_${lang}` as `title_${SupportedLang}`] = title;
+    }
+
+    if (description) {
+      solrDoc[`description_${lang}` as `description_${SupportedLang}`] =
+        description[0];
     }
   }
 
