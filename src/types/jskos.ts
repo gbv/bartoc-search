@@ -21,6 +21,7 @@ export interface JskosConceptSchemeDocument {
     [lang: string]: string[];
   };
 
+  // From current data structure contributor prefLabel is always given in English
   contributor?: Array<{
     prefLabel: {
       en?: string;
@@ -30,6 +31,7 @@ export interface JskosConceptSchemeDocument {
 
   created: string;
 
+  // From current data structure creator prefLabel is always given in English
   creator?: Array<{
     prefLabel: {
       en?: string;
@@ -41,6 +43,7 @@ export interface JskosConceptSchemeDocument {
     [lang: string]: string[];
   };
 
+  // Made optional
   languages?: string[];
 
   modified: string;

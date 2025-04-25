@@ -13,6 +13,7 @@ export interface SolrDocument extends TitleFields, DescriptionFields {
   id: string;
   languages_ss: string[];
   publisher_ss: string[];
+  publisher_id: string;
   alt_labels_ss: string[];
   ddc_ss: string[];
   created_dt?: string;

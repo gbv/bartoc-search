@@ -70,8 +70,9 @@
     <!-- Multivalued language field -->
     <field name="languages_ss" type="string" indexed="true" stored="true" multiValued="true"/>
 
-    <!-- Multivalued publisher names -->
+    <!-- Multivalued publisher -->
     <field name="publisher_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="publisher_id" type="string" indexed="true" stored="true" />
 
     <!-- Multivalued alternative labels -->
     <field name="alt_labels_ss" type="string" indexed="true" stored="true" multiValued="true"/>

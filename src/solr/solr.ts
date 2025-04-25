@@ -145,6 +145,7 @@ export function transformToSolr(doc: TerminologyZodType): SolrDocument {
       doc.publisher
         ?.map((p) => p.prefLabel?.en)
         .filter((s): s is string => typeof s === "string") || [],
+    publisher_id: doc.publisher?.[0]?.uri,
     alt_labels_ss: doc.altLabel?.und || [],
     ddc_ss: doc.subject?.flatMap((s) => s.notation || []) || [],
     created_dt: doc.created,
