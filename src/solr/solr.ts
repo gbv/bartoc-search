@@ -141,10 +141,7 @@ export function transformToSolr(doc: TerminologyZodType): SolrDocument {
   const solrDoc: Partial<SolrDocument> = {
     id: doc.uri,
     languages_ss: doc.languages || [],
-    publisher_ss:
-      doc.publisher
-        ?.map((p) => p.prefLabel?.en)
-        .filter((s): s is string => typeof s === "string") || [],
+    publisher_label: doc.publisher?.[0]?.prefLabel?.en || "",
     publisher_id: doc.publisher?.[0]?.uri,
     alt_labels_ss: doc.altLabel?.und || [],
     ddc_ss: doc.subject?.flatMap((s) => s.notation || []) || [],
