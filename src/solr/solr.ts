@@ -12,6 +12,8 @@ import {
   terminologyZodSchema,
   TerminologyZodType,
 } from "../mongo/terminologySchemaValidation";
+import { NkosZodTypeConcept, nKosTypeConceptSchema } from "./nkosValidation";
+import readAndValidateNdjson from "../utils/loadNdJson";
 
 let initialized = false;
 const solr = new SolrClient(config.solr.version);
@@ -59,7 +61,16 @@ export async function indexDataAtBoot(): Promise<void> {
         config.log?.(`Ready to extract ${count} terminology documents`);
         const terminologies = await Terminology.find({});
 
-        await extractAllAndSendToSolr(terminologies);
+        // TODO Do it BETTER, this is a very rudimental solution!
+        // nkos should be part of MongoDB and retrieved consequentely as for terminologies table?
+        const nKosConcepts: NkosZodTypeConcept[] = await readAndValidateNdjson(
+          "./data/nkostype.concepts.ndjson",
+          nKosTypeConceptSchema,
+        );
+
+        config.log?.(`${JSON.stringify(nKosConcepts[0])}`);
+
+        await extractAllAndSendToSolr(terminologies, nKosConcepts);
       } else {
         config.warn?.("No terminologies found. Skipping extract.");
       }
@@ -77,29 +88,32 @@ export function isSolrReady(): boolean {
 }
 
 export async function extractAllAndSendToSolr(
-  collection: TerminologyDocument[],
+  terminologies: TerminologyDocument[],
+  nKosConcepts: NkosZodTypeConcept[],
 ): Promise<void> {
-  config.log?.(`collection length ${collection.length}`);
+  config.log?.(`collection length ${terminologies.length}`);
 
   let success = 0;
   let failed = 0;
   const solrDocuments: SolrDocument[] = [];
 
-  for (const doc of collection) {
-    const plainDoc = doc.toObject(); // remove moongose metadata
-    const validation = terminologyZodSchema.safeParse(plainDoc);
+  // this block takes care of transforming terminology documents
+  for (const terminology of terminologies) {
+    const plainTerminologyDoc = terminology.toObject(); // remove moongose metadata
+    const terminologyValidated =
+      terminologyZodSchema.safeParse(plainTerminologyDoc);
 
-    if (!validation.success) {
+    if (!terminologyValidated.success) {
       config.warn?.(
-        `❌ Invalid document skipped: ${validation.error.format()}`,
+        `❌ Invalid document skipped: ${terminologyValidated.error.format()}`,
       );
       failed++;
       continue;
     }
 
     try {
-      const validDoc: TerminologyZodType = validation.data;
-      const solrDoc = transformToSolr(validDoc);
+      const validTerminologyDoc: TerminologyZodType = terminologyValidated.data;
+      const solrDoc = transformToSolr(validTerminologyDoc, nKosConcepts);
       solrDocuments.push(solrDoc);
       success++;
     } catch (error) {
@@ -108,7 +122,9 @@ export async function extractAllAndSendToSolr(
     }
   }
 
-  config.log?.(`✅ Transformed ${success} documents, ${failed} skipped.`);
+  config.log?.(
+    `✅ Transformed ${success} terminology documents, ${failed} skipped.`,
+  );
 
   if (solrDocuments.length === 0) {
     config.warn?.("No documents to send to Solr.");
@@ -137,37 +153,60 @@ export async function extractAllAndSendToSolr(
   }
 }
 
-export function transformToSolr(doc: TerminologyZodType): SolrDocument {
+export function transformToSolr(
+  terminologyDoc: TerminologyZodType,
+  nKosConceptsDocs: NkosZodTypeConcept[],
+): SolrDocument {
   const solrDoc: Partial<SolrDocument> = {
-    alt_labels_ss: doc.altLabel?.und || [],
-    created_dt: doc.created,
-    ddc_ss: doc.subject?.flatMap((s) => s.notation || []) || [],
-    id: doc.uri,
-    languages_ss: doc.languages || [],
-    modified_dt: doc.modified,
-    publisher_id: doc.publisher?.[0]?.uri,
-    publisher_label: doc.publisher?.[0]?.prefLabel?.en || "",
-    start_year_i: doc.startDate ? parseInt(doc.startDate) : undefined,
-    subject_uri: doc.subject?.map((s) => s.uri) || [],
-    subject_notation: doc.subject?.flatMap((s) => s.notation || []) || [],
+    alt_labels_ss: terminologyDoc.altLabel?.und || [],
+    created_dt: terminologyDoc.created,
+    ddc_ss: terminologyDoc.subject?.flatMap((s) => s.notation || []) || [],
+    id: terminologyDoc.uri,
+    languages_ss: terminologyDoc.languages || [],
+    modified_dt: terminologyDoc.modified,
+    publisher_id: terminologyDoc.publisher?.[0]?.uri,
+    publisher_label: terminologyDoc.publisher?.[0]?.prefLabel?.en || "",
+    start_year_i: terminologyDoc.startDate
+      ? parseInt(terminologyDoc.startDate)
+      : undefined,
+    subject_uri: terminologyDoc.subject?.map((s) => s.uri) || [],
+    subject_notation:
+      terminologyDoc.subject?.flatMap((s) => s.notation || []) || [],
     subject_scheme:
-      doc.subject?.flatMap((s) => s.inScheme?.map((i) => i.uri) || []) || [],
-    type_ss: doc.type || [],
-    url_s: doc.url,
+      terminologyDoc.subject?.flatMap(
+        (s) => s.inScheme?.map((i) => i.uri) || [],
+      ) || [],
+    type_ss: terminologyDoc.type,
+    type_id: terminologyDoc.type?.[1] || "",
+    url_s: terminologyDoc.url,
   };
 
-  // Dynamic fields for titles and description
-  for (const lang of Object.values(SupportedLang)) {
-    const title = doc.prefLabel?.[lang];
-    const description = doc.definition?.[lang];
+  // type solr fields for labels are to be addressed separately as currently the soruce is a ndJson file
 
+  const nKosConceptsDoc = nKosConceptsDocs.find(
+    (nKos) => nKos.uri === solrDoc.type_id,
+  );
+
+  // Dynamic fields for title, description, type_label
+  for (const lang of Object.values(SupportedLang)) {
+    // title
+    const title = terminologyDoc.prefLabel?.[lang];
     if (title) {
       solrDoc[`title_${lang}` as `title_${SupportedLang}`] = title;
     }
 
+    // description
+    const description = terminologyDoc.definition?.[lang];
     if (description) {
       solrDoc[`description_${lang}` as `description_${SupportedLang}`] =
         description[0];
+    }
+
+    // type_label
+    const type_label = nKosConceptsDoc && nKosConceptsDoc.prefLabel?.[lang];
+    if (type_label) {
+      solrDoc[`type_label_${lang}` as `type_label_${SupportedLang}`] =
+        type_label;
     }
   }
 

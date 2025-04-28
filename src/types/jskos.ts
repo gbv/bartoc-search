@@ -75,3 +75,48 @@ export interface JskosConceptSchemeDocument {
 
   url?: string;
 }
+
+export interface NkosTypeConcept {
+  "@context": string;
+
+  uri: string;
+
+  type: string[]; // Always includes SKOS Concept
+
+  inScheme: Array<{
+    uri: string;
+    prefLabel: {
+      [lang: string]: string;
+    };
+    type: string[]; // ConceptScheme and nkostype#list
+  }>;
+
+  publisher?: Array<{
+    prefLabel: {
+      [lang: string]: string;
+    };
+    // No `uri` provided in your example for publisher
+  }>;
+
+  notation: string[]; // E.g., "glossary", "ontology", etc.
+
+  prefLabel: {
+    [lang: string]: string; // English and German at least
+  };
+
+  altLabel?: {
+    [lang: string]: string[]; // Alternative names
+  };
+
+  scopeNote?: {
+    [lang: string]: string[]; // Explanations / descriptions
+  };
+
+  topConceptOf: Array<{
+    uri: string;
+    prefLabel: {
+      [lang: string]: string;
+    };
+    type: string[];
+  }>;
+}
