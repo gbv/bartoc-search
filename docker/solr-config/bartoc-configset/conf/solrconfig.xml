@@ -4,6 +4,11 @@
 
   <schemaFactory class="ClassicIndexSchemaFactory"/>
 
+
+  <lib dir="${solr.install.dir:../../../..}/contrib/analysis-extras/lib" regex=".*\.jar" />
+  <lib dir="${solr.install.dir:../../../..}/contrib/analysis-extras/lucene-libs" regex=".*\.jar" />
+  <lib dir="${solr.install.dir:../../../..}/modules/analysis-extras/lib" regex=".*\.jar" />
+
   <dataDir>${solr.data.dir:}</dataDir>
 
   <updateHandler class="solr.DirectUpdateHandler2">
