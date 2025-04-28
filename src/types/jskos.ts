@@ -95,7 +95,7 @@ export interface NkosTypeConcept {
     prefLabel: {
       [lang: string]: string;
     };
-    // No `uri` provided in your example for publisher
+    // No `uri` provided in file for publisher field?
   }>;
 
   notation: string[]; // E.g., "glossary", "ontology", etc.
