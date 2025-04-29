@@ -29,8 +29,7 @@ export interface SolrDocument
   subject_uri: string[];
   subject_scheme: string[];
   start_year_i?: number;
-  type_ss: string[];
-  type_id: string;
+  type_uri: string[];
   url_s?: string;
 }
 

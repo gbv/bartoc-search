@@ -176,15 +176,14 @@ export function transformToSolr(
       terminologyDoc.subject?.flatMap(
         (s) => s.inScheme?.map((i) => i.uri) || [],
       ) || [],
-    type_ss: terminologyDoc.type,
-    type_id: terminologyDoc.type?.[1] || "",
+    type_uri: terminologyDoc.type,
     url_s: terminologyDoc.url,
   };
 
   // type solr fields for labels are to be addressed separately as currently the soruce is a ndJson file
 
   const nKosConceptsDoc = nKosConceptsDocs.find(
-    (nKos) => nKos.uri === solrDoc.type_id,
+    (nKos) => nKos.uri === solrDoc.type_uri?.[1],
   );
 
   // Dynamic fields for title, description, type_label
