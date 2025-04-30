@@ -43,6 +43,7 @@ export abstract class SolrRequest {
         params,
         data,
       });
+
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {

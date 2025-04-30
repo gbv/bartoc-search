@@ -79,3 +79,12 @@ export interface CollectionOperationQueryParams {
   deleteInstanceDir?: boolean;
   [key: string]: string | number | boolean | undefined;
 }
+
+export interface SolrSearchResponse {
+  response: {
+    numFound: number;
+    start: number;
+    docs: SolrDocument[];
+  };
+  // Optionally facets, spellcheck etc.
+}
