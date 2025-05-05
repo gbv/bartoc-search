@@ -71,7 +71,7 @@
     <field name="languages_ss" type="string" indexed="true" stored="true" multiValued="true"/>
 
     <!-- Multivalued publisher -->
-    <field name="publisher_label" type="string" indexed="true" stored="true"/>
+    <field name="publisher_label" type="text" indexed="true" stored="true"/>
     <field name="publisher_id" type="string" indexed="true" stored="true" />
 
     <!-- Multivalued alternative labels -->
@@ -93,6 +93,8 @@
     <!-- Multivalued type field -->
     <field name="type_uri" type="string" indexed="true" stored="true" multiValued="true"/>
 
+    <field name="title_search" type="text" indexed="true" stored="false" multiValued="true"/>
+
   </fields>
 
   <!-- ================================================
@@ -111,11 +113,15 @@
        Copy Field Definitions
        ================================================ -->
   <!-- Create a catch-all searchable field -->
-  <field name="text" type="text" indexed="true" stored="false" multiValued="true"/>
+  <field name="allfields" type="text" indexed="true" stored="false" multiValued="true"/>
 
-  <!-- Copy title and description into the catch-all field -->
-  <copyField source="title_*" dest="text" />
-  <copyField source="description_*" dest="text" />
+  <!-- Copy several fields into the catch-all field -->
+  <copyField source="title_*" dest="allfields"/>
+  <copyField source="title_*" dest="title_search"/>
+  <copyField source="description_*" dest="allfields"/>
+  <copyField source="publisher_label" dest="allfields"/>
+  <copyField source="subject_*" dest="allfields"/>
+  <copyField source="alt_labels_ss" dest="allfields"/>
 
   <!-- ================================================
        Schema Configuration

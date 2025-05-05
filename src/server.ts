@@ -33,16 +33,26 @@ app.get("/health", async (req: Request, res: Response) => {
 });
 
 app.get("/search", async (req: Request, res: Response): Promise<void> => {
-  const query = (req.query.q as string) || "*:*";
+  // Read params
+  const rawQ = (req.query.q as string) || "";
+  const field = (req.query.field as string) || "allfields";
   const rows = parseInt((req.query.rows as string) || "10");
 
   // Building the query
-  const solrQueryBuilder = new SolrClient(config.solr.version).searchOperation;
-  console.log(`query => ${query}`);
+  const query = LuceneQuery.fromText(
+    rawQ,
+    field,
+    /* phraseBoost */ 3,
+    /* minTokenLength */ 2,
+  ).operator("OR");
+
   try {
+    const solrQueryBuilder = new SolrClient(config.solr.version)
+      .searchOperation;
+
     const results = await solrQueryBuilder
       .prepareSelect("bartoc")
-      .for(new LuceneQuery().term(query))
+      .for(query)
       .limit(rows)
       .execute<SolrSearchResponse>();
     res.json(results);
