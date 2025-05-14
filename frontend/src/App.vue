@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen flex flex-col items-center justify-start bg-gray-50 p-6">
-    <h1 class="text-3xl font-bold mb-8">BARTOC Search</h1>
-
+    <h1 class="text-3xl font-bold mb-8">BARTOC Search <small>prototype for testing</small></h1>
+    
     <!-- Import and use the SearchBar -->
     <SearchBar />
 
