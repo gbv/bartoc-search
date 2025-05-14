@@ -1,5 +1,4 @@
 # bartoc-search
-Prototype Search pipeline for indexing ndjosn data from MongoDB into Solr.
 
 
 ## 🗺️ System Diagram
@@ -23,11 +22,10 @@ graph TD
   C -->|Results| D
 ~~~
 
-# bartoc-search
 
 **bartoc-search** serves to extract JSKOS data from MongoDB, transform and load it into a Solr index for the future [BARTOC](https://bartoc.org) knowledge organization systems registry.
 
-## 📝 Project Goals
+## 📝 Project Goals (? needs review)
 
 * Provide a reliable pipeline to synchronize MongoDB data with Solr.
 * Allow flexible transformation and enrichment of JSKOS records.
