@@ -27,6 +27,9 @@
   
       <!-- Feedback messages -->
       <div v-if="loading" class="text-gray-500">Loading results...</div>
+      <div v-if="!loading && errorMessage" class="text-red-600 font-semibold">
+      ❗ {{ errorMessage }}
+      </div>
       <div v-if="!loading && results.length === 0 && hasSearched" class="text-red-500">No results found.</div>
 
       <VocabularyCard v-for="doc in results || []" :key="doc.id" :doc="doc" />
@@ -44,6 +47,7 @@
   const loading = ref(false)
   const hasSearched = ref(false)
   const selectedField = ref('allfields')
+  const errorMessage = ref<string | null>(null)
   
   async function onSearch() {
     const q = query.value.trim()
@@ -51,6 +55,7 @@
     const field = selectedField.value;
     loading.value = true
     hasSearched.value = true
+    errorMessage.value = null // clear any previous error
 
     try {
         // Call to bartoc-search backend
@@ -62,6 +67,7 @@
     } catch (error) {
       console.error('Search failed:', error)
       results.value = []
+      errorMessage.value = 'Search service is not reachable or returned an error.'
     } finally {
       loading.value = false
     }

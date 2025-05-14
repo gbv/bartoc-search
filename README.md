@@ -25,14 +25,14 @@ graph TD
 
 **bartoc-search** serves to extract JSKOS data from MongoDB, transform and load it into a Solr index for the future [BARTOC](https://bartoc.org) knowledge organization systems registry.
 
-## 📝 Project Goals (? needs review)
+## Project Goals (? needs review)
 
 * Provide a reliable pipeline to synchronize MongoDB data with Solr.
 * Allow flexible transformation and enrichment of JSKOS records.
 * Be fully event-driven (future versions) using MongoDB Change Streams.
 * Be professionally structured and fully tested.
 
-## 🏛️ Architecture
+## Architecture
 
 ```
 MongoDB (BARTOC Database) → bartoc-search ETL → Solr Index → Search frontend
@@ -44,7 +44,7 @@ The ETL process consists of:
 2. **Transform**: Validate and enrich JSKOS records (e.g., with labels from vocabularies).
 3. **Load**: Push the transformed data into a Solr index.
 
-## 🛠️ Technologies
+##  Technologies
 
 * Node.js + TypeScript
 * MongoDB with Mongoose
@@ -53,7 +53,7 @@ The ETL process consists of:
 * Docker & Docker Compose for containerization
 * Jest for unit and integration tests (?) -- no tests at the moment
 
-## 🚀 Installation
+##  Installation
 
 ### Prerequisites
 
@@ -75,7 +75,7 @@ cd bartoc-search
 npm install
 ```
 
-## 🐳 Docker Usage
+##  Docker Usage
 In the docker folder: 
 
 ```bash
@@ -92,7 +92,39 @@ This starts:
 So, we have four pieces, everything is configurable in `config/config.default.json`. 
 
 
-## 🏃 Usage
+
+### CI/CD: Docker Image Publishing
+
+This project uses GitHub Actions to automatically build and publish Docker images to GitHub Container Registry (GHCR) at `ghcr.io/gbv/bartoc-search`.
+
+
+#### When does it run?
+The workflow triggers automatically:
+- on every push to `master`, `dev`, or `test` branches
+- when pushing a git tag starting with `v` (e.g., `v1.0.0`)
+- ignores commits that only modify documentation, GitHub workflows, config, or meta files
+
+#### How does it work?
+1. The repository is checked out.
+2. Docker image tags are generated based on branch name, PR reference, or semver version tags.
+3. Docker image is built using `docker/Dockerfile`.
+4. The image is pushed to `ghcr.io/gbv/bartoc-search` with multiple tags:
+    - Branch name tag (e.g., `dev`, `master`)
+    - PR reference tag (for preview images)
+    - Semver tags (e.g., `v1.0.0`, `v1.0`, `v1`)
+
+#### Example published images (?)
+- ghcr.io/gbv/bartoc-search:v1.0.0
+- ghcr.io/gbv/bartoc-search:master
+- ghcr.io/gbv/bartoc-search:dev
+
+#### Notes
+- The image is always built with the latest base image (`pull: true` is enabled).
+- Authentication uses GitHub's `GITHUB_TOKEN` and requires no manual secrets.
+
+
+
+##  Usage
 
 The ETL pipeline can be executed  via the dockerized setup. The workflow is composed of the following stages:
 
@@ -130,14 +162,14 @@ When the Docker environment is started, an NDJSON dataset is automatically impor
 This option defines whether the existing data in the `terminologies` collection of MongoDB should be immediately indexed into Solr when the `bartoc-search` service starts. When enabled (true), the system will automatically trigger the full ETL pipeline at startup to ensure the Solr index reflects the current database contents. This is particularly useful for development or testing environments, but can be deactivated (false) in production systems where indexing is triggered externally or on-demand.
 
 
-## 📦 Features
+##  Features
 
 * MongoDB connection handling
 * Solr client with retry logic and batching
 * Modular commands: `extract`, `enrich`, `load` (?)
 * Frontend 
 
-## 🧩 Planned Features (Roadmap)
+##  Planned Features (Roadmap)
 
 * MongoDB Change Streams for live extraction (?)
 * Web UI monitoring with Vue.js frontend

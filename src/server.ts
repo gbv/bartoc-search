@@ -57,7 +57,11 @@ app.get("/search", async (req: Request, res: Response): Promise<void> => {
       .execute<SolrSearchResponse>();
     res.json(results);
   } catch (error) {
-    res.status(500).json({ error: "Solr query failed" });
+    console.error("Solr query failed:", error);
+    res.status(500).json({
+      error: "Solr query failed",
+      details: (error as Error).message || "Unknown error",
+    });
   }
 });
 
