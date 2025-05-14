@@ -23,7 +23,7 @@
   },
   "port": 3000,
   "proxies": [],
-  "title": "ETL for Bartoc",
+  "title": "Search for Bartoc",
   "verbosity": "log",
   "version": null
 }

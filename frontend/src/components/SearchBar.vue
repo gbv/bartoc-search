@@ -53,7 +53,7 @@
     hasSearched.value = true
 
     try {
-        // Call to bartoc-etl backend
+        // Call to bartoc-search backend
       const res = await axios.get(`http://localhost:3000/search`, {
         params: { q, field },
       })

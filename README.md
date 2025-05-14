@@ -1,5 +1,5 @@
-# bartoc-etl
-Prototype ETL pipeline for indexing Bartoc data from MongoDB into Solr.
+# bartoc-search
+Prototype Search pipeline for indexing Bartoc data from MongoDB into Solr.
 
 
 ~~~mermaid

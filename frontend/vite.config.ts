@@ -18,7 +18,7 @@ export default defineConfig({
     port: 5173,
     strictPort: true,
     proxy: {
-      // tutte le chiamate a /api verranno inoltrate al backend (etl)
+      // tutte le chiamate a /api verranno inoltrate al backend
       '/api': {
         target: 'http://etl:3000',
         changeOrigin: true,

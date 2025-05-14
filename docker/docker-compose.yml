@@ -11,11 +11,11 @@ services:
     environment:
       - NODE_ENV=development
     command: npm run dev -- --host
-  etl:
+  backend:
     build:
       context: ..
       dockerfile: docker/Dockerfile
-    container_name: bartoc-etl
+    container_name: bartoc-search
     volumes:
       - ../:/usr/src/app
       - /usr/src/app/node_modules
