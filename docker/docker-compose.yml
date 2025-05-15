@@ -1,16 +1,4 @@
 services:
-  frontend:
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile.frontend 
-    container_name: bartoc-frontend
-    volumes:
-      - ../frontend:/app
-    ports:
-      - "5173:5173"
-    environment:
-      - NODE_ENV=development
-    command: npm run dev -- --host
   bartoc-search:
     build:
       context: ..

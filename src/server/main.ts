@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import morgan from "morgan";
-import cors from "cors";
+import path from "path";
 import portfinder from "portfinder";
 import config from "./conf/conf";
 import { connection } from "mongoose";
@@ -14,14 +14,11 @@ app
   .disable("x-powered-by")
   .use(morgan("dev"))
   .use(express.urlencoded({ extended: true }))
-  .use(express.json())
-  .use(
-    cors({
-      origin: "http://localhost:5173",
-      methods: ["GET", "POST"],
-    }),
-  );
+  .use(express.json());
 
+// ==========================
+// Health check
+// ==========================
 app.get("/health", async (req: Request, res: Response) => {
   const solrHealthy = solr.isSolrReady();
 
@@ -32,6 +29,9 @@ app.get("/health", async (req: Request, res: Response) => {
   });
 });
 
+// ==========================
+// Search endpoint
+// ==========================
 app.get("/search", async (req: Request, res: Response): Promise<void> => {
   // Read params
   const rawQ = (req.query.q as string) || "";
@@ -39,12 +39,7 @@ app.get("/search", async (req: Request, res: Response): Promise<void> => {
   const rows = parseInt((req.query.rows as string) || "10");
 
   // Building the query
-  const query = LuceneQuery.fromText(
-    rawQ,
-    field,
-    /* phraseBoost */ 3,
-    /* minTokenLength */ 2,
-  ).operator("OR");
+  const query = LuceneQuery.fromText(rawQ, field, 3, 2).operator("OR");
 
   try {
     const solrQueryBuilder = new SolrClient(config.solr.version)
@@ -65,6 +60,9 @@ app.get("/search", async (req: Request, res: Response): Promise<void> => {
   }
 });
 
+// ==========================
+// Start server
+// ==========================
 export const startServer = async () => {
   if (config.env == "test") {
     portfinder.basePort = config.port;

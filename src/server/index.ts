@@ -1,4 +1,4 @@
-import { startServer } from "./server";
+import { startServer } from "../server/main";
 import * as db from "./mongo/mongo";
 import * as solr from "./solr/solr";
 import { watchTerminologies } from "./mongo/watchTerminologies";
