@@ -11,7 +11,7 @@ services:
     environment:
       - NODE_ENV=development
     command: npm run dev -- --host
-  backend:
+  bartoc-search:
     build:
       context: ..
       dockerfile: docker/Dockerfile
@@ -27,7 +27,6 @@ services:
     environment:
       - NODE_ENV=development
       - CONFIG_FILE=./config/config.json
-    # command: npx nodemon
     working_dir: /usr/src/app
 
   mongo:
