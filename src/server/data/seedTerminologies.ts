@@ -1,4 +1,4 @@
-import { connect } from "..//mongo/mongo";
+import { connect } from "../mongo/mongo";
 import { Terminology } from "../models/terminology";
 import { faker } from "@faker-js/faker";
 import config from "../conf/conf";

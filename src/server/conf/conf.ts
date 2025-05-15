@@ -5,7 +5,7 @@ import path from "path";
 import type { AppConfig, Verbosity } from "../types/conf";
 import { loadConfig } from "../utils/loadConfig";
 
-import packageInfo from "../../package.json";
+import packageInfo from "../../../package.json";
 
 // Prepare environment
 dotenv.config();

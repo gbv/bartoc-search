@@ -51,8 +51,8 @@
 </template>
 
 <script setup lang="ts">
-import type { SolrDocument } from "./../../../src/types/solr"
-import { SupportedLang } from "./../../../src/types/lang"
+import type { SolrDocument } from "../../../src/server/types/solr"
+import { SupportedLang } from "../../../src/server/types/lang"
 import { computed } from "vue"
 
 const props = defineProps<{ doc: SolrDocument; lang?: SupportedLang }>()
