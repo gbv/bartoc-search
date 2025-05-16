@@ -5,7 +5,7 @@ FROM node:23-alpine
 WORKDIR /usr/src/app
 
 # Copy config files and dependencies
-COPY package*.json tsconfig.json ./
+COPY package*.json tsconfig.json tsconfig.node.json vite.config.ts ./
 COPY nodemon.json ./
 
 # Install dependencies (included dev dependencies)
