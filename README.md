@@ -5,23 +5,36 @@
 
 ~~~mermaid
 graph TD
-  subgraph Backend
-    A[(🍃 MongoDB :27017)]
-    B[[⚙️ ETL search service :3000]]
-    C[(🔎 Solr Index :8983)]
+  Solr[(🔎 Solr Index)]
+  DB[(🍃 BARTOC database)]
+  subgraph search service [ ]
+    direction TB
+    Server[⚙️ Search service]
+    Client[🖥️ Vue Client]
+  end
+  Client[🖥️ Vue Client]
+
+  subgraph Frontend [ ]
+    direction TB
+    User[👤 User]
   end
 
-  subgraph Frontend
-    D[[🖥️ Bartoc Frontend App :5173]]
+  subgraph "API Consumers"
+    direction TB
+    Applications[Applications]
   end
 
-  A -->|Extract initial load| B
-  A -- Change Stream --> B
-  B -->|Transform and Load| C
-  D -->|Query| C
-  C -->|Results| D
+  %% FLOWS %%
+  DB -- "Extract initial load" --> Server
+  DB <-- "Watching Streams"        --> Server
+
+  Server -->|Transform and Load| Solr
+  Solr   -->|Indexing         | Server
+
+  Server <--> Client
+  Client -- "Browser" --> User
+  Server -- "API"     --> Applications
 ~~~
-
 
 **bartoc-search** serves to extract JSKOS data from MongoDB, transform and load it into a Solr index for the future [BARTOC](https://bartoc.org) knowledge organization systems registry.
 
@@ -35,7 +48,7 @@ graph TD
 ## Architecture
 
 ```
-MongoDB (BARTOC Database) → bartoc-search ETL → Solr Index → Search frontend
+MongoDB (BARTOC Database) → bartoc-search server → Solr Index → Search frontend
 ```
 
 The ETL process consists of:
@@ -52,6 +65,19 @@ The ETL process consists of:
 * Vite for build tooling
 * Docker & Docker Compose for containerization
 * Jest for unit and integration tests (?) -- no tests at the moment
+
+## Bootstrapping the Architecture
+
+The search application architecture has been initialized using a combination of community-supported templates and official Vite SSR guidance:
+
+- **SSR Template:**  
+  Bootstrapped from the [create-vite-extra SSR Vue TS template](https://github.com/bluwy/create-vite-extra/tree/master/template-ssr-vue-ts), which provides a ready-to-use setup for server-side rendering with Vue 3 and TypeScript.
+  
+- **Vite SSR Dev Server:**  
+  Configured following the Vite official guide on setting up the SSR development server, enabling seamless hot module replacement and middleware integration – see [Vite SSR Guide](https://vite.dev/guide/ssr.html#setting-up-the-dev-server).
+  
+
+This combination ensures a modern, high-performance development workflow with SSR capabilities out of the box.
 
 ##  Installation
 
@@ -87,11 +113,160 @@ This starts:
 * MongoDB (`mongo`) at localhost:27017
 * Solr (`solr`) at localhost:8983
 * bartoc-search app (`search`) at localhost:3000
-* frontend app at localhost:5173
 
-So, we have four pieces, everything is configurable in `config/config.default.json`. 
+So, we have three pieces, everything is configurable in `config/config.default.json`. 
+
+## API Overview
+
+This service exposes three HTTP endpoints:
+
+- **`GET /`** – Root endpoint, returns the Vue Client.
+- **`GET /search`** – Search endpoint, accepts query parameters and returns matching results in json format.
+- **`GET /health`** – Health-check endpoint, returns service status about mongoDb and Solr connection.
+
+All endpoints respond with JSON and use standard HTTP status codes.
 
 
+---
+
+## Endpoints
+
+### 1. `GET /`
+
+#### Description
+
+Returns Vue Client
+
+---
+
+2. `GET /search`
+
+#### Description
+
+Executes a search query against the Solr index, returning results along with query metrics.
+
+#### Query Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `q` | string | yes | Solr query string (e.g., `*:*` for all documents). |
+| `start` | integer | no  | Zero-based offset into result set (default: `0`). |
+| `rows` | integer | no  | Number of results to return (default: `10`). |
+| `wt` | string | no  | Response writer type (default: `json`). |
+
+#### Request Example
+
+```http
+GET /search?q=*:*&start=0&rows=10&wt=json HTTP/1.1
+Host: api.example.com
+Accept: application/json
+```
+
+#### Response
+
+- **Status:** `200 OK`
+- **Body:**
+  
+  ```json
+  {
+    "responseHeader": {
+      "status": 0,
+      "QTime": 3,
+      "params": {
+        "q": "*:*",
+        "defType": "lucene",
+        "start": "0",
+        "rows": "10",
+        "wt": "json"
+      }
+    },
+    "response": {
+      "numFound": 3684,
+      "start": 0,
+      "numFoundExact": true,
+      "docs": [
+        {
+          "id": "http://bartoc.org/en/node/10",
+          "title_en": "Australian Public Affairs Information Service Thesaurus",
+          "description_en": "The APAIS thesaurus lists the subject terms used to index articles for APAIS...",
+          "publisher_label": "National Library of Australia",
+          "created_dt": "2013-08-14T10:23:00Z",
+          "modified_dt": "2021-02-10T10:31:55.487Z"
+        },
+        {
+          "id": "http://bartoc.org/en/node/100",
+          "title_en": "The Institute of Electrical and Electronics Engineers Thesaurus",
+          "description_en": "The IEEE Thesaurus is a controlled vocabulary of over 9,000 descriptive terms...",
+          "publisher_label": "Institute of Electrical and Electronics Engineers",
+          "created_dt": "2013-09-02T14:17:00Z",
+          "modified_dt": "2019-04-23T15:50:00Z"
+        }
+        // …more documents…
+      ]
+    }
+  }
+  ```
+  
+
+#### Response Fields
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `responseHeader.status` | integer | Solr execution status (0 = success). |
+| `responseHeader.QTime` | integer | Query execution time in milliseconds. |
+| `responseHeader.params` | object | Echoes back the parameters used for the query. |
+| `response.numFound` | integer | Total number of matching documents. |
+| `response.start` | integer | Offset into the result set. |
+| `response.numFoundExact` | boolean | Indicates if `numFound` is an exact count. |
+| `response.docs` | array | Array of document objects matching the query. |
+| └─ `id` | string | Unique document identifier (URI). |
+| └─ `title_en` | string | English title of the thesaurus or concept scheme. |
+| └─ `description_en` | string | Short English description or abstract. |
+| └─ `publisher_label` | string | Label of the publishing organization. |
+| └─ `created_dt` | string | Creation timestamp (ISO-8601). |
+| └─ `modified_dt` | string | Last modification timestamp (ISO-8601). |
+
+#### Error Responses
+TBA
+  
+---
+### 3. `GET /health`
+
+#### Description
+
+Performs a basic health check of the service and its dependencies.
+
+#### Request
+
+```http
+GET /health HTTP/1.1
+Host: api.example.com
+Accept: application/json
+```
+
+#### Response
+
+- **Status:** `200 OK`
+- **Body:**
+  
+  ```json
+  {
+    "ok": true,
+    "mongoConnected": true,
+    "solrConnected": false
+  }
+  ```
+  
+
+#### Fields
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `ok` | boolean | Overall service health (`true` = healthy, `false` = degraded). |
+| `mongoConnected` | boolean | Indicates if the API can successfully connect to MongoDB. |
+| `solrConnected` | boolean | Indicates if the API can successfully connect to Solr. |
+
+---
 
 ### CI/CD: Docker Image Publishing
 
@@ -181,7 +356,6 @@ This option defines whether the existing data in the `terminologies` collection 
 * Tests must be provided for new features
 
 
-## Comments on Solr schema
 ## Comments on Solr schema
 
 This document explains the design decisions and structure of the Solr schema used in the bartoc-search project. The schema has been firstly designed to balance flexibility, multilingual content handling, and optimized full-text search across structured and unstructured data.
