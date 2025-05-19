@@ -7,9 +7,9 @@ services:
     volumes:
       - ../:/usr/src/app
       - /usr/src/app/node_modules
-    network_mode: host
     ports:
-      - "3000:3000"
+      - "3000:3000"     # HTTP
+      - "24678:24678"   # HMR WebSocket
     depends_on:
       - mongo
       - solr
