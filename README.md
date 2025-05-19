@@ -1,85 +1,20 @@
-# bartoc-search
+# BARTOC Search
 
+> Experimental BARTOC Search engine with indexing pipeline and discovery interface
 
-## 🗺️ System Diagram
+This application extracts JSKOS data with metadata about terminologies from [BARTOC](https://bartoc.org) knowledge organization systems registry (managed in [jskos-server](https://github.com/gbv/jskos-server) / MongoDB), transforms and enriches the data and loads in into a [Solr](https://solr.apache.org/) search index. The index is then made available via a search API and an experimental discovery interface.
 
-~~~mermaid
-graph TD
-  Solr[(🔎 Solr Index)]
-  DB[(🍃 BARTOC database)]
-  subgraph search service [ ]
-    direction TB
-    Server[⚙️ Search service]
-    Client[🖥️ Vue Client]
-  end
-  Client[🖥️ Vue Client]
+## Table of Contents
 
-  subgraph Frontend [ ]
-    direction TB
-    User[👤 User]
-  end
+- [Install](#install)
+- [Usage](#usage)
+- [API](#api)
+- [Development](#development)
+- [Maintainers](#maintainers)
+- [License](#license)
+- [System Diagram](#system-diagram)
 
-  subgraph "API Consumers"
-    direction TB
-    Applications[Applications]
-  end
-
-  %% FLOWS %%
-  DB -- "Extract initial load" --> Server
-  DB <-- "Watching Streams"        --> Server
-
-  Server -->|Transform and Load| Solr
-  Solr   -->|Indexing         | Server
-
-  Server <--> Client
-  Client -- "Browser" --> User
-  Server -- "API"     --> Applications
-~~~
-
-**bartoc-search** serves to extract JSKOS data from MongoDB, transform and load it into a Solr index for the future [BARTOC](https://bartoc.org) knowledge organization systems registry.
-
-## Project Goals (? needs review)
-
-* Provide a reliable pipeline to synchronize MongoDB data with Solr.
-* Allow flexible transformation and enrichment of JSKOS records.
-* Be fully event-driven (future versions) using MongoDB Change Streams.
-* Be professionally structured and fully tested.
-
-## Architecture
-
-```
-MongoDB (BARTOC Database) → bartoc-search server → Solr Index → Search frontend
-```
-
-The ETL process consists of:
-
-1. **Extract**: Connect to MongoDB and extract JSKOS data from the `terminologies` collection.
-2. **Transform**: Validate and enrich JSKOS records (e.g., with labels from vocabularies).
-3. **Load**: Push the transformed data into a Solr index.
-
-##  Technologies
-
-* Node.js + TypeScript
-* MongoDB with Mongoose
-* Solr (sketched a minimal `solr-client`)
-* Vite for build tooling
-* Docker & Docker Compose for containerization
-* Jest for unit and integration tests (?) -- no tests at the moment
-
-## Bootstrapping the Architecture
-
-The search application architecture has been initialized using a combination of community-supported templates and official Vite SSR guidance:
-
-- **SSR Template:**  
-  Bootstrapped from the [create-vite-extra SSR Vue TS template](https://github.com/bluwy/create-vite-extra/tree/master/template-ssr-vue-ts), which provides a ready-to-use setup for server-side rendering with Vue 3 and TypeScript.
-  
-- **Vite SSR Dev Server:**  
-  Configured following the Vite official guide on setting up the SSR development server, enabling seamless hot module replacement and middleware integration – see [Vite SSR Guide](https://vite.dev/guide/ssr.html#setting-up-the-dev-server).
-  
-
-This combination ensures a modern, high-performance development workflow with SSR capabilities out of the box.
-
-##  Installation
+## Install
 
 ### Prerequisites
 
@@ -88,35 +23,21 @@ This combination ensures a modern, high-performance development workflow with SS
 * Solr instance with configured schema
 * Docker & Docker Compose (optional but recommended)
 
-### Clone Repository
+### Fetch Repository or Docker image
+
+A docker image [is published](https://github.com/orgs/gbv/packages/container/package/bartoc-search) on every push on branches `main` and `dev` and  when pushing a git tag starting with `v` (e.g., `v1.0.0`). Commits are ignored if they only modify documentation, GitHub workflows, config, or meta files.
+
+See `docker-compose.yml` in the `docker` directory for usage.
+
+Alternatively run from sources:
 
 ```bash
 git clone https://github.com/gbv/bartoc-search.git
 cd bartoc-search
-```
-
-### Install Dependencies
-
-```bash
 npm install
 ```
 
-##  Docker Usage
-In the docker folder: 
-
-```bash
-docker-compose up --build
-```
-
-This starts:
-
-* MongoDB (`mongo`) at localhost:27017
-* Solr (`solr`) at localhost:8983
-* bartoc-search app (`search`) at localhost:3000
-
-So, we have three pieces, everything is configurable in `config/config.default.json`. 
-
-## API Overview
+## API
 
 This service exposes three HTTP endpoints:
 
@@ -126,22 +47,11 @@ This service exposes three HTTP endpoints:
 
 All endpoints respond with JSON and use standard HTTP status codes.
 
+### GET
 
----
+Returns the discovery interface in form of an HTML page with the experimental Vue client.
 
-## Endpoints
-
-### 1. `GET /`
-
-#### Description
-
-Returns Vue Client
-
----
-
-2. `GET /search`
-
-#### Description
+### GET /search
 
 Executes a search query against the Solr index, returning results along with query metrics.
 
@@ -206,7 +116,6 @@ Accept: application/json
     }
   }
   ```
-  
 
 #### Response Fields
 
@@ -229,10 +138,7 @@ Accept: application/json
 #### Error Responses
 TBA
   
----
-### 3. `GET /health`
-
-#### Description
+### GET /health
 
 Performs a basic health check of the service and its dependencies.
 
@@ -266,40 +172,21 @@ Accept: application/json
 | `mongoConnected` | boolean | Indicates if the API can successfully connect to MongoDB. |
 | `solrConnected` | boolean | Indicates if the API can successfully connect to Solr. |
 
----
+## Usage
 
-### CI/CD: Docker Image Publishing
+To run from the `docker` directory:
 
-This project uses GitHub Actions to automatically build and publish Docker images to GitHub Container Registry (GHCR) at `ghcr.io/gbv/bartoc-search`.
+```bash
+docker-compose up --build
+```
 
+This starts:
 
-#### When does it run?
-The workflow triggers automatically:
-- on every push to `master`, `dev`, or `test` branches
-- when pushing a git tag starting with `v` (e.g., `v1.0.0`)
-- ignores commits that only modify documentation, GitHub workflows, config, or meta files
+* MongoDB (`mongo`) at localhost:27017
+* Solr (`solr`) at localhost:8983
+* bartoc-search app (`search`) at localhost:3000
 
-#### How does it work?
-1. The repository is checked out.
-2. Docker image tags are generated based on branch name, PR reference, or semver version tags.
-3. Docker image is built using `docker/Dockerfile`.
-4. The image is pushed to `ghcr.io/gbv/bartoc-search` with multiple tags:
-    - Branch name tag (e.g., `dev`, `master`)
-    - PR reference tag (for preview images)
-    - Semver tags (e.g., `v1.0.0`, `v1.0`, `v1`)
-
-#### Example published images (?)
-- ghcr.io/gbv/bartoc-search:v1.0.0
-- ghcr.io/gbv/bartoc-search:master
-- ghcr.io/gbv/bartoc-search:dev
-
-#### Notes
-- The image is always built with the latest base image (`pull: true` is enabled).
-- Authentication uses GitHub's `GITHUB_TOKEN` and requires no manual secrets.
-
-
-
-##  Usage
+So, we have three pieces, everything is configurable in `config/config.default.json`. 
 
 The ETL pipeline can be executed  via the dockerized setup. The workflow is composed of the following stages:
 
@@ -336,15 +223,86 @@ When the Docker environment is started, an NDJSON dataset is automatically impor
 ```
 This option defines whether the existing data in the `terminologies` collection of MongoDB should be immediately indexed into Solr when the `bartoc-search` service starts. When enabled (true), the system will automatically trigger the full ETL pipeline at startup to ensure the Solr index reflects the current database contents. This is particularly useful for development or testing environments, but can be deactivated (false) in production systems where indexing is triggered externally or on-demand.
 
+## Development
 
-##  Features
+### System Diagram
+
+~~~mermaid
+graph TD
+  Solr[(🔎 Solr Index)]
+  DB[(🍃 BARTOC database)]
+  subgraph search service [ ]
+    direction TB
+    Server[⚙️ Search service]
+    Client[🖥️ Vue Client]
+  end
+  Client[🖥️ Vue Client]
+
+  User[👤 User]
+
+  Applications
+
+  %% FLOWS %%
+  DB -- "Extract initial load" --> Server
+  DB <-- "Watching Streams"        --> Server
+
+  Server -->|Transform and Load| Solr
+  Solr   -->|Indexing         | Server
+
+  Server <--> Client
+  Client -- "Browser" --> User
+  Server -- "API"     --> Applications
+~~~
+
+
+### Project Goals
+
+* Provide a reliable pipeline to synchronize BARTOC database with a Solr index
+* Enrich data before to improve search
+* Experiment with relevance ranking and facetted search
+
+### Architecture
+
+```
+JSKOS Server / MongoDB (BARTOC Database) → bartoc-search server → Solr Index → Search frontend
+```
+
+The ETL process consists of:
+
+1. **Extract**: Connect to MongoDB and extract JSKOS data from the `terminologies` collection.
+2. **Transform**: Validate and enrich JSKOS records (e.g., with labels from vocabularies).
+3. **Load**: Push the transformed data into a Solr index.
+
+###  Technologies
+
+* Node.js + TypeScript
+* MongoDB with Mongoose
+* Solr (sketched a minimal `solr-client`)
+* Vite for build tooling
+* Docker & Docker Compose for containerization
+* Jest for unit and integration tests (?) -- no tests at the moment
+
+### Bootstrapping the Architecture
+
+The search application architecture has been initialized using a combination of community-supported templates and official Vite SSR guidance:
+
+- **SSR Template:**  
+  Bootstrapped from the [create-vite-extra SSR Vue TS template](https://github.com/bluwy/create-vite-extra/tree/master/template-ssr-vue-ts), which provides a ready-to-use setup for server-side rendering with Vue 3 and TypeScript.
+  
+- **Vite SSR Dev Server:**  
+  Configured following the Vite official guide on setting up the SSR development server, enabling seamless hot module replacement and middleware integration – see [Vite SSR Guide](https://vite.dev/guide/ssr.html#setting-up-the-dev-server).
+  
+
+This combination ensures a modern, high-performance development workflow with SSR capabilities out of the box.
+
+###  Features
 
 * MongoDB connection handling
 * Solr client with retry logic and batching
 * Modular commands: `extract`, `enrich`, `load` (?)
 * Frontend 
 
-##  Planned Features (Roadmap)
+###  Planned Features (Roadmap)
 
 * MongoDB Change Streams for live extraction (?)
 * Web UI monitoring with Vue.js frontend
@@ -355,8 +313,7 @@ This option defines whether the existing data in the `terminologies` collection 
 * Use ESLint and Prettier (`npm run lint`)
 * Tests must be provided for new features
 
-
-## Comments on Solr schema
+### Comments on Solr schema
 
 This document explains the design decisions and structure of the Solr schema used in the bartoc-search project. The schema has been firstly designed to balance flexibility, multilingual content handling, and optimized full-text search across structured and unstructured data.
 
@@ -430,3 +387,13 @@ The following example illustrates a typical Solr document indexed in the bartoc-
     "_version_":1832086555959754752}
 }
 ```
+
+## Maintainers
+
+- [@rodolv-commons](https://github.com/rodolv-commons)
+- [@nichtich](https://github.com/nichtich)
+
+## License
+
+MIT © 2025- Verbundzentrale des GBV (VZG)
+
