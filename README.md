@@ -9,10 +9,12 @@ This application extracts JSKOS data with metadata about terminologies from [BAR
 - [Install](#install)
 - [Usage](#usage)
 - [API](#api)
+  - [GET /](#get)
+  - [GET /search](#get-search)
+  - [GET /status](#get-status)
 - [Development](#development)
 - [Maintainers](#maintainers)
 - [License](#license)
-- [System Diagram](#system-diagram)
 
 ## Install
 
@@ -41,13 +43,13 @@ npm install
 
 This service exposes three HTTP endpoints:
 
-- **`GET /`** – Root endpoint, returns the Vue Client.
-- **`GET /search`** – Search endpoint, accepts query parameters and returns matching results in json format.
-- **`GET /health`** – Health-check endpoint, returns service status about mongoDb and Solr connection.
+- **[GET /](#get)** – Root endpoint, returns the Vue Client.
+- **[GET /search](#get-search)** – Search endpoint, accepts query parameters and returns matching results in json format.
+- **[GET /status](#get-status)** – Health-check endpoint, returns service status about mongoDb and Solr connection.
 
 All endpoints respond with JSON and use standard HTTP status codes.
 
-### GET
+### GET /
 
 Returns the discovery interface in form of an HTML page with the experimental Vue client.
 
@@ -138,14 +140,14 @@ Accept: application/json
 #### Error Responses
 TBA
   
-### GET /health
+### GET /status
 
 Performs a basic health check of the service and its dependencies.
 
 #### Request
 
 ```http
-GET /health HTTP/1.1
+GET /status HTTP/1.1
 Host: api.example.com
 Accept: application/json
 ```

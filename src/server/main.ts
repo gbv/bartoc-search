@@ -49,7 +49,7 @@ if (!isProduction) {
 // ==========================
 // Health check
 // ==========================
-app.get("/health", async (req: Request, res: Response) => {
+app.get("/status", async (req: Request, res: Response) => {
   const solrHealthy = solr.isSolrReady();
 
   res.json({
