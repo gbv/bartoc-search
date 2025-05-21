@@ -1,0 +1,4 @@
+#!/usr/bin/env sh
+. "$(dirname "$0")/h"
+
+npm run lint && npm run lint-staged
