@@ -2,15 +2,13 @@ import express, { Request, Response } from "express";
 import morgan from "morgan";
 import portfinder from "portfinder";
 import config from "./conf/conf";
-import mongoose from "mongoose";
-import * as solr from "./solr/solr";
 import { SolrClient } from "./solr/SolrClient";
 import { SolrSearchResponse } from "./types/solr";
 import { LuceneQuery } from "./solr/search/LuceneQuery";
 import type { ViteDevServer } from "vite";
 import fs from "node:fs/promises";
+import { getStatus } from "./routes/status.js";
 
-const { connection } = mongoose;
 const isProduction = process.env.NODE_ENV === "production";
 const base = process.env.BASE || "/";
 
@@ -49,15 +47,7 @@ if (!isProduction) {
 // ==========================
 // Health check
 // ==========================
-app.get("/status", async (req: Request, res: Response) => {
-  const solrHealthy = solr.isSolrReady();
-
-  res.json({
-    ok: true,
-    mongoConnected: connection.readyState === 1,
-    solrConnected: solrHealthy,
-  });
-});
+app.get("/status", getStatus);
 
 // ==========================
 // Search endpoint

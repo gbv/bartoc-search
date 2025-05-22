@@ -81,10 +81,74 @@ export interface CollectionOperationQueryParams {
 }
 
 export interface SolrSearchResponse {
+  responseHeader: {
+    status: number;
+    QTime: number;
+    params: Record<string, string>;
+  };
   response: {
     numFound: number;
     start: number;
     docs: SolrDocument[];
+    numFoundExact?: boolean;
   };
+  stats?: SolrStats;
   // Optionally facets, spellcheck etc.
+}
+
+/**
+ * Details provided when Solr returns an error.
+ */
+export interface SolrErrorDetail {
+  /** Metadata about the error (e.g. exception classes). */
+  metadata: string[];
+  /** The main error message from Solr. */
+  msg: string;
+  /** HTTP-style error code returned by Solr (e.g. 400). */
+  code: number;
+  /** Any additional fields returned by Solr’s error payload. */
+  [key: string]: unknown;
+}
+
+/**
+ * A Solr response when an error occurs.
+ */
+export interface SolrErrorResponse {
+  responseHeader: {
+    status: number;
+    QTime: number;
+    params: Record<string, string>;
+  };
+  /** The error object describing what went wrong. */
+  error: SolrErrorDetail;
+}
+
+/**
+ * Union type for any Solr response: either a successful search or an error.
+ */
+export type SolrResponse = SolrSearchResponse | SolrErrorResponse;
+
+export interface SolrStatsField {
+  min?: string | number;
+  max?: string | number;
+  sum?: number;
+  sumOfSquares?: number;
+  mean?: number;
+  stddev?: number;
+  count?: number;
+  missing?: number;
+  [key: string]: unknown; // allow extra stats fields if Solr adds more
+}
+
+export interface SolrStats {
+  stats_fields: {
+    [fieldName: string]: SolrStatsField;
+  };
+}
+
+export interface SolrStatusResult {
+  connected: boolean;
+  indexedRecords: number;
+  lastUpdate: SolrStatsField["max"] | null;
+  firstUpdate: SolrStatsField["min"] | null;
 }

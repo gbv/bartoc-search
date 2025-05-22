@@ -14,8 +14,13 @@ import {
 } from "../mongo/terminologySchemaValidation";
 import { NkosZodTypeConcept, nKosTypeConceptSchema } from "./nkosValidation";
 import readAndValidateNdjson from "../utils/loadNdJson";
+import {
+  SolrResponse,
+  SolrSearchResponse,
+  SolrErrorResponse,
+} from "../types/solr";
+import { AxiosError } from "axios";
 
-let initialized = false;
 const solr = new SolrClient(config.solr.version);
 
 export async function connectToSolr(): Promise<void> {
@@ -36,8 +41,6 @@ export async function connectToSolr(): Promise<void> {
     //TODO List available cores?
 
     //TODO Optional: Check configsets (advanced)
-
-    initialized = true;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     config.error?.("❌ Failed to initialize Solr:", message);
@@ -83,8 +86,41 @@ export async function indexDataAtBoot(): Promise<void> {
   }
 }
 
-export function isSolrReady(): boolean {
-  return initialized;
+export async function solrStatus(): Promise<SolrResponse> {
+  try {
+    const solrClient = new SolrClient(config.solr.version);
+
+    const solrQuery = solrClient.searchOperation
+      .prepareSelect("bartoc")
+      .limit(0)
+      .stats(true)
+      .statsField("modified_dt")
+      .for({ toString: () => "*:*", getDefType: () => "lucene" });
+
+    const result = await solrQuery.execute<SolrSearchResponse>();
+    return result;
+  } catch (error: unknown) {
+    // If it's an AxiosError with a SolrErrorResponse payload, return it
+    if (error instanceof AxiosError && error.response?.data) {
+      return error.response.data as SolrErrorResponse;
+    }
+
+    // Otherwise wrap any other failure in a minimal SolrErrorResponse
+    const msg = error instanceof Error ? error.message : String(error);
+    const fallback: SolrErrorResponse = {
+      responseHeader: {
+        status: 500,
+        QTime: 0,
+        params: {},
+      },
+      error: {
+        metadata: [],
+        msg,
+        code: 500,
+      },
+    };
+    return fallback;
+  }
 }
 
 export async function extractAllAndSendToSolr(

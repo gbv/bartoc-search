@@ -16,6 +16,8 @@ export class SearchOperation extends SolrRequest {
   private _q: SearchQuery = new LuceneQuery();
   private _collection = "";
   private _requesthandler = "";
+  private _stats: boolean = false;
+  private _statsField: string | null = null;
 
   /**
    * @param {number} apiVersion : the version of the Solr server
@@ -23,6 +25,16 @@ export class SearchOperation extends SolrRequest {
    */
   constructor(private apiVersion: number) {
     super();
+  }
+
+  public stats(enable: boolean): SearchOperation {
+    this._stats = enable;
+    return this;
+  }
+
+  public statsField(field: string): SearchOperation {
+    this._statsField = field;
+    return this;
   }
 
   /**
@@ -123,6 +135,13 @@ export class SearchOperation extends SolrRequest {
 
     if (this._start !== undefined) {
       params.start = this._start;
+    }
+
+    if (this._stats) {
+      params.stats = true;
+    }
+    if (this._statsField) {
+      params["stats.field"] = this._statsField;
     }
 
     // Multiple fq
