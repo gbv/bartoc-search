@@ -1,5 +1,7 @@
 # BARTOC Search
 
+[![Test](https://github.com/gbv/bartoc-search/actions/workflows/test.yml/badge.svg)](https://github.com/gbv/bartoc-search/actions/workflows/test.yml)
+
 > Experimental BARTOC Search engine with indexing pipeline and discovery interface
 
 This application extracts JSKOS data with metadata about terminologies from [BARTOC](https://bartoc.org) knowledge organization systems registry (managed in [jskos-server](https://github.com/gbv/jskos-server) / MongoDB), transforms and enriches the data and loads in into a [Solr](https://solr.apache.org/) search index. The index is then made available via a search API and an experimental discovery interface.
