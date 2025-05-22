@@ -162,7 +162,7 @@ GET /status
   "solr": {
     "connected": true,
     "indexedRecords": 3684,
-    "lastIndexedAt": "2025-05-22T09:45:17.794Z"
+    "lastIndexedAt"	"May 22, 2025, 2:14:00 PM UTC"
   }
 }
 ```
@@ -173,11 +173,11 @@ GET /status
 | `environment`         | string  | The `NODE_ENV` the server is running in (e.g. `development` or `production`).             |
 | `solr.connected`      | boolean | `true` if Solr responded to a basic stats query; otherwise `false`.                       |
 | `solr.indexedRecords` | number  | Total number of documents currently indexed in the Solr `bartoc` core.                    |
-| `solr.lastIndexedAt`  | string  | ISO‑8601 timestamp of the most recent indexing run (max value of the `indexed_dt` field). |
+| `solr.lastIndexedAt`  | string  | ISO‑8601 timestamp of the most recent indexing run.                                       |
 
 > **Note:**
 >
-> * Here, **`lastIndexedAt`** refers to the time when the most recent document was pushed into Solr (the indexing timestamp), *not* the document-level `modified_dt`.
+> * Here, **`lastIndexedAt`** refers to the time when the most recent indexing procedure was pushed into Solr (the indexing timestamp).
 > * Other internal or experimental fields are omitted from this public API, as they may change without notice.
 
 
