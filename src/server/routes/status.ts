@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { readFileSync } from "fs";
+import { readFileSync, existsSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import mongoose from "mongoose";
@@ -14,6 +14,7 @@ import { formatBytes, formatTimestamp } from "../utils/utils";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+const LAST_INDEX_FILE = join(__dirname, "../../../data/lastIndexedAt.txt");
 
 // read version dal package.json
 const { version: appVersion } = JSON.parse(
@@ -39,6 +40,7 @@ export const getStatus = async (
   const statusResponse: StatusResponse = {
     ok: true,
     appVersion,
+    environment: process.env.NODE_ENV ?? "development",
     runtimeInfo,
     services: {
       mongo: { connected: mongoConnected },
@@ -54,6 +56,7 @@ export function mapSolrToStatus(status: SolrResponse): SolrStatusResult {
     return {
       connected: false,
       indexedRecords: 0,
+      lastIndexedAt: "",
       firstUpdate: null,
       lastUpdate: null,
     };
@@ -66,6 +69,7 @@ export function mapSolrToStatus(status: SolrResponse): SolrStatusResult {
   const solrStatusResult: SolrStatusResult = {
     connected: numFound > 0,
     indexedRecords: numFound,
+    lastIndexedAt: formatTimestamp(getLastIndexedAt()),
     firstUpdate: formatTimestamp(fields.min) ?? null,
     lastUpdate: formatTimestamp(fields.max) ?? null,
   };
@@ -98,7 +102,15 @@ function getRuntimeInfo(): StatusRuntimeInfo {
     nodeVersion: process.version,
     uptime: `${hours} hours, ${minutes} minutes, ${seconds} seconds`,
     memoryUsage,
-    environment: process.env.NODE_ENV ?? "development",
     timestamp: formatTimestamp(new Date().toISOString()),
   };
+}
+
+/**
+ * Returns the ISO timestamp of the last full‐index run,
+ * or null if never written.
+ */
+export function getLastIndexedAt(): string | number | undefined {
+  if (!existsSync(LAST_INDEX_FILE)) return "";
+  return readFileSync(LAST_INDEX_FILE, "utf-8").trim();
 }

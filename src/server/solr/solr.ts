@@ -20,6 +20,13 @@ import {
   SolrErrorResponse,
 } from "../types/solr";
 import { AxiosError } from "axios";
+import { writeFileSync } from "fs";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const LAST_INDEX_FILE = join(__dirname, "../../../data/lastIndexedAt.txt");
 
 const solr = new SolrClient(config.solr.version);
 
@@ -270,4 +277,9 @@ export async function addDocuments(coreName: string, docs: SolrDocument[]) {
     );
     throw error;
   }
+
+  // After everything is committed:
+  const now = new Date().toISOString();
+  writeFileSync(LAST_INDEX_FILE, now, "utf-8");
+  config.log?.(`✅ Wrote lastIndexedAt = ${now}`);
 }

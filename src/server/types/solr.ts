@@ -149,6 +149,7 @@ export interface SolrStats {
 export interface SolrStatusResult {
   connected: boolean;
   indexedRecords: number;
+  lastIndexedAt: string | number | undefined;
   lastUpdate: SolrStatsField["max"] | null;
   firstUpdate: SolrStatsField["min"] | null;
 }

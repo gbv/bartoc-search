@@ -3,6 +3,7 @@ import { SolrStatusResult } from "../types/solr";
 export interface StatusResponse {
   ok: boolean;
   appVersion: string;
+  environment: string;
   runtimeInfo: StatusRuntimeInfo;
   services: {
     mongo: { connected: boolean };
@@ -14,6 +15,5 @@ export interface StatusRuntimeInfo {
   nodeVersion: string;
   uptime: string;
   memoryUsage: object;
-  environment: string;
   timestamp: string;
 }

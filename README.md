@@ -144,37 +144,42 @@ TBA
   
 ### GET /status
 
-Performs a basic health check of the service and its dependencies.
 
-#### Request
+Returns a concise health check of the service, including environment and Solr index status.
 
-```http
-GET /status HTTP/1.1
-Host: api.example.com
-Accept: application/json
+**Request**
+
+```
+GET /status
 ```
 
-#### Response
+**Response (HTTP 200)**
 
-- **Status:** `200 OK`
-- **Body:**
-  
-  ```json
-  {
-    "ok": true,
-    "mongoConnected": true,
-    "solrConnected": false
+```json
+{
+  "ok": true,
+  "environment": "development",
+  "solr": {
+    "connected": true,
+    "indexedRecords": 3684,
+    "lastIndexedAt": "2025-05-22T09:45:17.794Z"
   }
-  ```
-  
+}
+```
 
-#### Fields
+| Field                 | Type    | Description                                                                               |
+| --------------------- | ------- | ----------------------------------------------------------------------------------------- |
+| `ok`                  | boolean | Always `true` when the endpoint itself is reachable.                                      |
+| `environment`         | string  | The `NODE_ENV` the server is running in (e.g. `development` or `production`).             |
+| `solr.connected`      | boolean | `true` if Solr responded to a basic stats query; otherwise `false`.                       |
+| `solr.indexedRecords` | number  | Total number of documents currently indexed in the Solr `bartoc` core.                    |
+| `solr.lastIndexedAt`  | string  | ISO‑8601 timestamp of the most recent indexing run (max value of the `indexed_dt` field). |
 
-| Field | Type | Description |
-| --- | --- | --- |
-| `ok` | boolean | Overall service health (`true` = healthy, `false` = degraded). |
-| `mongoConnected` | boolean | Indicates if the API can successfully connect to MongoDB. |
-| `solrConnected` | boolean | Indicates if the API can successfully connect to Solr. |
+> **Note:**
+>
+> * Here, **`lastIndexedAt`** refers to the time when the most recent document was pushed into Solr (the indexing timestamp), *not* the document-level `modified_dt`.
+> * Other internal or experimental fields are omitted from this public API, as they may change without notice.
+
 
 ## Usage
 
