@@ -10,7 +10,7 @@ import fs from "node:fs/promises";
 import { getStatus } from "./routes/status.js";
 
 const isProduction = process.env.NODE_ENV === "production";
-const base = process.env.BASE || "/";
+const base = process.env.VIRTUAL_PATH || "/";
 
 // Cached production assets
 const templateHtml = isProduction
