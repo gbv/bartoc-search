@@ -59,7 +59,7 @@
 
     try {
         // Call to bartoc-search backend
-      const res = await axios.get(`http://localhost:3000/search`, {
+      const res = await axios.get(`${import.meta.env.BASE_URL}search`, {
         params: { q, field },
       })
       results.value = res.data.response.docs || []
