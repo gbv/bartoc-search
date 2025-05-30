@@ -1,15 +1,14 @@
 {
-    "baseUrl": "https://coli-conc.gbv.de/dev-api/",
-    "title": "JSKOS Server Dev",
-    "proxies": ["193.174.240.246", "193.174.240.247"],
-    "mongo": {
-        "host": "mongo",
-        "db": "jskos-server-dev"
-    },
-    "auth": {
-        "algorithm": "RS256",
-        "key": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxQ0PM0Ghui5byBAbmgF+\ndVlN6zaenmqOs9Xj/1r+igMoW5WRxpe9FLNlbbJlAVamAjuAL9SsNme1hr/G6I31\nGrpLhhlvF1hxk7n5qP94BueJ1JF8RuFimUtjhPaclm8KsGsw3QrG+fYoY9P1RYbj\ns0ebuY5b46W4cOjSMchWzMYIBPskNI0rHR/UyfV5caWdziVl6eQpLbmwdttwW2hI\no6683Hgzuml0ww3iLRUClMRSHHfpUGZ3D+C0B1EWrMJEe4kkRyenUOV7H+3H1nro\n51EjYpp27pe39bqoVlRn8bgNHab3uiytzWPb6ds896L5CHSYM3VYJ0+UsL7mJEKg\nVQIDAQAB\n-----END PUBLIC KEY-----"
-    },
-    "verbosity": "warn",
-    "namespace": "e4479369-32e8-44ca-ac9f-c9b9d1e84238"
+  "mongo": {
+    "user": "",
+    "pass": "",
+    "host": "mongo",
+    "port": 27017,
+    "db": "jskos-server",
+    "options": {
+      "connectTimeoutMS": 360000,
+      "socketTimeoutMS": 360000,
+      "heartbeatFrequencyMS": 10000
+    }
+  }
 }

@@ -23,7 +23,7 @@ export interface SolrConfig {
   version: number;
 }
 
-export interface AppConfig {
+export interface DefaultConfig {
   baseUrl?: string | null;
   closedWorldAssumption?: boolean;
   env: string;
@@ -45,5 +45,11 @@ export interface AppConfig {
   getDirname?: (url: string) => string;
   status?: unknown;
 }
+
+export interface UserConfig {
+  mongo?: MongoConfig;
+}
+
+export interface AppConfig extends DefaultConfig, UserConfig {}
 
 export type Verbosity = boolean | "log" | "warn" | "error";

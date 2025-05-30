@@ -1,18 +1,25 @@
 // src/utils/loadConfig.ts
 import fs from "fs";
 import path from "path";
-import { configSchema, AppConfig } from "../conf/configValidation";
+import {
+  defaultConfigSchema,
+  AppConfig,
+  userConfigSchema,
+} from "../conf/configValidation";
+import _ from "lodash";
 
-export function loadConfig(filePath: string): AppConfig {
-  const fullPath = path.resolve(process.cwd(), filePath);
-  const raw = fs.readFileSync(fullPath, "utf-8");
-  const parsed = JSON.parse(raw);
+export function loadConfig(defaultPath: string, userPath: string): AppConfig {
+  const defaultRaw = JSON.parse(
+    fs.readFileSync(path.resolve(defaultPath), "utf-8"),
+  );
+  const userRaw = JSON.parse(fs.readFileSync(path.resolve(userPath), "utf-8"));
 
-  const result = configSchema.safeParse(parsed);
-  if (!result.success) {
-    console.error("❌ Config validation failed:", result.error.format());
-    throw new Error("Invalid config");
-  }
+  // Validate separately
+  const defaultParsed = defaultConfigSchema.parse(defaultRaw); // throws if invalid
+  const userParsed = userConfigSchema.parse(userRaw); // allows partial
 
-  return result.data;
+  // Deep merge
+  const finalConfig: AppConfig = _.defaultsDeep({}, userParsed, defaultParsed);
+
+  return finalConfig;
 }

@@ -4,7 +4,6 @@ import fs from "fs";
 import path from "path";
 import type { AppConfig, Verbosity } from "../types/conf";
 import { loadConfig } from "../utils/loadConfig";
-
 import packageInfo from "../../../package.json";
 
 // Prepare environment
@@ -23,8 +22,8 @@ if (env !== "test" && !fs.existsSync(configFilePath)) {
   fs.writeFileSync(configFilePath, "{}");
 }
 
-// loading the config.default.json
-const config: AppConfig = loadConfig(defaultFilePath);
+// Merging config.default.json and config.json
+const config: AppConfig = loadConfig(defaultFilePath, configFilePath);
 
 // Set composed config variables
 config.mongo.auth = config.mongo.user
