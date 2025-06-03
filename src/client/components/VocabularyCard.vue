@@ -24,7 +24,6 @@
 
     <div class="result-links">
       <a
-        v-if="doc.id"
         :href="`https://bartoc.org/api/data?uri=${doc.id}`"
         target="_blank"
         class="result-link"
@@ -38,13 +37,12 @@
       >
         Solr raw Index Record
       </a>
-      <a
-        v-if="doc.url_s"
-        :href="doc.url_s"
+      <a        
+        :href="doc.id"
         target="_blank"
         class="result-link"
       >
-        Open Resource →
+        {{doc.id}}
       </a>
     </div>
   </div>
