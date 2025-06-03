@@ -87,7 +87,7 @@ const shortDescription = computed<string>(() => {
 });
 
 function getSolrRecord(id: string): string {
-  return `/api/solr?id=${encodeURIComponent(id)}`;
+  return `${import.meta.env.BASE_URL}api/solr?id=${encodeURIComponent(id)}`;
 }
 
 </script>
