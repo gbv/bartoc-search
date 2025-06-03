@@ -23,26 +23,26 @@
     </ul>
 
     <div class="result-links">
-      <a
-        :href="`https://bartoc.org/api/data?uri=${doc.id}`"
-        target="_blank"
-        class="result-link"
-      >
-        Full JSKOS Record
-      </a>
-      <a
-        :href="getSolrRecord(doc.id)"
-        target="_blank"
-        class="result-link"
-      >
-        Solr raw Index Record
-      </a>
       <a        
         :href="doc.id"
         target="_blank"
         class="result-link"
       >
         {{doc.id}}
+      </a>      
+      <a
+        :href="`https://bartoc.org/api/data?uri=${doc.id}`"
+        target="_blank"
+        class="result-link"
+      >
+        JSKOS source
+      </a>
+      <a
+        :href="getSolrRecord(doc.id)"
+        target="_blank"
+        class="result-link"
+      >
+        Solr record
       </a>
     </div>
   </div>
