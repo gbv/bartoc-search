@@ -32,7 +32,7 @@
         Full JSKOS Record
       </a>
       <a
-        :href="rawLink(doc.id)"
+        :href="getSolrRecord(doc.id)"
         target="_blank"
         class="result-link"
       >
@@ -51,9 +51,10 @@
 </template>
 
 <script setup lang="ts">
-import type { SolrDocument } from "../../../server/types/solr"
-import { SupportedLang } from "../../../server/types/lang"
+import type { SolrDocument } from "../../server/types/solr"
+import { SupportedLang } from "../../server/types/lang"
 import { computed } from "vue"
+
 
 const props = defineProps<{ doc: SolrDocument; lang?: SupportedLang }>()
 
@@ -87,8 +88,8 @@ const shortDescription = computed<string>(() => {
   return desc.length > 150 ? desc.slice(0, 150) + '...' : desc;
 });
 
-function rawLink(id: string) {
-  return `http://localhost:8983/solr/bartoc/get?id=${encodeURIComponent(id)}&wt=json`;
+function getSolrRecord(id: string): string {
+  return `/api/solr?id=${encodeURIComponent(id)}`;
 }
 
 </script>

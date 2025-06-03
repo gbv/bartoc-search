@@ -81,6 +81,34 @@ app.get("/search", async (req: Request, res: Response): Promise<void> => {
 });
 
 // ==========================
+// Generic API endpoint
+// ==========================
+
+// Express route
+app.get("/api/solr", async (req: Request, res: Response): Promise<void> => {
+  const id = req.query.id as string;
+
+  const query = new LuceneQuery()
+    .term(id)
+    .in("id") // <— field name
+    .operator("AND");
+
+  try {
+    const solrQueryBuilder = new SolrClient(config.solr.version)
+      .searchOperation;
+
+    const results = await solrQueryBuilder
+      .prepareSelect("bartoc")
+      .for(query)
+      .limit(1)
+      .execute<SolrSearchResponse>();
+    res.json(results.response.docs[0]);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch Solr record" });
+  }
+});
+
+// ==========================
 // Serve HTML
 // ==========================
 app.use("*all", async (req, res) => {
