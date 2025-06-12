@@ -1,6 +1,6 @@
 import config from "../conf/conf";
 import type { TerminologyDocument } from "../types/terminology";
-import { terminologyZodSchema } from "../mongo/terminologySchemaValidation";
+import { conceptSchemeZodSchema } from "../validation/conceptScheme";
 import { ChangeStreamInsertDocument } from "mongodb";
 import { Terminology } from "../models/terminology";
 
@@ -17,7 +17,7 @@ export async function watchTerminologies(): Promise<void> {
           const rawDoc = change.fullDocument;
 
           // Validate with Zod
-          const result = terminologyZodSchema.safeParse(rawDoc);
+          const result = conceptSchemeZodSchema.safeParse(rawDoc);
 
           if (!result.success) {
             config.error?.(

@@ -8,6 +8,8 @@ import { LuceneQuery } from "./solr/search/LuceneQuery";
 import type { ViteDevServer } from "vite";
 import fs from "node:fs/promises";
 import { getStatus } from "./routes/status.js";
+import { startVocChangesListener } from "./composables/useVocChanges";
+import expressWs from "express-ws";
 
 const isProduction = process.env.NODE_ENV === "production";
 const base = process.env.VIRTUAL_PATH || "/";
@@ -18,11 +20,15 @@ const templateHtml = isProduction
   : "";
 
 const app = express();
+
 app
   .disable("x-powered-by")
   .use(morgan("dev"))
   .use(express.urlencoded({ extended: true }))
   .use(express.json());
+
+// Initialize WebSocket support
+expressWs(app);
 
 // ==========================
 // Add Vite or respective production middlewares
@@ -168,4 +174,6 @@ export const startServer = async () => {
   app.listen(config.port, () => {
     console.log(`Now listening on port ${config.port}`);
   });
+
+  await startVocChangesListener();
 };

@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import config from "../conf/conf";
 import { Meta, MetaDocument } from "../models/meta";
 import { Terminology } from "../models/terminology";
-import { terminologyZodSchema } from "./terminologySchemaValidation";
+import { conceptSchemeZodSchema } from "../validation/conceptScheme";
 import fs from "fs";
 import readline from "readline";
 
@@ -88,7 +88,7 @@ export async function importFromNDJSON(filePath: string): Promise<void> {
     if (!line.trim()) continue;
     try {
       const parsed = JSON.parse(line);
-      const validation = terminologyZodSchema.safeParse(parsed);
+      const validation = conceptSchemeZodSchema.safeParse(parsed);
       if (!validation.success) {
         config.error?.(
           "❌ Validation failed because of:",

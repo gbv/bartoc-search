@@ -9,10 +9,10 @@ import { connection } from "../mongo/mongo";
 import { TerminologyDocument } from "../types/terminology";
 import { Terminology } from "../models/terminology";
 import {
-  terminologyZodSchema,
-  TerminologyZodType,
-} from "../mongo/terminologySchemaValidation";
-import { NkosZodTypeConcept, nKosTypeConceptSchema } from "./nkosValidation";
+  conceptSchemeZodSchema,
+  ConceptSchemeZodType,
+} from "../validation/conceptScheme";
+import { ConceptZodType, conceptZodSchema } from "../validation/concept";
 import readAndValidateNdjson from "../utils/loadNdJson";
 import {
   SolrResponse,
@@ -73,9 +73,9 @@ export async function indexDataAtBoot(): Promise<void> {
 
         // TODO Do it BETTER, this is a very rudimental solution!
         // nkos should be part of MongoDB and retrieved consequentely as for terminologies table?
-        const nKosConcepts: NkosZodTypeConcept[] = await readAndValidateNdjson(
+        const nKosConcepts: ConceptZodType[] = await readAndValidateNdjson(
           "./data/nkostype.concepts.ndjson",
-          nKosTypeConceptSchema,
+          conceptZodSchema,
         );
 
         config.log?.(`${JSON.stringify(nKosConcepts[0])}`);
@@ -132,7 +132,7 @@ export async function solrStatus(): Promise<SolrResponse> {
 
 export async function extractAllAndSendToSolr(
   terminologies: TerminologyDocument[],
-  nKosConcepts: NkosZodTypeConcept[],
+  nKosConcepts: ConceptZodType[],
 ): Promise<void> {
   config.log?.(`collection length ${terminologies.length}`);
 
@@ -144,7 +144,7 @@ export async function extractAllAndSendToSolr(
   for (const terminology of terminologies) {
     const plainTerminologyDoc = terminology.toObject(); // remove moongose metadata
     const terminologyValidated =
-      terminologyZodSchema.safeParse(plainTerminologyDoc);
+      conceptSchemeZodSchema.safeParse(plainTerminologyDoc);
 
     if (!terminologyValidated.success) {
       config.warn?.(
@@ -155,7 +155,8 @@ export async function extractAllAndSendToSolr(
     }
 
     try {
-      const validTerminologyDoc: TerminologyZodType = terminologyValidated.data;
+      const validTerminologyDoc: ConceptSchemeZodType =
+        terminologyValidated.data;
       const solrDoc = transformToSolr(validTerminologyDoc, nKosConcepts);
       solrDocuments.push(solrDoc);
       success++;
@@ -197,8 +198,8 @@ export async function extractAllAndSendToSolr(
 }
 
 export function transformToSolr(
-  terminologyDoc: TerminologyZodType,
-  nKosConceptsDocs: NkosZodTypeConcept[],
+  terminologyDoc: ConceptSchemeZodType,
+  nKosConceptsDocs: ConceptZodType[],
 ): SolrDocument {
   const solrDoc: Partial<SolrDocument> = {
     alt_labels_ss: terminologyDoc.altLabel?.und || [],

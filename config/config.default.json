@@ -1,19 +1,18 @@
 {
   "baseUrl": null,
   "closedWorldAssumption": true,
+  "indexDataAtBoot": false,
   "loadNdjsonData": true,
-  "indexDataAtBoot": true,
-  "mongo": {
-    "user": "",
-    "pass": "",
-    "host": "mongo",
-    "port": 27017,
-    "db": "jskos-server",
-    "options": {
-      "connectTimeoutMS": 360000,
-      "socketTimeoutMS": 360000,
-      "heartbeatFrequencyMS": 10000
+  "port": 3883,
+  "proxies": [],
+  "queues": {
+    "solrQueue": {
+      "concurrency": 10
     }
+  },
+  "redis": {
+    "host": "redis",
+    "port": 6379
   },
   "solr": {
     "batch_size": 500,
@@ -21,8 +20,6 @@
     "port": 8983,
     "version": 8.1
   },
-  "port": 3000,
-  "proxies": [],
   "title": "Search for Bartoc",
   "verbosity": "log",
   "version": null

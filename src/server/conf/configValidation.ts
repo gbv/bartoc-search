@@ -36,6 +36,17 @@ export const solrSchema = z.object({
   version: z.number(),
 });
 
+export const redisSchema = z.object({
+  host: z.string(),
+  port: z.number(),
+  url: z.string().optional(),
+});
+
+export const QueueConfigSchema = z.object({
+  // concurrency must be a positive integer if provided
+  concurrency: z.number().int().positive().optional(),
+});
+
 // Full config schema
 export const defaultConfigSchema = z.object({
   baseUrl: z.string().nullable().optional(),
@@ -44,10 +55,12 @@ export const defaultConfigSchema = z.object({
   indexDataAtBoot: z.boolean().optional(),
   loadNdjsonData: z.boolean().optional(),
   logLevel: z.string().default("info"),
-  mongo: mongoSchema,
+  mongo: mongoSchema.optional(),
   ndJsonDataPath: z.string().optional(),
   port: z.number(),
   proxies: z.array(z.string()).optional(),
+  queues: z.record(QueueConfigSchema).optional(),
+  redis: redisSchema,
   solr: solrSchema,
   title: z.string().optional(),
   verbosity: verbositySchema.optional(),

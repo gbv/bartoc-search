@@ -4,9 +4,9 @@ import { faker } from "@faker-js/faker";
 import config from "../conf/conf";
 import { connection } from "mongoose";
 import {
-  terminologyZodSchema,
-  TerminologyZodType,
-} from "../mongo/terminologySchemaValidation";
+  conceptSchemeZodSchema,
+  ConceptSchemeZodType,
+} from "../validation/conceptScheme";
 
 async function init() {
   await connect(true);
@@ -60,14 +60,14 @@ export async function startLiveSeed(interval = 5000) {
       ],
     });
 
-    const validation = terminologyZodSchema.safeParse(rawDoc);
+    const validation = conceptSchemeZodSchema.safeParse(rawDoc);
 
     if (!validation.success) {
       config.error?.("❌ Invalid fake terminology", validation.error.message);
       return;
     }
 
-    const validDoc: TerminologyZodType = validation.data;
+    const validDoc: ConceptSchemeZodType = validation.data;
     const mongoDoc = new Terminology(validDoc);
     await mongoDoc.save();
 

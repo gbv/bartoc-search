@@ -1,4 +1,4 @@
-export interface JskosConceptSchemeDocument {
+export interface ConceptSchemeDocument {
   "@context": string;
 
   ACCESS?: Array<{
@@ -76,7 +76,7 @@ export interface JskosConceptSchemeDocument {
   url?: string;
 }
 
-export interface NkosTypeConcept {
+export interface ConceptDocument {
   "@context": string;
 
   uri: string;

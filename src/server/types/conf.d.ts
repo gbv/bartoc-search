@@ -4,6 +4,12 @@ export interface MongoOptions {
   heartbeatFrequencyMS?: number;
 }
 
+export interface RedisConfig {
+  host: string;
+  port: number;
+  url?: string;
+}
+
 export interface MongoConfig {
   user?: string;
   pass?: string;
@@ -30,10 +36,13 @@ export interface DefaultConfig {
   indexDataAtBoot?: boolean;
   loadNdjsonData?: boolean;
   logLevel: string;
-  mongo: MongoConfig;
+  mongo?: MongoConfig;
   ndJsonDataPath?: string;
   port: number;
   proxies?: string[];
+  /** Per‐queue configuration */
+  queues?: Record<string, QueueConfig>;
+  redis: RedisConfig;
   solr: SolrConfig;
   title?: string;
   verbosity?: Verbosity;
@@ -48,6 +57,11 @@ export interface DefaultConfig {
 
 export interface UserConfig {
   mongo?: MongoConfig;
+}
+
+export interface QueueConfig {
+  /** Default concurrency for this queue’s worker */
+  concurrency?: number;
 }
 
 export interface AppConfig extends DefaultConfig, UserConfig {}

@@ -14,8 +14,8 @@ RUN npm ci
 # Copy all the source code
 COPY . .
 
-# Expose to port 3000
-EXPOSE 3000
+# Expose to port 3883
+EXPOSE 3883
 
 # Command to run
 CMD ["npm", "run" , "dev"]

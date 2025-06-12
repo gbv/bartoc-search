@@ -1,14 +1,3 @@
 {
-  "mongo": {
-    "user": "",
-    "pass": "",
-    "host": "mongo",
-    "port": 27017,
-    "db": "jskos-server",
-    "options": {
-      "connectTimeoutMS": 360000,
-      "socketTimeoutMS": 360000,
-      "heartbeatFrequencyMS": 10000
-    }
-  }
+  
 }

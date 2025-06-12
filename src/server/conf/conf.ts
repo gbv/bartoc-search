@@ -26,10 +26,9 @@ if (env !== "test" && !fs.existsSync(configFilePath)) {
 const config: AppConfig = loadConfig(defaultFilePath, configFilePath);
 
 // Set composed config variables
-config.mongo.auth = config.mongo.user
-  ? `${config.mongo.user}:${config.mongo.pass}@`
-  : "";
-config.mongo.url = `mongodb://${config.mongo.auth}${config.mongo.host}:${config.mongo.port}`;
+
+// Build redis url for local development
+config.redis.url = `redis://${config.redis.host}:${config.redis.port}`;
 
 // Build solr url, basic only for local development
 config.solr.url = `http://${config.solr.host}:${config.solr.port}/solr`;

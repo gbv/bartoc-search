@@ -1,5 +1,7 @@
 // types/solr.ts
+import { ConceptSchemeDocument, ConceptDocument } from "./jskos";
 import { SupportedLang } from "./lang";
+import { OperationType } from "./ws";
 
 type TitleFields = {
   [K in SupportedLang as `title_${K}`]?: string;
@@ -153,3 +155,23 @@ export interface SolrStatusResult {
   lastUpdate: SolrStatsField["max"] | null;
   firstUpdate: SolrStatsField["min"] | null;
 }
+
+interface BasePayload {
+  id: string;
+  receivedAt: number;
+}
+
+export interface SolrDeletePayload extends BasePayload {
+  operation: OperationType.Delete;
+  // no document field
+}
+
+export interface SolrUpsertPayload extends BasePayload {
+  operation:
+    | OperationType.Create
+    | OperationType.Replace
+    | OperationType.Update;
+  document: ConceptSchemeDocument | ConceptDocument;
+}
+
+export type SolrJobPayload = SolrDeletePayload | SolrUpsertPayload;
