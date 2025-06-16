@@ -23,7 +23,7 @@ import { AxiosError } from "axios";
 import { writeFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
-import { ConceptSchemeDocument, ConceptDocument } from "../types/jskos";
+import { ConceptSchemeDocument } from "../types/jskos";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
