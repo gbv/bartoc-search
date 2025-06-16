@@ -48,23 +48,23 @@ const solrHandler = async (job: Job<SolrJobPayload>): Promise<void> => {
 };
 
 // Initialize (or retrieve) the BullMQ queue
-export const solrQueue = Queue<SolrJobPayload>("solrQueue");
+export const terminologiesQueue = Queue<SolrJobPayload>("terminologiesQueue");
 
 // Create a separate Worker for that queue, attaching the solrHandler
-export const solrWorker = new Worker<SolrJobPayload>(
-  solrQueue.name,
+export const terminologiesWorker = new Worker<SolrJobPayload>(
+  terminologiesQueue.name,
   solrHandler,
   {
     connection: redisClient,
-    concurrency: config.queues?.solrQueue.concurrency ?? 5,
+    concurrency: config.queues?.terminologiesQueue.concurrency ?? 5,
   },
 );
 
 // Optional: Listen to worker events for logging
-solrWorker.on("completed", (job) => {
+terminologiesWorker.on("completed", (job) => {
   config.log?.(`[Worker] Job ${job.id} has completed`);
 });
 
-solrWorker.on("failed", (job, err) => {
+terminologiesWorker.on("failed", (job, err) => {
   config.error?.(`[Worker] Job ${job?.id} failed: ${err.message}`);
 });

@@ -6,7 +6,7 @@
   "port": 3883,
   "proxies": [],
   "queues": {
-    "solrQueue": {
+    "terminologiesQueue": {
       "concurrency": 10
     }
   },

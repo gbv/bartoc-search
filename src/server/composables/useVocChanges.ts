@@ -3,7 +3,7 @@ import WebSocket from "ws";
 import dotenv from "dotenv";
 import config from "../conf/conf";
 import { SolrJobPayload, SolrDeletePayload } from "../types/solr";
-import { solrQueue } from "../queue/worker";
+import { terminologiesQueue } from "../queue/worker";
 import { VocChangeEvent, OperationType } from "../types/ws";
 import { VocChangeEventSchema } from "../validation/vocChangeEvent";
 
@@ -31,7 +31,7 @@ export async function startVocChangesListener(): Promise<void> {
           id: event.id,
           receivedAt: Date.now(),
         };
-        await solrQueue.add(payloadDelete.operation, payloadDelete); // Add job to solr queue for deleting
+        await terminologiesQueue.add(payloadDelete.operation, payloadDelete); // Add job to solr queue for deleting
         return;
       }
 
@@ -42,7 +42,7 @@ export async function startVocChangesListener(): Promise<void> {
         id: event.id,
         receivedAt: Date.now(),
       };
-      await solrQueue.add(payload.operation, payload); // Add job to solr queue
+      await terminologiesQueue.add(payload.operation, payload); // Add job to solr queue
       config.log?.(`[Queue] Enqueued ${event.type} for id=${payload.id}`);
     } catch (err: unknown) {
       // Normalize to an Error, then grab the message or fallback to a string
