@@ -10,6 +10,7 @@ import fs from "node:fs/promises";
 import { getStatus } from "./routes/status.js";
 import { startVocChangesListener } from "./composables/useVocChanges";
 import expressWs from "express-ws";
+import { loadNkosConcepts } from "./utils/nskosService";
 
 const isProduction = process.env.NODE_ENV === "production";
 const base = process.env.VIRTUAL_PATH || "/";
@@ -174,6 +175,8 @@ export const startServer = async () => {
   app.listen(config.port, () => {
     console.log(`Now listening on port ${config.port}`);
   });
+
+  await loadNkosConcepts();
 
   await startVocChangesListener();
 };

@@ -1,5 +1,5 @@
 // types/solr.ts
-import { ConceptSchemeDocument, ConceptDocument } from "./jskos";
+import { ConceptSchemeDocument } from "./jskos";
 import { SupportedLang } from "./lang";
 import { OperationType } from "./ws";
 
@@ -171,7 +171,7 @@ export interface SolrUpsertPayload extends BasePayload {
     | OperationType.Create
     | OperationType.Replace
     | OperationType.Update;
-  document: ConceptSchemeDocument | ConceptDocument;
+  document: ConceptSchemeDocument;
 }
 
 export type SolrJobPayload = SolrDeletePayload | SolrUpsertPayload;

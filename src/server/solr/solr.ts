@@ -23,6 +23,7 @@ import { AxiosError } from "axios";
 import { writeFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
+import { ConceptSchemeDocument, ConceptDocument } from "../types/jskos";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -157,7 +158,10 @@ export async function extractAllAndSendToSolr(
     try {
       const validTerminologyDoc: ConceptSchemeZodType =
         terminologyValidated.data;
-      const solrDoc = transformToSolr(validTerminologyDoc, nKosConcepts);
+      const solrDoc = transformConceptSchemeToSolr(
+        validTerminologyDoc,
+        nKosConcepts,
+      );
       solrDocuments.push(solrDoc);
       success++;
     } catch (error) {
@@ -197,31 +201,26 @@ export async function extractAllAndSendToSolr(
   }
 }
 
-export function transformToSolr(
-  terminologyDoc: ConceptSchemeZodType,
+export function transformConceptSchemeToSolr(
+  doc: ConceptSchemeDocument,
   nKosConceptsDocs: ConceptZodType[],
 ): SolrDocument {
   const solrDoc: Partial<SolrDocument> = {
-    alt_labels_ss: terminologyDoc.altLabel?.und || [],
-    created_dt: terminologyDoc.created,
-    ddc_ss: terminologyDoc.subject?.flatMap((s) => s.notation || []) || [],
-    id: terminologyDoc.uri,
-    languages_ss: terminologyDoc.languages || [],
-    modified_dt: terminologyDoc.modified,
-    publisher_id: terminologyDoc.publisher?.[0]?.uri,
-    publisher_label: terminologyDoc.publisher?.[0]?.prefLabel?.en || "",
-    start_year_i: terminologyDoc.startDate
-      ? parseInt(terminologyDoc.startDate)
-      : undefined,
-    subject_uri: terminologyDoc.subject?.map((s) => s.uri) || [],
-    subject_notation:
-      terminologyDoc.subject?.flatMap((s) => s.notation || []) || [],
+    alt_labels_ss: doc.altLabel?.und || [],
+    created_dt: doc.created,
+    ddc_ss: doc.subject?.flatMap((s) => s.notation || []) || [],
+    id: doc.uri,
+    languages_ss: doc.languages || [],
+    modified_dt: doc.modified,
+    publisher_id: doc.publisher?.[0]?.uri,
+    publisher_label: doc.publisher?.[0]?.prefLabel?.en || "",
+    start_year_i: doc.startDate ? parseInt(doc.startDate) : undefined,
+    subject_uri: doc.subject?.map((s) => s.uri) || [],
+    subject_notation: doc.subject?.flatMap((s) => s.notation || []) || [],
     subject_scheme:
-      terminologyDoc.subject?.flatMap(
-        (s) => s.inScheme?.map((i) => i.uri) || [],
-      ) || [],
-    type_uri: terminologyDoc.type,
-    url_s: terminologyDoc.url,
+      doc.subject?.flatMap((s) => s.inScheme?.map((i) => i.uri) || []) || [],
+    type_uri: doc.type,
+    url_s: doc.url,
   };
 
   // type solr fields for labels are to be addressed separately as currently the soruce is a ndJson file
@@ -233,13 +232,13 @@ export function transformToSolr(
   // Dynamic fields for title, description, type_label
   for (const lang of Object.values(SupportedLang)) {
     // title
-    const title = terminologyDoc.prefLabel?.[lang];
+    const title = doc.prefLabel?.[lang];
     if (title) {
       solrDoc[`title_${lang}` as `title_${SupportedLang}`] = title;
     }
 
     // description
-    const description = terminologyDoc.definition?.[lang];
+    const description = doc.definition?.[lang];
     if (description) {
       solrDoc[`description_${lang}` as `description_${SupportedLang}`] =
         description[0];
@@ -283,4 +282,35 @@ export async function addDocuments(coreName: string, docs: SolrDocument[]) {
   const now = new Date().toISOString();
   writeFileSync(LAST_INDEX_FILE, now, "utf-8");
   config.log?.(`✅ Wrote lastIndexedAt = ${now}`);
+}
+
+/**
+ * Delete one or more documents by id, then commit.
+ */
+export async function deleteDocuments(
+  coreName: string,
+  ids: string[],
+): Promise<void> {
+  const url = `${config.solr.url}/${coreName}/update?commit=true`;
+
+  // Solr’s JSON delete format:
+  const payload = { delete: ids.map((id) => ({ id })) };
+
+  try {
+    const response = await axios.post(url, payload, {
+      headers: { "Content-Type": "application/json" },
+    });
+
+    config.log?.(`✅ Deleted ${ids.length} documents from Solr.`);
+    if (response.data?.error) {
+      config.warn?.(
+        "⚠️ Solr responded with error on delete:",
+        response.data.error,
+      );
+    }
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    config.error?.("❌ Error while deleting documents in Solr:", msg);
+    throw err;
+  }
 }

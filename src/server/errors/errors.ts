@@ -142,3 +142,16 @@ export class SolrPingError extends HttpError {
     );
   }
 }
+
+/**
+ * Thrown when someone tries to access the NKOS concepts
+ * before they’ve been loaded into memory.
+ */
+export class NkosNotInitializedError extends HttpError {
+  constructor() {
+    super(
+      "NKOS concepts have not been initialized. Please call loadNkosConcepts() before using getNkosConcepts().",
+      HttpStatusCode.SERVICE_UNAVAILABLE,
+    );
+  }
+}

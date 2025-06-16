@@ -2,8 +2,14 @@ import { Worker, Job } from "bullmq";
 import config from "../conf/conf";
 import redisClient from "../redis/redis";
 import { Queue } from "./queue";
-import type { SolrJobPayload } from "../types/solr";
+import type { SolrDocument, SolrJobPayload } from "../types/solr";
 import { OperationType } from "../types/ws";
+import {
+  addDocuments,
+  deleteDocuments,
+  transformConceptSchemeToSolr,
+} from "../solr/solr";
+import { getNkosConcepts } from "../utils/nskosService";
 
 // Handler function that processes each Solr job
 const solrHandler = async (job: Job<SolrJobPayload>): Promise<void> => {
@@ -11,9 +17,8 @@ const solrHandler = async (job: Job<SolrJobPayload>): Promise<void> => {
 
   switch (operation) {
     case OperationType.Delete: {
-      // Remove document by id from Solr
-      // await config.solrClient.delete("id", id);
-      // await config.solrClient.commit();
+      config.log?.(`[Worker] Deleting ${id} from Solr…`);
+      await deleteDocuments("bartoc", [id]);
       config.log?.(`[Worker] delete completed for id=${id}`);
       break;
     }
@@ -22,10 +27,18 @@ const solrHandler = async (job: Job<SolrJobPayload>): Promise<void> => {
     case OperationType.Update:
     case OperationType.Replace: {
       const document = job.data.document;
-      // Add or update document in Solr
-      // await config.solrClient.add(document);
-      // await config.solrClient.commit();
-      config.log?.(`[Worker] ${operation} completed for id=${document.uri}`);
+      if (!document) {
+        throw new Error(`Missing document for ${operation} ${id}`);
+      }
+      config.log?.(`[Worker] ${operation} ${id} in Solr…`);
+      // Upsert as JSON document(s)
+      const nKosConcepts = getNkosConcepts();
+      const solrDoc: SolrDocument = transformConceptSchemeToSolr(
+        document,
+        nKosConcepts,
+      );
+      await addDocuments("bartoc", [solrDoc]);
+      config.log?.(`[Worker] ${operation} completed for id=${id}`);
       break;
     }
 
