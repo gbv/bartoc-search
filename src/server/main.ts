@@ -11,6 +11,10 @@ import { getStatus } from "./routes/status.js";
 import { startVocChangesListener } from "./composables/useVocChanges";
 import expressWs from "express-ws";
 import { loadNkosConcepts } from "./utils/nskosService";
+import { terminologiesQueue } from "./queue/worker.js";
+import { createBullBoard } from "@bull-board/api";
+import { ExpressAdapter } from "@bull-board/express";
+import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
 
 const isProduction = process.env.NODE_ENV === "production";
 const base = process.env.VIRTUAL_PATH || "/";
@@ -114,6 +118,25 @@ app.get("/api/solr", async (req: Request, res: Response): Promise<void> => {
     res.status(500).json({ error: "Failed to fetch Solr record" });
   }
 });
+
+// ==========================
+// Build BullMQ UI board
+// ==========================
+// 1) Create the Express adapter and mount path
+const serverAdapter = new ExpressAdapter();
+serverAdapter.setBasePath("/admin/queues");
+
+// 2) Create Bull-Board, passing in your BullMQ queues
+createBullBoard({
+  queues: [
+    new BullMQAdapter(terminologiesQueue),
+    // add more queues here...
+  ],
+  serverAdapter,
+});
+
+// 3) Mount the router
+app.use("/admin/queues", serverAdapter.getRouter());
 
 // ==========================
 // Serve HTML

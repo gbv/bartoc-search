@@ -17,6 +17,8 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
+    "@bull-board/api": "^6.10.1",
+    "@bull-board/express": "^6.10.1",
     "@eslint/js": "^9.24.0",
     "@faker-js/faker": "^9.7.0",
     "@tsconfig/node20": "^20.1.5",
