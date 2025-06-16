@@ -42,9 +42,19 @@ export const redisSchema = z.object({
   url: z.string().optional(),
 });
 
+// A schema for the rate‐limiter settings
+const LimiterSchema = z.object({
+  // max number of jobs to start in each window
+  max: z.number().int().nonnegative(),
+  // window duration in milliseconds
+  duration: z.number().int().nonnegative(),
+});
+
 export const QueueConfigSchema = z.object({
   // concurrency must be a positive integer if provided
   concurrency: z.number().int().positive().optional(),
+  // optional rate limiter
+  limiter: LimiterSchema.optional(),
 });
 
 // Full config schema

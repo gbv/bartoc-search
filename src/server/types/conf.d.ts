@@ -59,9 +59,15 @@ export interface UserConfig {
   mongo?: MongoConfig;
 }
 
+export interface RateLimiterOptions {
+  max: number;
+  duration: number;
+}
+
 export interface QueueConfig {
   /** Default concurrency for this queue’s worker */
   concurrency?: number;
+  limiter?: RateLimiterOptions;
 }
 
 export interface AppConfig extends DefaultConfig, UserConfig {}

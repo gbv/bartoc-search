@@ -7,7 +7,11 @@
   "proxies": [],
   "queues": {
     "terminologiesQueue": {
-      "concurrency": 10
+      "concurrency": 10,
+      "limiter" : {
+        "max": 5,
+        "duration": 1000
+      }
     }
   },
   "redis": {

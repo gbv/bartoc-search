@@ -57,6 +57,10 @@ export const terminologiesWorker = new Worker<SolrJobPayload>(
   {
     connection: redisClient,
     concurrency: config.queues?.terminologiesQueue.concurrency ?? 5,
+    limiter: config.queues?.terminologiesQueue.limiter ?? {
+      max: 5,
+      duration: 1000,
+    },
   },
 );
 

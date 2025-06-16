@@ -26,11 +26,17 @@ const templateHtml = isProduction
 
 const app = express();
 
-app
-  .disable("x-powered-by")
-  .use(morgan("dev"))
-  .use(express.urlencoded({ extended: true }))
-  .use(express.json());
+app.disable("x-powered-by");
+
+// only log requests _not_ under /admin/queues
+app.use(
+  morgan("dev", {
+    skip: (req) => req.originalUrl.startsWith("/admin/queues"),
+  }),
+);
+
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 // Initialize WebSocket support
 expressWs(app);
