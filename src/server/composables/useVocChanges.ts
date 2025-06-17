@@ -2,7 +2,7 @@
 import WebSocket from "ws";
 import dotenv from "dotenv";
 import config from "../conf/conf";
-import { SolrJobPayload, SolrDeletePayload } from "../types/solr";
+import { SolrDeletePayload, SolrUpsertPayload } from "../types/solr";
 import { terminologiesQueue } from "../queue/worker";
 import { VocChangeEvent, OperationType } from "../types/ws";
 import { VocChangeEventSchema } from "../validation/vocChangeEvent";
@@ -10,6 +10,30 @@ import { VocChangeEventSchema } from "../validation/vocChangeEvent";
 dotenv.config();
 const WS_URL =
   (process.env.JSKOS_WS_URL ?? "ws://jskos-server:3000") + "/voc/changes";
+
+// **Example buffering logic**: collect up to BATCH_SIZE docs then flush as one job
+const BATCH_SIZE = config.solr.batchSize;
+const BATCH_TIMEOUT =
+  config.queues?.terminologiesQueue?.limiter?.duration ?? 1000;
+const documentsBuffer: SolrUpsertPayload[] = [];
+
+async function flushBuffer() {
+  if (documentsBuffer.length === 0) return;
+
+  // Remove everything from the buffer
+  const batch = documentsBuffer.splice(0, documentsBuffer.length);
+
+  // Map each payload to a BulkJobOptions<SolrJobPayload>
+  const jobs = batch.map((payload) => ({
+    name: payload.operation, // "create" | "update" | "replace"
+    data: payload,
+  }));
+
+  // Pipeline them in one Redis call
+  await terminologiesQueue.addBulk(jobs);
+}
+
+const flushInterval = setInterval(flushBuffer, BATCH_TIMEOUT);
 
 export async function startVocChangesListener(): Promise<void> {
   const socket = new WebSocket(WS_URL);
@@ -35,15 +59,23 @@ export async function startVocChangesListener(): Promise<void> {
         return;
       }
 
-      const doc = event.document;
-      const payload: SolrJobPayload = {
+      // 6) Buffer upsert payloads for bulk enqueue
+      const upsert: SolrUpsertPayload = {
         operation: event.type,
-        document: doc,
+        document: event.document!,
         id: event.id,
         receivedAt: Date.now(),
       };
-      await terminologiesQueue.add(payload.operation, payload); // Add job to solr queue
-      config.log?.(`[Queue] Enqueued ${event.type} for id=${payload.id}`);
+      documentsBuffer.push(upsert);
+
+      config.log?.(
+        `[Buffer] Added upsert for id=${upsert.id} (buffer=${documentsBuffer.length})`,
+      );
+
+      // If we’ve hit our size threshold, flush immediately
+      if (documentsBuffer.length >= BATCH_SIZE) {
+        await flushBuffer();
+      }
     } catch (err: unknown) {
       // Normalize to an Error, then grab the message or fallback to a string
       const message =
@@ -60,6 +92,8 @@ export async function startVocChangesListener(): Promise<void> {
 
   socket.on("close", () => {
     config.warn?.("[WS] Connection closed. Reconnecting in 5s...");
+    // Clean up our timer, then restart the listener
+    clearInterval(flushInterval);
     setTimeout(() => startVocChangesListener(), 5000);
   });
 

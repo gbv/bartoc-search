@@ -26,8 +26,9 @@ const registeredQueues = global.__registeredQueues;
 
 /**
  * Creates (or returns) a singleton BullMQ queue.
- * @param name - the name of the queue
- * @returns the BullQueue instance, newly created or pre-existing
+ * Key knobs:
+ *  - defaultJobOptions.attempts/backoff
+ *  - removeOnComplete/removeOnFail to clean up old jobs
  */
 export function Queue<Payload>(name: string): BullQueue<Payload> {
   // If the queue already exists, return the existing instance
@@ -42,6 +43,10 @@ export function Queue<Payload>(name: string): BullQueue<Payload> {
     defaultJobOptions: {
       attempts: 5,
       backoff: { type: "exponential", delay: 5000 },
+      // Automatically remove successful jobs to free Redis memory
+      removeOnComplete: true,
+      // Keep only the last 1000 failed jobs by default
+      removeOnFail: { count: 1000 },
     },
   });
 

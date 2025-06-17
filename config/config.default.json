@@ -7,9 +7,9 @@
   "proxies": [],
   "queues": {
     "terminologiesQueue": {
-      "concurrency": 10,
+      "concurrency": 20,
       "limiter" : {
-        "max": 5,
+        "max": 100,
         "duration": 1000
       }
     }
