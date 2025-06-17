@@ -5,15 +5,7 @@ import { SolrClient } from "./SolrClient";
 import { PingResponse, SolrDocument } from "../types/solr";
 import { SupportedLang } from "../types/lang";
 import { SolrPingError } from "../errors/errors";
-import { connection } from "../mongo/mongo";
-import { TerminologyDocument } from "../types/terminology";
-import { Terminology } from "../models/terminology";
-import {
-  conceptSchemeZodSchema,
-  ConceptSchemeZodType,
-} from "../validation/conceptScheme";
-import { ConceptZodType, conceptZodSchema } from "../validation/concept";
-import readAndValidateNdjson from "../utils/loadNdJson";
+import { ConceptZodType } from "../validation/concept";
 import {
   SolrResponse,
   SolrSearchResponse,
@@ -55,45 +47,6 @@ export async function connectToSolr(): Promise<void> {
   }
 }
 
-export async function indexDataAtBoot(): Promise<void> {
-  try {
-    config.log?.(`indexDataAtBoot() function`);
-
-    config.log?.(`📦 Checking terminologies collection...`);
-
-    if (connection.db) {
-      const count = await connection.db
-        .collection("terminologies")
-        .countDocuments();
-
-      config.log?.(`📊 Terminologies in DB: ${count}`);
-
-      if (count > 0) {
-        config.log?.(`Ready to extract ${count} terminology documents`);
-        const terminologies = await Terminology.find({});
-
-        // TODO Do it BETTER, this is a very rudimental solution!
-        // nkos should be part of MongoDB and retrieved consequentely as for terminologies table?
-        const nKosConcepts: ConceptZodType[] = await readAndValidateNdjson(
-          "./data/nkostype.concepts.ndjson",
-          conceptZodSchema,
-        );
-
-        config.log?.(`${JSON.stringify(nKosConcepts[0])}`);
-
-        await extractAllAndSendToSolr(terminologies, nKosConcepts);
-      } else {
-        config.warn?.("No terminologies found. Skipping extract.");
-      }
-    }
-  } catch (error) {
-    config.error?.(
-      "❌ Error during initial extract:",
-      (error as Error).message,
-    );
-  }
-}
-
 export async function solrStatus(): Promise<SolrResponse> {
   try {
     const solrClient = new SolrClient(config.solr.version);
@@ -128,76 +81,6 @@ export async function solrStatus(): Promise<SolrResponse> {
       },
     };
     return fallback;
-  }
-}
-
-export async function extractAllAndSendToSolr(
-  terminologies: TerminologyDocument[],
-  nKosConcepts: ConceptZodType[],
-): Promise<void> {
-  config.log?.(`collection length ${terminologies.length}`);
-
-  let success = 0;
-  let failed = 0;
-  const solrDocuments: SolrDocument[] = [];
-
-  // this block takes care of transforming terminology documents
-  for (const terminology of terminologies) {
-    const plainTerminologyDoc = terminology.toObject(); // remove moongose metadata
-    const terminologyValidated =
-      conceptSchemeZodSchema.safeParse(plainTerminologyDoc);
-
-    if (!terminologyValidated.success) {
-      config.warn?.(
-        `❌ Invalid document skipped: ${terminologyValidated.error.format()}`,
-      );
-      failed++;
-      continue;
-    }
-
-    try {
-      const validTerminologyDoc: ConceptSchemeZodType =
-        terminologyValidated.data;
-      const solrDoc = transformConceptSchemeToSolr(
-        validTerminologyDoc,
-        nKosConcepts,
-      );
-      solrDocuments.push(solrDoc);
-      success++;
-    } catch (error) {
-      config.error?.("❌ Transformation error:", (error as Error).message);
-      failed++;
-    }
-  }
-
-  config.log?.(
-    `✅ Transformed ${success} terminology documents, ${failed} skipped.`,
-  );
-
-  if (solrDocuments.length === 0) {
-    config.warn?.("No documents to send to Solr.");
-    return;
-  }
-
-  const { batchSize } = config.solr;
-  const totalBatches = Math.ceil(solrDocuments.length / batchSize);
-
-  for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
-    const start = batchIndex * batchSize;
-    const end = start + batchSize;
-    const batch = solrDocuments.slice(start, end);
-
-    config.log?.(`📦 Sending batch ${batchIndex + 1} of ${totalBatches}`);
-
-    try {
-      await addDocuments(config.solr.coreName, batch);
-      config.log?.(`📤 Successfully sent ${batch.length} documents to Solr.`);
-    } catch (error) {
-      config.error?.(
-        "❌ Failed to send documents to Solr:",
-        (error as Error).message,
-      );
-    }
   }
 }
 

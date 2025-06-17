@@ -63,7 +63,6 @@ export const defaultConfigSchema = z.object({
   baseUrl: z.string().nullable().optional(),
   closedWorldAssumption: z.boolean().optional(),
   env: z.string().default("development"),
-  indexDataAtBoot: z.boolean().optional(),
   loadNdjsonData: z.boolean().optional(),
   logLevel: z.string().default("info"),
   mongo: mongoSchema.optional(),

@@ -226,12 +226,6 @@ This option determines whether the NDJSON data should be automatically loaded in
 When the Docker environment is started, an NDJSON dataset is automatically imported into the MongoDB instance as part of the initialization routine. This import populates the `terminologies` collection with initial records, providing a working dataset for testing, development, or first-time system execution. The operation is performed by the MongoDB service itself in conjunction with an initialization script. The dataset and behavior can be fully customized or disabled based on project needs in `config.default.json`.
 
 
-#### indexDataAtBoot
-```json
-"indexDataAtBoot": true,
-```
-This option defines whether the existing data in the `terminologies` collection of MongoDB should be immediately indexed into Solr when the `bartoc-search` service starts. When enabled (true), the system will automatically trigger the full ETL pipeline at startup to ensure the Solr index reflects the current database contents. This is particularly useful for development or testing environments, but can be deactivated (false) in production systems where indexing is triggered externally or on-demand.
-
 ## Development
 
 ### System Diagram
