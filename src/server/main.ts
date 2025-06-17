@@ -83,7 +83,7 @@ app.get("/search", async (req: Request, res: Response): Promise<void> => {
       .searchOperation;
 
     const results = await solrQueryBuilder
-      .prepareSelect("bartoc")
+      .prepareSelect(config.solr.coreName)
       .for(query)
       .limit(rows)
       .execute<SolrSearchResponse>();
@@ -115,7 +115,7 @@ app.get("/api/solr", async (req: Request, res: Response): Promise<void> => {
       .searchOperation;
 
     const results = await solrQueryBuilder
-      .prepareSelect("bartoc")
+      .prepareSelect(config.solr.coreName)
       .for(query)
       .limit(1)
       .execute<SolrSearchResponse>();

@@ -34,7 +34,7 @@ const solr = new SolrClient(config.solr.version);
 export async function connectToSolr(): Promise<void> {
   try {
     const pingOk = await solr.collectionOperation
-      .preparePing("bartoc")
+      .preparePing(config.solr.coreName)
       .execute<PingResponse>();
 
     if (!pingOk) {
@@ -99,7 +99,7 @@ export async function solrStatus(): Promise<SolrResponse> {
     const solrClient = new SolrClient(config.solr.version);
 
     const solrQuery = solrClient.searchOperation
-      .prepareSelect("bartoc")
+      .prepareSelect(config.solr.coreName)
       .limit(0)
       .stats(true)
       .statsField("modified_dt")
@@ -179,18 +179,18 @@ export async function extractAllAndSendToSolr(
     return;
   }
 
-  const { batch_size } = config.solr;
-  const totalBatches = Math.ceil(solrDocuments.length / batch_size);
+  const { batchSize } = config.solr;
+  const totalBatches = Math.ceil(solrDocuments.length / batchSize);
 
   for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
-    const start = batchIndex * batch_size;
-    const end = start + batch_size;
+    const start = batchIndex * batchSize;
+    const end = start + batchSize;
     const batch = solrDocuments.slice(start, end);
 
     config.log?.(`📦 Sending batch ${batchIndex + 1} of ${totalBatches}`);
 
     try {
-      await addDocuments("bartoc", batch);
+      await addDocuments(config.solr.coreName, batch);
       config.log?.(`📤 Successfully sent ${batch.length} documents to Solr.`);
     } catch (error) {
       config.error?.(

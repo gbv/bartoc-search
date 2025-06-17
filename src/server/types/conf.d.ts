@@ -22,7 +22,8 @@ export interface MongoConfig {
 }
 
 export interface SolrConfig {
-  batch_size: number;
+  batchSize: number;
+  coreName: string;
   host: string;
   port: number;
   url?: string;

@@ -18,7 +18,7 @@ const solrHandler = async (job: Job<SolrJobPayload>): Promise<void> => {
   switch (operation) {
     case OperationType.Delete: {
       config.log?.(`[Worker] Deleting ${id} from Solr…`);
-      await deleteDocuments("bartoc", [id]);
+      await deleteDocuments(config.solr.coreName, [id]);
       config.log?.(`[Worker] delete completed for id=${id}`);
       break;
     }
@@ -37,7 +37,7 @@ const solrHandler = async (job: Job<SolrJobPayload>): Promise<void> => {
         document,
         nKosConcepts,
       );
-      await addDocuments("bartoc", [solrDoc]);
+      await addDocuments(config.solr.coreName, [solrDoc]);
       config.log?.(`[Worker] ${operation} completed for id=${id}`);
       break;
     }

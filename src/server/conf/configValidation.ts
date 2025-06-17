@@ -29,7 +29,8 @@ export const mongoSchema = z.object({
 
 // SolrConfig schema
 export const solrSchema = z.object({
-  batch_size: z.number(),
+  batchSize: z.number(),
+  coreName: z.string(),
   host: z.string(),
   port: z.number(),
   url: z.string().optional(),

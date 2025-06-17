@@ -63,11 +63,14 @@ services:
       - "8983:8983"
     volumes:
       - solr_data:/var/solr
-      - ./solr-config/bartoc-configset:/configsets/bartoc-configset
+      - ./solr-config/terminologies-configset:/configsets/terminologies-configset
+    environment:
+      # this makes the var available in the container
+      SOLR_CORE_NAME: ${SOLR_CORE_NAME}
     command:
       - solr-precreate
-      - bartoc
-      - /configsets/bartoc-configset
+      - ${SOLR_CORE_NAME}
+      - /configsets/terminologies-configset
 
 volumes:
   mongo_data:
