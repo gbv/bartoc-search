@@ -156,15 +156,26 @@ GET /status
 **Response (HTTP 200)**
 
 ```json
-{
-  "ok": true,
-  "environment": "development",
-  "solr": {
-    "connected": true,
-    "indexedRecords": 3684,
-    "lastIndexedAt"	"May 22, 2025, 2:14:00 PM UTC"
-  }
-}
+"ok": true,
+"appVersion": "1.0.0",
+"environment": "development",
+"runtimeInfo": 
+  "nodeVersion": "v20.19.2",
+  "uptime": "3 hours, 28 minutes, 39 seconds",
+  "memoryUsage":  
+    "rss": "131.9 MB",
+    "heapTotal": "59.6 MB",
+    "heapUsed": "57.9 MB",
+    "external": "7.5 MB",
+    "arrayBuffers": "0.6 MB",
+  "timestamp":" Jun 18, 2025, 11:57:37 AM UTC",
+"services":  
+  "solr": 
+    "connected": false, 
+    "indexedRecords": 0, 
+    "lastIndexedAt": "Jun 17, 2025, 10:28:27 AM UTC", 
+    "firstUpdate": "",
+    "lastUpdate": ""
 ```
 
 | Field                 | Type    | Description                                                                               |
