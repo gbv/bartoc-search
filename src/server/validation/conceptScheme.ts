@@ -1,7 +1,7 @@
 // Validating schema with zod
 import { z } from "zod";
 
-export const terminologyZodSchema = z.object({
+export const conceptSchemeZodSchema = z.object({
   "@context": z.string(),
   ACCESS: z.array(z.object({ uri: z.string().url() })).optional(),
   ADDRESS: z
@@ -59,4 +59,4 @@ export const terminologyZodSchema = z.object({
   url: z.string().url().optional(),
 });
 
-export type TerminologyZodType = z.infer<typeof terminologyZodSchema>;
+export type ConceptSchemeZodType = z.infer<typeof conceptSchemeZodSchema>;

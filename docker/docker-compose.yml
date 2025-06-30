@@ -8,15 +8,36 @@ services:
       - ../:/usr/src/app
       - /usr/src/app/node_modules
     ports:
-      - "3000:3000"     # HTTP
+      - "3883:3883"     # HTTP
       - "24678:24678"   # HMR WebSocket
     depends_on:
-      - mongo
       - solr
     environment:
       - NODE_ENV=development
       - CONFIG_FILE=./config/config.json
+      - __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS=.coli-conc.gbv.de
+      - VITE_JSKOS_WS_URL=ws://jskos-server:3000
+      - BASE_URL=http://localhost:3883/
     working_dir: /usr/src/app
+
+  jskos-server:
+    image: ghcr.io/gbv/jskos-server:dev
+    container_name: jskos-server
+    depends_on:
+      - mongo
+    volumes:
+    - ../config/jskos-server-dev.json:/config/config.json
+    ports:
+      - "3000:3000" # HTTP
+  
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+    restart: always
+    volumes:
+      - redis_data:/data
 
   mongo:
     image: mongo:7
@@ -42,12 +63,16 @@ services:
       - "8983:8983"
     volumes:
       - solr_data:/var/solr
-      - ./solr-config/bartoc-configset:/configsets/bartoc-configset
+      - ./solr-config/terminologies-configset:/configsets/terminologies-configset
+    environment:
+      # this makes the var available in the container
+      SOLR_CORE_NAME: ${SOLR_CORE_NAME}
     command:
       - solr-precreate
-      - bartoc
-      - /configsets/bartoc-configset
+      - ${SOLR_CORE_NAME}
+      - /configsets/terminologies-configset
 
 volumes:
   mongo_data:
   solr_data:
+  redis_data:

@@ -6,7 +6,6 @@ export interface StatusResponse {
   environment: string;
   runtimeInfo: StatusRuntimeInfo;
   services: {
-    mongo: { connected: boolean };
     solr: SolrStatusResult;
   };
 }

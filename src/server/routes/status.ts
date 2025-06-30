@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import { readFileSync, existsSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
-import mongoose from "mongoose";
 import * as solr from "../solr/solr";
 import {
   SolrSearchResponse,
@@ -30,9 +29,6 @@ export const getStatus = async (
 
   // services checks
 
-  // mongo
-  const mongoConnected = mongoose.connection.readyState === 1;
-
   //solr
   const solrStatus = await solr.solrStatus();
   const solrStatusResult: SolrStatusResult = mapSolrToStatus(solrStatus);
@@ -43,7 +39,6 @@ export const getStatus = async (
     environment: process.env.NODE_ENV ?? "development",
     runtimeInfo,
     services: {
-      mongo: { connected: mongoConnected },
       solr: solrStatusResult,
     },
   };

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const nKosTypeConceptSchema = z.object({
+export const conceptZodSchema = z.object({
   "@context": z.string(),
 
   uri: z.string().url(),
@@ -40,4 +40,4 @@ export const nKosTypeConceptSchema = z.object({
   ),
 });
 
-export type NkosZodTypeConcept = z.infer<typeof nKosTypeConceptSchema>;
+export type ConceptZodType = z.infer<typeof conceptZodSchema>;

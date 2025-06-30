@@ -156,15 +156,26 @@ GET /status
 **Response (HTTP 200)**
 
 ```json
-{
-  "ok": true,
-  "environment": "development",
-  "solr": {
-    "connected": true,
-    "indexedRecords": 3684,
-    "lastIndexedAt"	"May 22, 2025, 2:14:00 PM UTC"
-  }
-}
+"ok": true,
+"appVersion": "1.0.0",
+"environment": "development",
+"runtimeInfo": 
+  "nodeVersion": "v20.19.2",
+  "uptime": "3 hours, 28 minutes, 39 seconds",
+  "memoryUsage":  
+    "rss": "131.9 MB",
+    "heapTotal": "59.6 MB",
+    "heapUsed": "57.9 MB",
+    "external": "7.5 MB",
+    "arrayBuffers": "0.6 MB",
+  "timestamp":" Jun 18, 2025, 11:57:37 AM UTC",
+"services":  
+  "solr": 
+    "connected": false, 
+    "indexedRecords": 0, 
+    "lastIndexedAt": "Jun 17, 2025, 10:28:27 AM UTC", 
+    "firstUpdate": "",
+    "lastUpdate": ""
 ```
 
 | Field                 | Type    | Description                                                                               |
@@ -225,12 +236,6 @@ In particular:
 This option determines whether the NDJSON data should be automatically loaded into the MongoDB instance at container startup. This mechanism is considered a temporary workaround and can be disabled by setting the value to `false`.
 When the Docker environment is started, an NDJSON dataset is automatically imported into the MongoDB instance as part of the initialization routine. This import populates the `terminologies` collection with initial records, providing a working dataset for testing, development, or first-time system execution. The operation is performed by the MongoDB service itself in conjunction with an initialization script. The dataset and behavior can be fully customized or disabled based on project needs in `config.default.json`.
 
-
-#### indexDataAtBoot
-```json
-"indexDataAtBoot": true,
-```
-This option defines whether the existing data in the `terminologies` collection of MongoDB should be immediately indexed into Solr when the `bartoc-search` service starts. When enabled (true), the system will automatically trigger the full ETL pipeline at startup to ensure the Solr index reflects the current database contents. This is particularly useful for development or testing environments, but can be deactivated (false) in production systems where indexing is triggered externally or on-demand.
 
 ## Development
 

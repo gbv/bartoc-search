@@ -1,17 +1,11 @@
-import { connect } from "../mongo/mongo";
-import { Terminology } from "../models/terminology";
+/**
 import { faker } from "@faker-js/faker";
 import config from "../conf/conf";
 import { connection } from "mongoose";
 import {
-  terminologyZodSchema,
-  TerminologyZodType,
-} from "../mongo/terminologySchemaValidation";
-
-async function init() {
-  await connect(true);
-  await startLiveSeed(10000); // every 10 seconds
-}
+  conceptSchemeZodSchema,
+  ConceptSchemeZodType,
+} from "../validation/conceptScheme";
 
 export async function startLiveSeed(interval = 5000) {
   let count = 1;
@@ -32,7 +26,7 @@ export async function startLiveSeed(interval = 5000) {
       uri: faker.internet.url(),
     });
 
-    const rawDoc = new Terminology({
+    const rawDoc = new conceptScheme({
       "@context": "https://gbv.github.io/jskos/context.json",
       ACCESS: [{ uri: "http://bartoc.org/en/Access/Free" }],
       FORMAT: [{ uri: "http://bartoc.org/en/Format/Online" }],
@@ -60,14 +54,14 @@ export async function startLiveSeed(interval = 5000) {
       ],
     });
 
-    const validation = terminologyZodSchema.safeParse(rawDoc);
+    const validation = conceptSchemeZodSchema.safeParse(rawDoc);
 
     if (!validation.success) {
       config.error?.("❌ Invalid fake terminology", validation.error.message);
       return;
     }
 
-    const validDoc: TerminologyZodType = validation.data;
+    const validDoc: ConceptSchemeZodType = validation.data;
     const mongoDoc = new Terminology(validDoc);
     await mongoDoc.save();
 
@@ -85,5 +79,4 @@ export async function startLiveSeed(interval = 5000) {
     insertFakeDoc().catch(console.error);
   }, interval);
 }
-
-init().catch(console.error); // every 10 seconds
+**/

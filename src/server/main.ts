@@ -8,6 +8,13 @@ import { LuceneQuery } from "./solr/search/LuceneQuery";
 import type { ViteDevServer } from "vite";
 import fs from "node:fs/promises";
 import { getStatus } from "./routes/status.js";
+import { startVocChangesListener } from "./composables/useVocChanges";
+import expressWs from "express-ws";
+import { loadNkosConcepts } from "./utils/nskosService";
+import { terminologiesQueue } from "./queue/worker.js";
+import { createBullBoard } from "@bull-board/api";
+import { ExpressAdapter } from "@bull-board/express";
+import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
 
 const isProduction = process.env.NODE_ENV === "production";
 const base = process.env.VIRTUAL_PATH || "/";
@@ -18,11 +25,21 @@ const templateHtml = isProduction
   : "";
 
 const app = express();
-app
-  .disable("x-powered-by")
-  .use(morgan("dev"))
-  .use(express.urlencoded({ extended: true }))
-  .use(express.json());
+
+app.disable("x-powered-by");
+
+// only log requests _not_ under /admin/queues
+app.use(
+  morgan("dev", {
+    skip: (req) => req.originalUrl.startsWith("/admin/queues"),
+  }),
+);
+
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
+// Initialize WebSocket support
+expressWs(app);
 
 // ==========================
 // Add Vite or respective production middlewares
@@ -66,7 +83,7 @@ app.get("/search", async (req: Request, res: Response): Promise<void> => {
       .searchOperation;
 
     const results = await solrQueryBuilder
-      .prepareSelect("bartoc")
+      .prepareSelect(config.solr.coreName)
       .for(query)
       .limit(rows)
       .execute<SolrSearchResponse>();
@@ -98,7 +115,7 @@ app.get("/api/solr", async (req: Request, res: Response): Promise<void> => {
       .searchOperation;
 
     const results = await solrQueryBuilder
-      .prepareSelect("bartoc")
+      .prepareSelect(config.solr.coreName)
       .for(query)
       .limit(1)
       .execute<SolrSearchResponse>();
@@ -107,6 +124,25 @@ app.get("/api/solr", async (req: Request, res: Response): Promise<void> => {
     res.status(500).json({ error: "Failed to fetch Solr record" });
   }
 });
+
+// ==========================
+// Build BullMQ UI board
+// ==========================
+// 1) Create the Express adapter and mount path
+const serverAdapter = new ExpressAdapter();
+serverAdapter.setBasePath("/admin/queues");
+
+// 2) Create Bull-Board, passing in your BullMQ queues
+createBullBoard({
+  queues: [
+    new BullMQAdapter(terminologiesQueue),
+    // add more queues here...
+  ],
+  serverAdapter,
+});
+
+// 3) Mount the router
+app.use("/admin/queues", serverAdapter.getRouter());
 
 // ==========================
 // Serve HTML
@@ -168,4 +204,8 @@ export const startServer = async () => {
   app.listen(config.port, () => {
     console.log(`Now listening on port ${config.port}`);
   });
+
+  await loadNkosConcepts();
+
+  await startVocChangesListener();
 };
