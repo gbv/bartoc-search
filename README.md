@@ -227,14 +227,17 @@ All configuration for MongoDB and Solr is set in `config/config.default.json` an
 
 At startup, as part of the automated initialization process, a dataset in NDJSON format is automatically loaded into the MongoDB instance. This dataset provides the starting records for the terminologies collection and ensures the system has data to process during the first execution of the ETL pipeline. The NDJSON import is handled by the mongoDB service in the Docker environment and can be customized or replaced depending on the project requirements. 
 
-#### loadNdjsonData 
+#### indexDataAtBoot 
 In particular: 
 
 ```json
-"loadNdjsonData": true,
+"indexDataAtBoot": true,
 ```
-This option determines whether the NDJSON data should be automatically loaded into the MongoDB instance at container startup. This mechanism is considered a temporary workaround and can be disabled by setting the value to `false`.
-When the Docker environment is started, an NDJSON dataset is automatically imported into the MongoDB instance as part of the initialization routine. This import populates the `terminologies` collection with initial records, providing a working dataset for testing, development, or first-time system execution. The operation is performed by the MongoDB service itself in conjunction with an initialization script. The dataset and behavior can be fully customized or disabled based on project needs in `config.default.json`.
+This option determines whether the NDJSON data should be indexed into Solr during container startup. It acts as a bootstrap mechanism to populate the Solr core with initial data, particularly useful for development, testing, or first-time setup.
+
+If set to `true`, the system will check at boot whether the Solr instance is up and running and whether the corresponding core has zero documents indexed. Only if both conditions are met, the data import will proceed. This prevents unintentional overwrites and ensures Solr is only seeded when necessary.
+
+The source NDJSON file and this behavior can be customized in `config.default.json`. Setting this value to `false` disables the automatic indexing.
 
 
 ## Development
