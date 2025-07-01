@@ -51,7 +51,6 @@
   
   async function onSearch() {
     const q = query.value.trim()
-    if (!q) return
     const field = selectedField.value;
     loading.value = true
     hasSearched.value = true
