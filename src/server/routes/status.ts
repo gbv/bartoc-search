@@ -62,7 +62,7 @@ export function mapSolrToStatus(status: SolrResponse): SolrStatusResult {
   const fields = currentStatus.stats?.stats_fields?.modified_dt ?? {};
 
   const solrStatusResult: SolrStatusResult = {
-    connected: numFound > 0,
+    connected: true,
     indexedRecords: numFound,
     lastIndexedAt: formatTimestamp(getLastIndexedAt()),
     firstUpdate: formatTimestamp(fields.min) ?? null,
