@@ -34,7 +34,7 @@ export interface DefaultConfig {
   baseUrl?: string | null;
   closedWorldAssumption?: boolean;
   env: string;
-  loadNdjsonData?: boolean;
+  indexDataAtBoot?: boolean;
   logLevel: string;
   mongo?: MongoConfig;
   ndJsonDataPath?: string;

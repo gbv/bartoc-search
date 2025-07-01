@@ -5,6 +5,7 @@ import { SolrClient } from "./SolrClient";
 import { PingResponse, SolrDocument } from "../types/solr";
 import { SupportedLang } from "../types/lang";
 import { SolrPingError } from "../errors/errors";
+import { conceptSchemeZodSchema } from "../validation/conceptScheme";
 import { ConceptZodType } from "../validation/concept";
 import {
   SolrResponse,
@@ -16,6 +17,7 @@ import { writeFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { ConceptSchemeDocument } from "../types/jskos";
+import readAndValidateNdjson from "../utils/loadNdJson";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -44,6 +46,37 @@ export async function connectToSolr(): Promise<void> {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     config.error?.("❌ Failed to initialize Solr:", message);
+  }
+
+  if (config.indexDataAtBoot) {
+    try {
+      maybeBootstrapSolr();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      config.error?.("❌ Failed to index data in Solr at startup:", message);
+    }
+  }
+}
+
+export async function maybeBootstrapSolr() {
+  const status = (await solrStatus()) as SolrSearchResponse;
+  const numDocs = status.response?.numFound ?? 0;
+
+  if (numDocs === 0) {
+    config.log?.("📦 Solr core is empty. Proceeding with initial indexing...");
+
+    const ndjsonPath = config.ndJsonDataPath ?? "./data/terminologies.ndjson";
+    const docs = await readAndValidateNdjson(
+      ndjsonPath,
+      conceptSchemeZodSchema,
+    );
+
+    const solrDocs = docs.map((doc) => transformConceptSchemeToSolr(doc, []));
+    await addDocuments(config.solr.coreName, solrDocs);
+  } else {
+    config.log?.(
+      `ℹ️ Solr core already has ${numDocs} documents. Skipping initial indexing.`,
+    );
   }
 }
 

@@ -1,7 +1,7 @@
 {
   "baseUrl": null,
   "closedWorldAssumption": true,
-  "loadNdjsonData": true,
+  "indexDataAtBoot": true,
   "port": 3883,
   "proxies": [],
   "queues": {

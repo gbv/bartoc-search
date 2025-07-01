@@ -33,8 +33,8 @@ config.redis.url = `redis://${config.redis.host}:${config.redis.port}`;
 // Build solr url, basic only for local development
 config.solr.url = `http://${config.solr.host}:${config.solr.port}/solr`;
 
-// Build ndJson data path
-if (config.loadNdjsonData && config.loadNdjsonData === true) {
+// Build ndJson data path, from latest.ndjson
+if (config.indexDataAtBoot && config.indexDataAtBoot === true) {
   config.ndJsonDataPath = dataFilePath;
 }
 
