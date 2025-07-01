@@ -38,9 +38,7 @@ export const getStatus = async (
     appVersion,
     environment: process.env.NODE_ENV ?? "development",
     runtimeInfo,
-    services: {
-      solr: solrStatusResult,
-    },
+    solr: solrStatusResult,
   };
 
   res.json(statusResponse);

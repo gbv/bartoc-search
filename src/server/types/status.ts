@@ -5,9 +5,7 @@ export interface StatusResponse {
   appVersion: string;
   environment: string;
   runtimeInfo: StatusRuntimeInfo;
-  services: {
-    solr: SolrStatusResult;
-  };
+  solr: SolrStatusResult;
 }
 
 export interface StatusRuntimeInfo {
