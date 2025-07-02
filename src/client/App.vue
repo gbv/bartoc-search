@@ -1,17 +1,29 @@
 <template>
+  <header>
+    <TheHeader />
+  </header>
   <div class="min-h-screen flex flex-col items-center justify-start bg-gray-50 p-6">
     <h1 class="text-3xl font-bold mb-8">BARTOC Search <small>prototype for testing</small></h1>
     
-    <!-- Import and use the SearchBar -->
+    <!-- Import and use the SearchBar 
     <SearchBar />
+    -->
+    <RouterView />
 
     <!-- Optionally  move the results list here later -->
   </div>
+  <footer>
+    <TheFooter />
+  </footer>
 </template>
 
 <script setup lang="ts">
 // Import  SearchBar component
 import SearchBar from './components/SearchBar.vue'
+import TheHeader from './components/TheHeader.vue';
+import TheFooter from './components/TheFooter.vue';
+import { RouterView } from 'vue-router'
+
 </script>
 
 <style>

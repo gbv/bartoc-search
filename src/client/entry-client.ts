@@ -1,6 +1,8 @@
 import './style.css'
 import { createApp } from './main'
 
-const { app } = createApp()
+const { app, router } = createApp(window.location.pathname, true) // <-- ✅ isClient = true
 
-app.mount('#app')
+router.isReady().then(() => {
+  app.mount('#app')
+})
