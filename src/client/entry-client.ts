@@ -1,4 +1,4 @@
-import './style.css'
+import './styles/main.css'
 import { createApp } from './main'
 
 const { app, router } = createApp(window.location.pathname, true) // <-- ✅ isClient = true
