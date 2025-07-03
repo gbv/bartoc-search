@@ -46,8 +46,8 @@ npm install
 This service exposes three HTTP endpoints:
 
 - **[GET /](#get)** – Root endpoint, returns the Vue Client.
-- **[GET /search](#get-search)** – Search endpoint, accepts query parameters and returns matching results in json format.
-- **[GET /status](#get-status)** – Health-check endpoint, returns service status about mongoDb and Solr connection.
+- **[GET /api/search](#get-search)** – Search endpoint, accepts query parameters and returns matching results in json format.
+- **[GET /api/status](#get-status)** – Health-check endpoint, returns service status about mongoDb and Solr connection.
 
 All endpoints respond with JSON and use standard HTTP status codes.
 
@@ -55,7 +55,7 @@ All endpoints respond with JSON and use standard HTTP status codes.
 
 Returns the discovery interface in form of an HTML page with the experimental Vue client.
 
-### GET /search
+### GET /api/search
 
 Executes a search query against the Solr index, returning results along with query metrics.
 
@@ -71,7 +71,7 @@ Executes a search query against the Solr index, returning results along with que
 #### Request Example
 
 ```http
-GET /search?q=*:*&start=0&rows=10&wt=json HTTP/1.1
+GET /api/search?q=*:*&start=0&rows=10&wt=json HTTP/1.1
 Host: api.example.com
 Accept: application/json
 ```

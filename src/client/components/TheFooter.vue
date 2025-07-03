@@ -35,7 +35,7 @@ const solrStatus = reactive<SolrStatusResult>({
 
 onMounted(async () => {
   try {
-    const res = await axios.get(`${import.meta.env.BASE_URL}status`)
+    const res = await axios.get(`${import.meta.env.BASE_URL}api/status`)
     Object.assign(solrStatus, res.data.solr)
   } catch (e) {
     console.warn('Could not fetch Solr status')

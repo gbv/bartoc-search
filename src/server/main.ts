@@ -64,12 +64,12 @@ if (!isProduction) {
 // ==========================
 // Health check
 // ==========================
-app.get("/status", getStatus);
+app.get("/api/status", getStatus);
 
 // ==========================
 // Search endpoint
 // ==========================
-app.get("/search", async (req: Request, res: Response): Promise<void> => {
+app.get("/api/search", async (req: Request, res: Response): Promise<void> => {
   // Read params
   const rawQ = (req.query.q as string) || "";
   const field = (req.query.field as string) || "allfields";

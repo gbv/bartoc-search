@@ -24,52 +24,30 @@
           Search
         </button>
       </div>
-  
-      <!-- Feedback messages -->
-      <div v-if="loading" class="text-gray-500">Loading results...</div>
-      <div v-if="!loading && errorMessage" class="text-red-600 font-semibold">
-      ❗ {{ errorMessage }}
-      </div>
-      <div v-if="!loading && results.length === 0 && hasSearched" class="text-red-500">No results found.</div>
-
-      <VocabularyCard v-for="doc in results || []" :key="doc.id" :doc="doc" />
 
     </div>
 </template>
 
 <script setup lang="ts">
   import { ref } from 'vue'
-  import axios from 'axios'
-  import VocabularyCard from './VocabularyCard.vue'
-  
+  import { useRouter } from 'vue-router'
+
+  const router = useRouter()
   const query = ref('')
-  const results = ref<any[]>([])
-  const loading = ref(false)
-  const hasSearched = ref(false)
   const selectedField = ref('allfields')
-  const errorMessage = ref<string | null>(null)
   
   async function onSearch() {
     const q = query.value.trim()
     const field = selectedField.value;
-    loading.value = true
-    hasSearched.value = true
-    errorMessage.value = null // clear any previous error
+  
+    router.push({
+      path: '/search',
+      query: {
+        q,
+        field
+      },
+    })
 
-    try {
-        // Call to bartoc-search backend
-      const res = await axios.get(`${import.meta.env.BASE_URL}search`, {
-        params: { q, field },
-      })
-      results.value = res.data.response.docs || []
-      console.log(res.data.response.numFound);
-    } catch (error) {
-      console.error('Search failed:', error)
-      results.value = []
-      errorMessage.value = 'Search service is not reachable or returned an error.'
-    } finally {
-      loading.value = false
-    }
   }
 </script>
   

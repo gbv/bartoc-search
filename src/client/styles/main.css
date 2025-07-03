@@ -7,13 +7,13 @@
 @import './components/header.css';
 @import './components/search-bar.css';
 @import './components/vocabulary-card.css';
-
-@import './pages/home.css'; */
+ */
 
 @import './base/base.css';
 @import './components/header.css';
 @import './components/footer.css';
 @import './pages/home.css';
+@import './pages/search.css';
 
 
 :root {
