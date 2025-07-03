@@ -1,5 +1,6 @@
 import HomeView from '../views/HomeView.vue'
 import SearchView from '../views/SearchView.vue'
+import AboutView from '../views/AboutView.vue'
 
 const routes = [
   {
@@ -15,8 +16,7 @@ const routes = [
   {
     path: '/about',
     name: 'about',
-    // Lazy-loaded when the route is visited.
-    component: () => import('../views/AboutView.vue'),
+    component: AboutView,
   },
 ]
 
