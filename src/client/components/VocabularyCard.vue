@@ -3,10 +3,9 @@
     <h2 class="result-title">
       {{ title || fallbackTitle }}
     </h2>
-    <p class="result-description">
-      {{ shortDescription || "No description available." }}
+    <p class="result-description" v-if="shortDescription">
+      {{ shortDescription }} 
     </p>
-
     <ul class="result-details">
       <li v-if="doc.publisher_label">
         <strong>Publisher:</strong> {{ doc.publisher_label }}
