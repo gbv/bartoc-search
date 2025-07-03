@@ -5,8 +5,8 @@
         <RouterLink to="/">Bartoc Search</RouterLink>
       </div>
       <nav class="header__nav">
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
+        <RouterLink :to="{ name: 'home', query: {} }">Home</RouterLink>
+        <RouterLink :to="{ name: 'about', query: {} }">About</RouterLink>
         <!-- Add more links as needed -->
       </nav>
       <!-- Optional: Add a search bar or language switcher here -->

@@ -41,7 +41,7 @@
     const field = selectedField.value;
   
     router.push({
-      path: '/search',
+      name: 'search',
       query: {
         q,
         field
