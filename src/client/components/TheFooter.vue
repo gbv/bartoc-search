@@ -2,7 +2,6 @@
   <footer class="footer">
     <div class="footer__container">
       <div class="footer__info">
-        <span>&copy; {{ year }} Bartoc Search</span>
         <span class="footer__links">
           <a href="https://github.com/gbv/bartoc-search" target="_blank" rel="noopener">GitHub</a>
           <a href="/about">About</a>
@@ -11,7 +10,7 @@
       <div>
         <div> Solr Status : {{ Object.entries(solrStatus)
             .map(([key, value]) => `${key} = ${value}`)
-            .join(' ---- ') }}
+            .join(' | ') }}
         </div>
       </div>
     </div>
@@ -22,8 +21,6 @@
 import { reactive, onMounted } from 'vue'
 import axios from 'axios'
 import { SolrStatusResult } from '../../server/types/solr'
-
-const year = new Date().getFullYear()
 
 const solrStatus = reactive<SolrStatusResult>({
   connected: false,
