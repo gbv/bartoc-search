@@ -95,12 +95,13 @@ function getSolrRecord(id: string): string {
 <style scoped>
 .result-card {
   border: 1px solid #ddd;
-  border-radius: 12px;
-  padding: 16px;
+  border-radius: 6px;
+  padding: 8px;
+  margin: 12px 8px;
   background-color: #fff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   transition: box-shadow 0.2s ease;
-  margin-bottom: 16px;
+  text-align: left;
 }
 .result-card:hover {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
@@ -110,13 +111,13 @@ function getSolrRecord(id: string): string {
   font-size: 1.25rem;
   font-weight: bold;
   color: #1a202c;
-  margin-bottom: 8px;
+  margin: 4px 0px;
 }
 
 .result-description {
   font-size: 0.9rem;
   color: #4a5568;
-  margin-bottom: 12px;
+  margin: 4px 0px;
   display: -webkit-box;
   overflow: hidden;
 }
