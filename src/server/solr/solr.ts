@@ -4,7 +4,6 @@ import config from "../conf/conf";
 import { SolrClient } from "./SolrClient";
 import { PingResponse, SolrDocument } from "../types/solr";
 import { SupportedLang } from "../types/lang";
-import { SolrPingError } from "../errors/errors";
 import { conceptSchemeZodSchema } from "../validation/conceptScheme";
 import { ConceptZodType } from "../validation/concept";
 import {
@@ -18,6 +17,8 @@ import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { ConceptSchemeDocument } from "../types/jskos";
 import readAndValidateNdjson from "../utils/loadNdJson";
+import { sleep } from "../utils/utils";
+import readline from "readline";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -26,31 +27,46 @@ const LAST_INDEX_FILE = join(__dirname, "../../../data/lastIndexedAt.txt");
 const solr = new SolrClient(config.solr.version);
 
 export async function connectToSolr(): Promise<void> {
-  try {
-    const pingOk = await solr.collectionOperation
-      .preparePing(config.solr.coreName)
-      .execute<PingResponse>();
+  let pingOk = false;
+  // 1) Ping Solr to check if it is reachable and healthy
 
-    if (!pingOk) {
-      config.warn?.(
-        "⚠️ Solr server is reachable but not healthy (ping failed). Skipping initialization.",
-      );
-      throw new Error() as SolrPingError;
+  const MAX_RETRIES = config.solr.pingRetries ?? 5;
+  const RETRY_INTERVAL = config.solr.pingRetryDelay ?? 2000;
+
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const resp = await solr.collectionOperation
+        .preparePing(config.solr.coreName)
+        .execute<PingResponse>();
+
+      if (resp) {
+        pingOk = true;
+        config.log?.(`✅ Solr is up (attempt ${attempt}/${MAX_RETRIES})`);
+        break;
+      }
+    } catch (err) {
+      // If SolrCore is loading (503), swallow and retry
+      const message = err instanceof AxiosError ? err.message : String(err);
+      const code = err instanceof AxiosError ? err.code : String(err);
+
+      if (code === "503" && message.includes("SolrCore is loading")) {
+        config.warn?.(
+          `⏳ Core "${config.solr.coreName}" is still loading (attempt ${attempt}/${MAX_RETRIES})`,
+        );
+      } else {
+        // Some other error: break out and treat as fatal
+        config.error?.(
+          `❌ Unexpected error pinging Solr (attempt ${attempt}): ${message}`,
+        );
+      }
     }
 
-    config.log?.("✅ Connected to Solr and ping successful.");
-
-    //TODO List available cores?
-
-    //TODO Optional: Check configsets (advanced)
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    config.error?.("❌ Failed to initialize Solr:", message);
+    await sleep(RETRY_INTERVAL);
   }
 
-  if (config.indexDataAtBoot) {
+  if (config.indexDataAtBoot && pingOk) {
     try {
-      maybeBootstrapSolr();
+      bootstrapIndexSolr();
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       config.error?.("❌ Failed to index data in Solr at startup:", message);
@@ -58,26 +74,53 @@ export async function connectToSolr(): Promise<void> {
   }
 }
 
-export async function maybeBootstrapSolr() {
-  const status = (await solrStatus()) as SolrSearchResponse;
-  const numDocs = status.response?.numFound ?? 0;
+// Initializes the Solr core with daily dump data from Database even if that is not empty
+export async function bootstrapIndexSolr() {
+  config.log?.("📦 Proceeding with initial indexing...");
 
-  if (numDocs === 0) {
-    config.log?.("📦 Solr core is empty. Proceeding with initial indexing...");
+  const url = "https://bartoc.org/data/dumps/latest.ndjson";
 
-    const ndjsonPath = config.ndJsonDataPath ?? "./data/terminologies.ndjson";
-    const docs = await readAndValidateNdjson(
-      ndjsonPath,
-      conceptSchemeZodSchema,
-    );
+  // 1) Fetch the NDJSON as a stream
+  const response = await axios.get(url, { responseType: "stream" });
+  const stream = response.data as NodeJS.ReadableStream;
 
-    const solrDocs = docs.map((doc) => transformConceptSchemeToSolr(doc, []));
-    await addDocuments(config.solr.coreName, solrDocs);
-  } else {
-    config.log?.(
-      `ℹ️ Solr core already has ${numDocs} documents. Skipping initial indexing.`,
-    );
+  // 2) Read it line-by-line
+  const rl = readline.createInterface({ input: stream, crlfDelay: Infinity });
+
+  const docs: SolrDocument[] = [];
+
+  for await (const line of rl) {
+    if (!line.trim()) continue;
+    let obj: ConceptSchemeDocument;
+    try {
+      obj = JSON.parse(line);
+    } catch (e) {
+      console.warn("Skipping invalid JSON line:", e);
+      continue;
+    }
+    // 3) Transform into Solr shape
+    const solrDoc = transformConceptSchemeToSolr(obj, []);
+    docs.push(solrDoc);
   }
+
+  config.log?.(`📦 Read ${docs.length} documents from the stream.`);
+
+  // 4) Add to Solr
+  const BATCH_SIZE = config.solr.batchSize ?? 500;
+  if (docs.length > 0) {
+    for (let i = 0; i < docs.length; i += BATCH_SIZE) {
+      const batch = docs.slice(i, i + BATCH_SIZE);
+      await addDocuments(config.solr.coreName, batch);
+    }
+  }
+
+  config.log?.(`✅ Bootstrapped ${docs.length} documents from ${url}`);
+
+  /* const ndjsonPath = config.ndJsonDataPath ?? "./data/terminologies.ndjson";
+  const docs = await readAndValidateNdjson(ndjsonPath, conceptSchemeZodSchema);
+
+  const solrDocs = docs.map((doc) => transformConceptSchemeToSolr(doc, []));
+  await addDocuments(config.solr.coreName, solrDocs); */
 }
 
 export async function solrStatus(): Promise<SolrResponse> {

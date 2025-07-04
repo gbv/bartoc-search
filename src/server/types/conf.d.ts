@@ -25,6 +25,9 @@ export interface SolrConfig {
   batchSize: number;
   coreName: string;
   host: string;
+  pingTimeout?: number;
+  pingRetries?: number;
+  pingRetryDelay?: number;
   port: number;
   url?: string;
   version: number;

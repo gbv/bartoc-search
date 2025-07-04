@@ -21,6 +21,9 @@
     "batchSize": 500,
     "coreName": "terminologies",
     "host": "solr",
+    "pingTimeout": 10000,
+    "pingRetries": 5,
+    "pingRetryDelay": 1000,
     "port": 8983,
     "version": 8.1
   },

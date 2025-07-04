@@ -10,6 +10,9 @@ This application extracts JSKOS data with metadata about terminologies from [BAR
 
 - [Install](#install)
 - [Usage](#usage)
+- [Services](#services)
+  - [Solr](#solr)
+  - [Redis](#redis)
 - [API](#api)
   - [GET /](#get)
   - [GET /search](#get-search)
@@ -40,8 +43,184 @@ git clone https://github.com/gbv/bartoc-search.git
 cd bartoc-search
 npm install
 ```
+---
 
-## API
+## Usage
+
+To run from the `docker` directory:
+
+```bash
+docker-compose up --build
+```
+
+This starts:
+
+* Solr (`solr`) at localhost:8983
+* bartoc-search app (`search`) at localhost:3000
+
+
+### System Diagram (TO DO, deprecated)
+
+~~~mermaid
+graph TD
+  Solr[(🔎 Solr Index)]
+  DB[(🍃 BARTOC database)]
+  subgraph search service [ ]
+    direction TB
+    Server[⚙️ Search service]
+    Client[🖥️ Vue Client]
+  end
+  Client[🖥️ Vue Client]
+
+  User[👤 User]
+
+  Applications
+
+  %% FLOWS %%
+  DB -- "Extract initial load" --> Server
+  DB <-- "Watching Streams"        --> Server
+
+  Server -->|Transform and Load| Solr
+  Solr   -->|Indexing         | Server
+
+  Server <--> Client
+  Client -- "Browser" --> User
+  Server -- "API"     --> Applications
+~~~
+
+
+
+So, we have three pieces, everything is configurable in `config/config.default.json`. 
+
+The ETL pipeline can be executed  via the dockerized setup. The workflow is composed of the following stages:
+
+
+The application exposes dedicated commands (usually via CLI or internal scripts), but in normal production use, everything runs automatically inside the docker service `search`.
+
+
+All configuration for Solr is set in `config/config.default.json` and can be overridden by local files.
+
+---
+
+## Services
+
+### Solr
+
+This section contains 
+
+- [Environment Variables (`.env`)](#environment-variables-env)
+- [Docker Compose Setup](#docker-compose-setup)
+- [Application Service Configuration](#application-service-configuration)
+- [Bootstrapping at Startup](#bootstrapping-at-startup)
+- [Troubleshooting](#troubleshooting)
+
+
+#### Environment Variables (`.env`)
+
+Create a file named `.env` at your project root containing:
+
+```dotenv
+# Name of the Solr core (must match /docker/solr-config/SOLR_CORE_NAME-configset/conf)
+SOLR_CORE_NAME=terminologies
+```
+
+- `SOLR_CORE_NAME` drives both the Solr container’s precreation step and your app’s `config.solr.coreName`.
+
+#### Docker Compose Setup
+
+In `docker-compose.yml`, define a Solr service that pre-creates your core from a custom configset:
+
+```yaml
+services:
+  solr:
+    image: solr:8
+    container_name: bartoc-solr
+    ports:
+      - "8983:8983"   # Solr Admin UI & HTTP API
+    volumes:
+      - solr_data:/var/solr
+      - ./solr-config/terminologies-configset:/configsets/terminologies-configset
+    environment:
+      - SOLR_CORE_NAME=${SOLR_CORE_NAME}
+    command:
+      - solr-precreate
+      - ${SOLR_CORE_NAME}
+      - /configsets/terminologies-configset
+
+volumes:
+  solr_data:
+```
+
+- **`solr-precreate ${SOLR_CORE_NAME}`** automatically creates the core on startup.
+- Place your `managed-schema`, `solrconfig.xml` etc. under `solr-config/terminologies-configset/`.
+
+#### Application Service Configuration
+
+Ensure your app service reads the same `.env` values and depends on Solr:
+
+```yaml
+services:
+  bartoc-search:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: bartoc-search
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=development
+      - CONFIG_FILE=./config/config.json
+      # …other vars…
+    depends_on:
+      - solr
+    ports:
+      - "3883:3883"     # HTTP
+      - "24678:24678"   # HMR WebSocket
+    volumes:
+      - ../:/usr/src/app
+      - /usr/src/app/node_modules
+```
+
+#### Bootstrapping at Startup
+
+When the `indexDataAtBoot` setting is enabled, the application performs a series of coordinated steps at startup to populate the Solr core:
+
+1. **Ping & Retry**  
+  Check that the Solr core endpoint is responsive. If the service returns a “SolrCore is loading” status, automatically retry the ping operation multiple times with a short delay until the core is fully up.
+  
+2. **Stream-Fetch NDJSON**  
+  Download the latest NDJSON dump from the [remote URL](https://bartoc.org/data/dumps/latest.ndjson) as a streaming response. This allows line-by-line processing without loading the entire file into memory at once.
+  
+3. **Line-by-Line Parsing & Transformation**  
+  Read each line from the streamed data, skip any empty lines, parse it as JSON to obtain individual records, and convert each record into the Solr document format using the project’s transformation logic.
+  
+4. **Batch Indexing**  
+  Group the transformed documents into manageable batches and send each batch to the Solr update API, committing after each batch to populate the core efficiently.
+  
+
+All of these operations are orchestrated by the `connectToSolr()` and `bootstrapIndexSolr()` functions, ensuring that the core is ready and data is indexed without manual intervention.
+  
+
+#### Troubleshooting
+
+- **Core never appears / persistent 503**
+  - Increase `MAX_RETRIES` and/or `RETRY_INTERVAL` in `connectToSolr()`.
+  - Ensure `terminologies-configset` is correct and accessible by Solr.
+
+- **Indexing errors**
+  - Check network logs for `POST /solr/terminologies/update?commit=true`.
+  - Inspect Solr logs under `/var/solr/logs` inside the container.
+
+- **Environment mismatch**
+  - Verify `.env` is loaded by both Solr and your app (`docker exec -it bartoc-solr echo $SOLR_CORE_NAME`).
+  - Ensure `config.solr.url` points to `http://bartoc-solr:8983/solr` from within the app container.
+
+### Redis (TO DO)
+
+---
+
+
+## API (To be reviewed)
 
 This service exposes three HTTP endpoints:
 
@@ -192,85 +371,7 @@ GET /status
 > * Other internal or experimental fields are omitted from this public API, as they may change without notice.
 
 
-## Usage
-
-To run from the `docker` directory:
-
-```bash
-docker-compose up --build
-```
-
-This starts:
-
-* MongoDB (`mongo`) at localhost:27017
-* Solr (`solr`) at localhost:8983
-* bartoc-search app (`search`) at localhost:3000
-
-So, we have three pieces, everything is configurable in `config/config.default.json`. 
-
-The ETL pipeline can be executed  via the dockerized setup. The workflow is composed of the following stages:
-
-1. **Extract**: Retrieves JSKOS records from the `terminologies` collection in MongoDB.
-2. **Transform/Enrich**: Validates and optionally enriches records using external vocabulary data.
-3. **Load**: Indexes the processed records into Solr.
-
-The application exposes dedicated commands (usually via CLI or internal scripts), but in normal production use, everything runs automatically inside the docker service `search`.
-
-For local development or maintenance tasks:
-
-* `extract`: Export MongoDB data to a local NDJSON file.
-* `enrich`: Enrich existing JSKOS data from file and output to a new file.
-* `etl`: Run the full extract → transform → load pipeline.
-
-All configuration for MongoDB and Solr is set in `config/config.default.json` and can be overridden by local files.
-
-
-At startup, as part of the automated initialization process, a dataset in NDJSON format is automatically loaded into the MongoDB instance. This dataset provides the starting records for the terminologies collection and ensures the system has data to process during the first execution of the ETL pipeline. The NDJSON import is handled by the mongoDB service in the Docker environment and can be customized or replaced depending on the project requirements. 
-
-#### indexDataAtBoot 
-In particular: 
-
-```json
-"indexDataAtBoot": true,
-```
-This option determines whether the NDJSON data should be indexed into Solr during container startup. It acts as a bootstrap mechanism to populate the Solr core with initial data, particularly useful for development, testing, or first-time setup.
-
-If set to `true`, the system will check at boot whether the Solr instance is up and running and whether the corresponding core has zero documents indexed. Only if both conditions are met, the data import will proceed. This prevents unintentional overwrites and ensures Solr is only seeded when necessary.
-
-The source NDJSON file and this behavior can be customized in `config.default.json`. Setting this value to `false` disables the automatic indexing.
-
-
-## Development
-
-### System Diagram
-
-~~~mermaid
-graph TD
-  Solr[(🔎 Solr Index)]
-  DB[(🍃 BARTOC database)]
-  subgraph search service [ ]
-    direction TB
-    Server[⚙️ Search service]
-    Client[🖥️ Vue Client]
-  end
-  Client[🖥️ Vue Client]
-
-  User[👤 User]
-
-  Applications
-
-  %% FLOWS %%
-  DB -- "Extract initial load" --> Server
-  DB <-- "Watching Streams"        --> Server
-
-  Server -->|Transform and Load| Solr
-  Solr   -->|Indexing         | Server
-
-  Server <--> Client
-  Client -- "Browser" --> User
-  Server -- "API"     --> Applications
-~~~
-
+## Development (Under WIP)
 
 ### Project Goals
 
@@ -293,7 +394,6 @@ The ETL process consists of:
 ###  Technologies
 
 * Node.js + TypeScript
-* MongoDB with Mongoose
 * Solr (sketched a minimal `solr-client`)
 * Vite for build tooling
 * Docker & Docker Compose for containerization
@@ -314,15 +414,9 @@ This combination ensures a modern, high-performance development workflow with SS
 
 ###  Features
 
-* MongoDB connection handling
 * Solr client with retry logic and batching
-* Modular commands: `extract`, `enrich`, `load` (?)
 * Frontend 
 
-###  Planned Features (Roadmap)
-
-* MongoDB Change Streams for live extraction (?)
-* Web UI monitoring with Vue.js frontend
 
 ### Code Style
 
