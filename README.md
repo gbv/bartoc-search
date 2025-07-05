@@ -171,48 +171,47 @@ JSON object like the following example:
 
 ...
   
-### GET /status
+### GET /api/status
 
 Returns a concise health check of the service, including environment and Solr index status.
 
 #### Response
 
+| Field                  | Type    | Description                                                                |
+| ---------------------- | ------- | -------------------------------------------------------------------------- |
+| `ok`                   | boolean | Whether the application is running fine                                    |
+| `config.env`           | string  | The environment the server is run in (e.g. `development` or `production`)  |
+| `config.serverVersion` | string  | Version number of the application                                          |
+| `config.title`         | string  | A custom title of the BARTOC Search application instance                   |
+| `solr.connected`       | boolean | Whether Solr responded to a basic stats query                              |
+| `solr.indexedRecords`  | number  | Total number of documents currently indexed in the Solr `bartoc` core      |
+| `solr.lastIndexedAt`   | string  | ISO‑8601 timestamp of the most recent update of a record into the index    |
+| `jskos.connected`      | boolean | Whether WebSocket connection (JSKOS API) has been established for updates  |
+
+In case of an error, for instance failed connection to Solr or to jskos-server backend, the response field `ok` is set to `false`.
+
+The response may temporarily include additional fields for debugging.
+
+**Example:**
+
 ```json
 {
   "ok": true,
-  "appVersion": "1.0.0",
-  "environment": "development",
-  "runtimeInfo": 
-    "nodeVersion": "v20.19.2",
-    "uptime": "3 hours, 28 minutes, 39 seconds",
-    "memoryUsage":  
-      "rss": "131.9 MB",
-      "heapTotal": "59.6 MB",
-      "heapUsed": "57.9 MB",
-      "external": "7.5 MB",
-      "arrayBuffers": "0.6 MB",
-    "timestamp":" Jun 18, 2025, 11:57:37 AM UTC",
-  "services":  
-    "solr": 
-      "connected": false, 
-      "indexedRecords": 0, 
-      "lastIndexedAt": "Jun 17, 2025, 10:28:27 AM UTC", 
-      "firstUpdate": "",
-      "lastUpdate": ""
+  "config": {
+    "env": "development",
+    "serverVersion": "0.1.0",
+    "title": "BARTOC Search (dev)"
+  },
+  "solr": {
+    "connected": true 
+    "indexedRecords": 3782, 
+    "lastIndexedAt": "2025-07-13T10:28:27"
+  },
+  "jskos-server": {
+    "connected": true 
+  }
 }
 ```
-
-| Field                 | Type    | Description                                                                               |
-| --------------------- | ------- | ----------------------------------------------------------------------------------------- |
-| `ok`                  | boolean | Always `true` when the endpoint itself is reachable.                                      |
-| `environment`         | string  | The `NODE_ENV` the server is running in (e.g. `development` or `production`).             |
-| `solr.connected`      | boolean | `true` if Solr responded to a basic stats query; otherwise `false`.                       |
-| `solr.indexedRecords` | number  | Total number of documents currently indexed in the Solr `bartoc` core.                    |
-| `solr.lastIndexedAt`  | string  | ISO‑8601 timestamp of the most recent indexing run.                                       |
-
-> **Note:**
->
-> * Here, **`lastIndexedAt`** refers to the time when the most recent indexing procedure was pushed into Solr (the indexing timestamp).
 
 ## Architecture
 
