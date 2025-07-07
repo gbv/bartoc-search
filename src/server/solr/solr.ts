@@ -113,12 +113,6 @@ export async function bootstrapIndexSolr() {
   }
 
   config.log?.(`✅ Bootstrapped ${docs.length} documents from ${url}`);
-
-  /* const ndjsonPath = config.ndJsonDataPath ?? "./data/terminologies.ndjson";
-  const docs = await readAndValidateNdjson(ndjsonPath, conceptSchemeZodSchema);
-
-  const solrDocs = docs.map((doc) => transformConceptSchemeToSolr(doc, []));
-  await addDocuments(config.solr.coreName, solrDocs); */
 }
 
 export async function solrStatus(): Promise<SolrResponse> {

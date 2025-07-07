@@ -3,7 +3,7 @@ import WebSocket from "ws";
 import dotenv from "dotenv";
 import config from "../conf/conf";
 import { SolrDeletePayload, SolrUpsertPayload } from "../types/solr";
-import { terminologiesQueue } from "../queue/worker";
+import { getTerminologiesQueue } from "../queue/worker";
 import { VocChangeEvent, OperationType } from "../types/ws";
 import { VocChangeEventSchema } from "../validation/vocChangeEvent";
 
@@ -29,8 +29,14 @@ async function flushBuffer() {
     data: payload,
   }));
 
+  // Get the queue instance
+  const queue = await getTerminologiesQueue();
+  if (!queue) {
+    config.error?.("terminologiesQueue unavailable: Redis not connected");
+    return;
+  }
   // Pipeline them in one Redis call
-  await terminologiesQueue.addBulk(jobs);
+  await queue.addBulk(jobs);
 }
 
 const flushInterval = setInterval(flushBuffer, BATCH_TIMEOUT);
@@ -55,7 +61,12 @@ export async function startVocChangesListener(): Promise<void> {
           id: event.id,
           receivedAt: Date.now(),
         };
-        await terminologiesQueue.add(payloadDelete.operation, payloadDelete); // Add job to solr queue for deleting
+        const queue = await getTerminologiesQueue();
+        if (!queue) {
+          config.error?.("terminologiesQueue unavailable: Redis not connected");
+          return;
+        }
+        await queue.add(payloadDelete.operation, payloadDelete); // Add job to solr queue for deleting
         return;
       }
 

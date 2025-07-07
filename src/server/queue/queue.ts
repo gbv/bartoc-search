@@ -1,6 +1,6 @@
 import { Queue as BullQueue } from "bullmq";
 import config from "../conf/conf";
-import redisClient from "../redis/redis";
+import { redisConnection, connectToRedis } from "../redis/redis";
 
 //Generics per for every kind of Job payload
 type RegisteredQueue<T> = {
@@ -30,22 +30,31 @@ const registeredQueues = global.__registeredQueues;
  *  - defaultJobOptions.attempts/backoff
  *  - removeOnComplete/removeOnFail to clean up old jobs
  */
-export function Queue<Payload>(name: string): BullQueue<Payload> {
+export async function Queue<Payload>(
+  name: string,
+): Promise<BullQueue<Payload> | null> {
   // If the queue already exists, return the existing instance
   if (registeredQueues[name]) {
     config.log?.(`Queue "${name}" already initialized`);
     return (registeredQueues[name] as RegisteredQueue<Payload>).queue;
   }
 
+  // Try to connect to Redis first
+  try {
+    await connectToRedis();
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    config.log?.(`Queue "${name}" not started: Redis unreachable (${message})`);
+    return null;
+  }
+
   // Create the queue with default retry/backoff options
   const queue = new BullQueue<Payload>(name, {
-    connection: redisClient,
+    connection: redisConnection,
     defaultJobOptions: {
       attempts: 5,
       backoff: { type: "exponential", delay: 5000 },
-      // Automatically remove successful jobs to free Redis memory
       removeOnComplete: true,
-      // Keep only the last 1000 failed jobs by default
       removeOnFail: { count: 1000 },
     },
   });

@@ -11,7 +11,7 @@ import { getStatus } from "./routes/status.js";
 import { startVocChangesListener } from "./composables/useVocChanges";
 import expressWs from "express-ws";
 import { loadNkosConcepts } from "./utils/nskosService";
-import { terminologiesQueue } from "./queue/worker.js";
+import { getTerminologiesQueue } from "./queue/worker.js";
 import { createBullBoard } from "@bull-board/api";
 import { ExpressAdapter } from "@bull-board/express";
 import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
@@ -133,12 +133,18 @@ const serverAdapter = new ExpressAdapter();
 serverAdapter.setBasePath("/admin/queues");
 
 // 2) Create Bull-Board, passing in your BullMQ queues
-createBullBoard({
-  queues: [
-    new BullMQAdapter(terminologiesQueue),
-    // add more queues here...
-  ],
-  serverAdapter,
+getTerminologiesQueue().then((terminologiesQueue) => {
+  if (terminologiesQueue) {
+    createBullBoard({
+      queues: [
+        new BullMQAdapter(terminologiesQueue),
+        // add more queues here...
+      ],
+      serverAdapter,
+    });
+  } else {
+    console.warn("BullMQ Board not started: terminologiesQueue unavailable");
+  }
 });
 
 // 3) Mount the router

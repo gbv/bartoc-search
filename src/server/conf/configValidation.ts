@@ -42,6 +42,9 @@ export const solrSchema = z.object({
 
 export const redisSchema = z.object({
   host: z.string(),
+  pingTimeout: z.number().optional(),
+  pingRetries: z.number().optional(),
+  pingRetryDelay: z.number().optional(),
   port: z.number(),
   url: z.string().optional(),
 });

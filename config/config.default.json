@@ -15,12 +15,15 @@
   },
   "redis": {
     "host": "redis",
+    "pingTimeout": 10000,
+    "pingRetries": 5,
+    "pingRetryDelay": 1000,
     "port": 6379
   },
   "solr": {
     "batchSize": 500,
     "coreName": "terminologies",
-    "host": "solr",
+    "host": "127.0.0.1",
     "pingTimeout": 10000,
     "pingRetries": 5,
     "pingRetryDelay": 1000,

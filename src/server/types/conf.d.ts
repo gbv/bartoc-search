@@ -6,6 +6,9 @@ export interface MongoOptions {
 
 export interface RedisConfig {
   host: string;
+  pingTimeout?: number;
+  pingRetries?: number;
+  pingRetryDelay?: number;
   port: number;
   url?: string;
 }

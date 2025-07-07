@@ -27,8 +27,16 @@ const config: AppConfig = loadConfig(defaultFilePath, configFilePath);
 
 // Set composed config variables
 
+console.log("process.env.REDIS_HOST => ", process.env.REDIS_HOST);
+const redisHost = process.env.REDIS_HOST ?? config.redis.host;
+
+const redisPort = process.env.REDIS_PORT
+  ? Number(process.env.REDIS_PORT)
+  : config.redis.port;
+
 // Build redis url for local development
-config.redis.url = `redis://${config.redis.host}:${config.redis.port}`;
+config.redis.url = `redis://${redisHost}:${redisPort}`;
+console.log("config.redis.url => ", config.redis.url);
 
 // Build solr url, basic only for local development
 config.solr.url = `http://${config.solr.host}:${config.solr.port}/solr`;

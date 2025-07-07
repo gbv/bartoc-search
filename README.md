@@ -21,6 +21,99 @@ This application extracts JSKOS data with metadata about terminologies from [BAR
 - [Maintainers](#maintainers)
 - [License](#license)
 
+
+## Installation & Local Development
+
+### Quick Start (Recommended: Docker)
+
+The fastest way to get BARTOC Search running locally is with Docker and Docker Compose. This will start all required services (Solr, Redis, MongoDB, and the app) with a single command.
+
+```bash
+cd docker
+docker-compose up --build
+```
+
+- The search app will be available at [http://localhost:3000](http://localhost:3000).
+- Solr Admin UI will be at [http://localhost:8983](http://localhost:8983).
+- Redis and MongoDB run in the background; no manual setup needed.
+
+**Tip:** For Docker and most local development, configuration is handled automatically via environment variables and the `config/` directory. The default setup works out of the box.
+
+**Note:**
+- **Choose one approach:**
+  - If you use **Docker** (recommended), do **not** create a `.env` file in the project root—Docker handles all configuration for you.
+  - If you use `npm run dev` (without Docker), you **must** create a `.env` file in the project root to define your local settings (e.g., database URLs, Solr, Redis). The `config/config.default.json` is primarily for Docker and CI setups, and should not be edited for local development.
+
+#### Example `.env` file for local development (when **not** using Docker)
+
+```dotenv
+# Redis configuration (uncomment if running Redis locally, comment out if using Docker)
+# REDIS_HOST=127.0.0.1
+# REDIS_PORT=6379
+
+# Solr configuration (uncomment if running Solr locally, comment out if using Docker)
+# SOLR_CORE_NAME=terminologies
+```
+
+Uncomment and adjust values as needed for your environment. If you are running services via Docker, keep these lines commented out or remove the `.env` file entirely.
+
+---
+
+### Manual Setup (Advanced)
+
+If you prefer to run services manually (not recommended for most users):
+
+1. **Install prerequisites:**
+   - Node.js >= 18
+   - MongoDB (local or remote)
+   - Solr (with the provided configset)
+   - Redis
+
+2. **Clone and install dependencies:**
+   ```bash
+   git clone https://github.com/gbv/bartoc-search.git
+   cd bartoc-search
+   npm install
+   ```
+
+3. **Configure environment:**
+   - Create a `.env` file in the project root to define your local settings (see below for example).
+   - Do **not** edit `config/config.default.json` for local development; it is used by Docker and CI.
+#### Example `.env` file for local development
+
+```dotenv
+# MongoDB connection string
+MONGODB_URI=mongodb://localhost:27017/bartoc
+
+# Solr connection
+SOLR_URL=http://localhost:8983/solr
+SOLR_CORE_NAME=terminologies
+
+# Redis connection
+REDIS_HOST=localhost
+REDIS_PORT=6379
+```
+
+Adjust values as needed for your environment.
+
+4. **Start the app:**
+   ```bash
+   npm run dev
+   ```
+   - The app will attempt to connect to all services and retry if any are temporarily unavailable.
+   - If Redis or Solr are not running, background jobs and search will be disabled, but the app will still start.
+
+---
+
+### Troubleshooting
+
+- **Docker issues:** Make sure Docker Desktop or the Docker daemon is running.
+- **Port conflicts:** Stop any other services using ports 3000, 8983, 6379, or 27017.
+- **Service not available:** The app will log warnings if Solr or Redis are unavailable, but will keep running for development convenience.
+- **Configuration:** See the `config/` directory and comments in `config.default.json` for all options.
+
+---
+
 ## Install
 
 ### Prerequisites
@@ -215,7 +308,28 @@ All of these operations are orchestrated by the `connectToSolr()` and `bootstrap
   - Verify `.env` is loaded by both Solr and your app (`docker exec -it bartoc-solr echo $SOLR_CORE_NAME`).
   - Ensure `config.solr.url` points to `http://bartoc-solr:8983/solr` from within the app container.
 
-### Redis (TO DO)
+### Redis
+
+Redis is used as a fast, in-memory job queue and messaging system for background processing in bartoc-search. The application uses Redis to coordinate and manage tasks such as indexing, updating, and deleting records in Solr, ensuring that these operations are reliable and can be retried if needed.
+
+- **Automatic Connection & Retry:**
+  - On startup, the app tries to connect to Redis. If Redis is not available, it will keep retrying for a limited number of attempts before giving up. This prevents the app from crashing if Redis is temporarily down.
+  - If Redis is not reachable, features that depend on background jobs (like indexing) are disabled, but the rest of the app continues to work.
+
+- **Job Queues:**
+  - The app uses Redis to manage queues for background jobs (using BullMQ). Each queue is created only once and shared across the app, so jobs are not duplicated.
+  - If Redis is not available, the queues are not started, and a clear warning is logged.
+
+- **Worker Resilience:**
+  - Workers that process jobs from the queue will only start if Redis is available. If Redis goes down, workers will stop and automatically try to reconnect when Redis is back.
+
+- **Configuration:**
+  - Redis connection settings (host, port, etc.) are read from the app's config files or environment variables. By default, the app connects to `localhost` in development, or to the `redis` service in Docker.
+
+- **No Data Loss:**
+  - If Redis is temporarily unavailable, jobs are not lost—they are retried once Redis is back online.
+
+This setup ensures that background processing is robust and does not block the main application if Redis is down. All Redis-related errors are logged, and the app continues to serve search and API requests even if background jobs are paused.
 
 ---
 
