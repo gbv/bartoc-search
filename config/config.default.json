@@ -23,7 +23,7 @@
   "solr": {
     "batchSize": 500,
     "coreName": "terminologies",
-    "host": "127.0.0.1",
+    "host": "solr",
     "pingTimeout": 10000,
     "pingRetries": 5,
     "pingRetryDelay": 1000,

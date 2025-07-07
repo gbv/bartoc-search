@@ -6,151 +6,6 @@
 
 This application extracts JSKOS data with metadata about terminologies from [BARTOC](https://bartoc.org) knowledge organization systems registry (managed in [jskos-server](https://github.com/gbv/jskos-server) / MongoDB), transforms and enriches the data and loads in into a [Solr](https://solr.apache.org/) search index. The index is then made available via a search API and an experimental discovery interface.
 
-## Table of Contents
-
-- [Install](#install)
-- [Usage](#usage)
-- [Services](#services)
-  - [Solr](#solr)
-  - [Redis](#redis)
-- [API](#api)
-  - [GET /](#get)
-  - [GET /search](#get-search)
-  - [GET /status](#get-status)
-- [Development](#development)
-- [Maintainers](#maintainers)
-- [License](#license)
-
-
-## Installation & Local Development
-
-### Quick Start (Recommended: Docker)
-
-The fastest way to get BARTOC Search running locally is with Docker and Docker Compose. This will start all required services (Solr, Redis, MongoDB, and the app) with a single command.
-
-```bash
-cd docker
-docker-compose up --build
-```
-
-- The search app will be available at [http://localhost:3000](http://localhost:3000).
-- Solr Admin UI will be at [http://localhost:8983](http://localhost:8983).
-- Redis and MongoDB run in the background; no manual setup needed.
-
-**Tip:** For Docker and most local development, configuration is handled automatically via environment variables and the `config/` directory. The default setup works out of the box.
-
-**Note:**
-- **Choose one approach:**
-  - If you use **Docker** (recommended), do **not** create a `.env` file in the project root—Docker handles all configuration for you.
-  - If you use `npm run dev` (without Docker), you **must** create a `.env` file in the project root to define your local settings (e.g., database URLs, Solr, Redis). The `config/config.default.json` is primarily for Docker and CI setups, and should not be edited for local development.
-
-#### Example `.env` file for local development (when **not** using Docker)
-
-```dotenv
-# Redis configuration (uncomment if running Redis locally, comment out if using Docker)
-# REDIS_HOST=127.0.0.1
-# REDIS_PORT=6379
-
-# Solr configuration (uncomment if running Solr locally, comment out if using Docker)
-# SOLR_CORE_NAME=terminologies
-```
-
-Uncomment and adjust values as needed for your environment. If you are running services via Docker, keep these lines commented out or remove the `.env` file entirely.
-
----
-
-### Manual Setup (Advanced)
-
-If you prefer to run services manually (not recommended for most users):
-
-1. **Install prerequisites:**
-   - Node.js >= 18
-   - MongoDB (local or remote)
-   - Solr (with the provided configset)
-   - Redis
-
-2. **Clone and install dependencies:**
-   ```bash
-   git clone https://github.com/gbv/bartoc-search.git
-   cd bartoc-search
-   npm install
-   ```
-
-3. **Configure environment:**
-   - Create a `.env` file in the project root to define your local settings (see below for example).
-   - Do **not** edit `config/config.default.json` for local development; it is used by Docker and CI.
-#### Example `.env` file for local development
-
-```dotenv
-# MongoDB connection string
-MONGODB_URI=mongodb://localhost:27017/bartoc
-
-# Solr connection
-SOLR_URL=http://localhost:8983/solr
-SOLR_CORE_NAME=terminologies
-
-# Redis connection
-REDIS_HOST=localhost
-REDIS_PORT=6379
-```
-
-Adjust values as needed for your environment.
-
-4. **Start the app:**
-   ```bash
-   npm run dev
-   ```
-   - The app will attempt to connect to all services and retry if any are temporarily unavailable.
-   - If Redis or Solr are not running, background jobs and search will be disabled, but the app will still start.
-
----
-
-### Troubleshooting
-
-- **Docker issues:** Make sure Docker Desktop or the Docker daemon is running.
-- **Port conflicts:** Stop any other services using ports 3000, 8983, 6379, or 27017.
-- **Service not available:** The app will log warnings if Solr or Redis are unavailable, but will keep running for development convenience.
-- **Configuration:** See the `config/` directory and comments in `config.default.json` for all options.
-
----
-
-## Install
-
-### Prerequisites
-
-* Node.js >= 18
-* MongoDB instance (local or remote)
-* Solr instance with configured schema
-* Docker & Docker Compose (optional but recommended)
-
-### Fetch Repository or Docker image
-
-A docker image [is published](https://github.com/orgs/gbv/packages/container/package/bartoc-search) on every push on branches `main` and `dev` and  when pushing a git tag starting with `v` (e.g., `v1.0.0`). Commits are ignored if they only modify documentation, GitHub workflows, config, or meta files.
-
-See `docker-compose.yml` in the `docker` directory for usage.
-
-Alternatively run from sources:
-
-```bash
-git clone https://github.com/gbv/bartoc-search.git
-cd bartoc-search
-npm install
-```
----
-
-## Usage
-
-To run from the `docker` directory:
-
-```bash
-docker-compose up --build
-```
-
-This starts:
-
-* Solr (`solr`) at localhost:8983
-* bartoc-search app (`search`) at localhost:3000
-
 
 ### System Diagram (TO DO, deprecated)
 
@@ -182,7 +37,6 @@ graph TD
 ~~~
 
 
-
 So, we have three pieces, everything is configurable in `config/config.default.json`. 
 
 The ETL pipeline can be executed  via the dockerized setup. The workflow is composed of the following stages:
@@ -192,6 +46,106 @@ The application exposes dedicated commands (usually via CLI or internal scripts)
 
 
 All configuration for Solr is set in `config/config.default.json` and can be overridden by local files.
+
+---
+
+## Table of Contents
+
+- [Install](#installation)
+- [Usage](#usage)
+- [Services](#services)
+  - [Solr](#solr)
+  - [Redis](#redis)
+- [API](#api)
+  - [GET /](#get)
+  - [GET /search](#get-search)
+  - [GET /status](#get-status)
+- [Development](#development)
+- [Maintainers](#maintainers)
+- [License](#license)
+
+
+## Installation
+
+### Quick Start (Recommended: Docker)
+
+The fastest way to get BARTOC Search running locally is with Docker and Docker Compose. This will start all required services (Solr, Redis, and the app) with a single command.
+
+```bash
+cd docker
+docker-compose up --build
+```
+
+- The search app will be available at [http://localhost:3883](http://localhost:3000).
+- Solr Admin UI will be at [http://localhost:8983](http://localhost:8983).
+- Redis run in the background; no manual setup needed.
+
+#### Fetch Repository or Docker image
+
+A docker image [is published](https://github.com/orgs/gbv/packages/container/package/bartoc-search) on every push on branches `main` and `dev` and  when pushing a git tag starting with `v` (e.g., `v1.0.0`). Commits are ignored if they only modify documentation, GitHub workflows, config, or meta files.
+
+See `docker-compose.yml` in the `docker` directory for usage.
+
+
+**Tip:** For Docker and most local development, configuration is handled automatically in the `config/` directory. The default setup works out of the box.
+
+**Note:**
+- **Choose one approach:**
+  - If you use **Docker** (recommended), do **not** create a `.env` file in the project root—Docker handles all configuration for you.
+  - If you use `npm run dev` (without Docker), you **must** create a `.env` file in the project root to define your local settings (e.g., database URLs, Solr, Redis). The `config/config.default.json` is primarily for Docker and CI setups, and should not be edited for local development.
+
+
+Uncomment and adjust values as needed for your environment. If you are running services via Docker, keep these lines commented out or remove the `.env` file entirely.
+
+### Manual Setup (Advanced)
+
+If you prefer to run services manually (not recommended for most users):
+
+1. **Install prerequisites:**
+   - Node.js >= 18
+   - MongoDB (local or remote) (?) **To be clarified!** 
+   - Solr (with the provided configset)
+   - Redis
+
+2. **Clone and install dependencies:**
+   ```bash
+   git clone https://github.com/gbv/bartoc-search.git
+   cd bartoc-search
+   npm install
+   ```
+
+3. **Configure environment:**
+   - Create a `.env` file in the project root to define your local settings (see below for example).
+   - Do **not** edit `config/config.default.json` for local development; it is used by Docker and CI.
+
+#### Example `.env` file for localhost development
+
+```dotenv
+# Redis configuration
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
+
+# Solr configuration
+SOLR_HOST=127.0.0.1
+SOLR_PORT=8983
+```
+
+Uncomment and adjust values as needed for your environment. If you are running services via Docker, keep these lines commented out or remove the `.env` file entirely.
+
+4. **Start the app:**
+   ```bash
+   npm run dev
+   ```
+   - The app will attempt to connect to all services and retry if any are temporarily unavailable.
+   - If Redis or Solr are not running, background jobs and search will be disabled, but the app will still start.
+
+
+### Troubleshooting
+
+- **Docker issues:** Make sure Docker Desktop or the Docker daemon is running.
+- **Port conflicts:** Stop any other services using ports 3883, 3000, 8983, 6379, or 27017.
+- **Service not available:** The app will log warnings if Solr or Redis are unavailable, but will keep running for development convenience.
+- **Configuration:** See the `config/` directory and comments in `config.default.json` for all options.
 
 ---
 
@@ -210,7 +164,7 @@ This section contains
 
 #### Environment Variables (`.env`)
 
-Create a file named `.env` at your project root containing:
+Create a file named `.env` in `/docker` where the compose file is containing:
 
 ```dotenv
 # Name of the Solr core (must match /docker/solr-config/SOLR_CORE_NAME-configset/conf)
@@ -224,55 +178,27 @@ SOLR_CORE_NAME=terminologies
 In `docker-compose.yml`, define a Solr service that pre-creates your core from a custom configset:
 
 ```yaml
-services:
-  solr:
+solr:
     image: solr:8
     container_name: bartoc-solr
     ports:
-      - "8983:8983"   # Solr Admin UI & HTTP API
-    volumes:
-      - solr_data:/var/solr
-      - ./solr-config/terminologies-configset:/configsets/terminologies-configset
+      - "8983:8983"
     environment:
       - SOLR_CORE_NAME=${SOLR_CORE_NAME}
+    volumes:
+      - solr_data:/var/solr
+      - ./solr-config/${SOLR_CORE_NAME}-configset:/configsets/${SOLR_CORE_NAME}-configset
     command:
       - solr-precreate
       - ${SOLR_CORE_NAME}
-      - /configsets/terminologies-configset
+      - /configsets/${SOLR_CORE_NAME}-configset
 
 volumes:
   solr_data:
 ```
 
 - **`solr-precreate ${SOLR_CORE_NAME}`** automatically creates the core on startup.
-- Place your `managed-schema`, `solrconfig.xml` etc. under `solr-config/terminologies-configset/`.
-
-#### Application Service Configuration
-
-Ensure your app service reads the same `.env` values and depends on Solr:
-
-```yaml
-services:
-  bartoc-search:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
-    container_name: bartoc-search
-    env_file:
-      - .env
-    environment:
-      - NODE_ENV=development
-      - CONFIG_FILE=./config/config.json
-      # …other vars…
-    depends_on:
-      - solr
-    ports:
-      - "3883:3883"     # HTTP
-      - "24678:24678"   # HMR WebSocket
-    volumes:
-      - ../:/usr/src/app
-      - /usr/src/app/node_modules
-```
+- Place your `managed-schema`, `solrconfig.xml` etc. under `solr-config/${SOLR_CORE_NAME}-configset/`.
 
 #### Bootstrapping at Startup
 

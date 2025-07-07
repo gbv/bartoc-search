@@ -32,7 +32,7 @@ services:
   
   redis:
     image: redis:7
-    container_name: redis
+    container_name: bartoc-redis
     ports:
       - "6379:6379"
     restart: always
@@ -61,16 +61,15 @@ services:
     container_name: bartoc-solr
     ports:
       - "8983:8983"
+    environment:
+      - SOLR_CORE_NAME=${SOLR_CORE_NAME}
     volumes:
       - solr_data:/var/solr
-      - ./solr-config/terminologies-configset:/configsets/terminologies-configset
-    environment:
-      # this makes the var available in the container
-      SOLR_CORE_NAME: ${SOLR_CORE_NAME}
+      - ./solr-config/${SOLR_CORE_NAME}-configset:/configsets/${SOLR_CORE_NAME}-configset
     command:
       - solr-precreate
       - ${SOLR_CORE_NAME}
-      - /configsets/terminologies-configset
+      - /configsets/${SOLR_CORE_NAME}-configset
 
 volumes:
   mongo_data:
