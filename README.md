@@ -58,17 +58,27 @@ This architecture ensures robust, scalable, and real-time search capabilities, w
 ## Table of Contents
 
 - [Install](#installation)
-- [Services](#services)
+- [Usage](#usage)
+- [API](#api)
+  - [GET /](#get-)
+  - [GET /api/search](#get-apisearch)
+  - [GET /api/status](#get-apistatus)
+- [Architecture](#architecture)
   - [Jskos Server (optional)](#jskos-server-instance-optional)
   - [Solr](#solr)
   - [Redis](#redis)
-- [API](#api)
 - [Development](#development)
 - [Maintainers](#maintainers)
 - [License](#license)
 
-
 ## Installation
+
+### Prerequisites
+
+- Node.js >= 18
+- jskos-server instance (local or remote)
+- Solr instance with configured schema
+- Docker & Docker Compose (optional but recommended)
 
 ### Quick Start (Recommended: Docker)
 
@@ -138,7 +148,6 @@ SOLR_PORT=8983
 # - If you are running the Jskos server on your local machine, you can use
 #   `ws://localhost:3000` or `ws://127.0.0.   
 WS_HOST=ws://jskos-server:3000
-
 ```
 
 Uncomment and adjust values as needed for your environment. If you are running services via Docker, keep these lines related to both Solr and Redis commented out.
@@ -151,6 +160,7 @@ Uncomment and adjust values as needed for your environment. If you are running s
    - If Redis or Solr are not running, background jobs and search will be disabled, but the app will still start.
 
 
+
 ### Troubleshooting
 
 - **Docker issues:** Make sure Docker Desktop or the Docker daemon is running.
@@ -160,7 +170,160 @@ Uncomment and adjust values as needed for your environment. If you are running s
 
 ---
 
-## Services
+
+
+### Configuration
+
+All configuration for Solr is set in `config/config.default.json` and can be overridden by local files.
+
+Create a file named `.env` at your project root containing:
+
+```dotenv
+# Name of the Solr core (must match /docker/solr-config/SOLR_CORE_NAME-configset/conf)
+SOLR_CORE_NAME=terminologies
+```
+
+The environment variables `SOLR_CORE_NAME` drives both the Solr container’s precreation step and your app’s `config.solr.coreName`.
+
+## API
+
+This service exposes three HTTP endpoints:
+
+- **[GET /](#get-)** – web interface (HTML)
+- **[GET /api/search](#get-apisearch)** – search API (JSON)
+- **[GET /api/status](#get-apistatus)** – service status (JSON)
+
+The HTTP response code should always be 200 except for endpoint `/api/search` if there is an error with the Solr backend.
+
+### GET /
+
+Returns the discovery interface in form of an HTML page with an experimental Vue client.
+
+#### Query Parameters
+
+...
+
+### GET /api/search
+
+Performs a search query against the Solr index, returning results along with query metrics.
+
+#### Query Parameters
+
+| Name | Type | Required | Description |
+| --- | --- | --- | --- |
+| `q` | string | yes | Solr query string (e.g., `*:*` for all documents). |
+| `start` | integer | no  | Zero-based offset into result set (default: `0`). |
+| `rows` | integer | no  | Number of results to return (default: `10`). |
+| `wt` | string | no  | Response writer type (default: `json`). |
+
+#### Response
+
+JSON object like the following example:
+
+  
+```json
+{
+  "responseHeader": {
+    "status": 0,
+    "QTime": 3,
+    "params": {
+      "q": "*:*",
+      "defType": "lucene",
+      "start": "0",
+      "rows": "10",
+      "wt": "json"
+    }
+  },
+  "response": {
+    "numFound": 3684,
+    "start": 0,
+    "numFoundExact": true,
+    "docs": [
+      {
+        "id": "http://bartoc.org/en/node/10",
+        "title_en": "Australian Public Affairs Information Service Thesaurus",
+        "description_en": "The APAIS thesaurus lists the subject terms used to index articles for APAIS...",
+        "publisher_label": "National Library of Australia",
+        "created_dt": "2013-08-14T10:23:00Z",
+        "modified_dt": "2021-02-10T10:31:55.487Z"
+      },
+      {
+        "id": "http://bartoc.org/en/node/100",
+        "title_en": "The Institute of Electrical and Electronics Engineers Thesaurus",
+        "description_en": "The IEEE Thesaurus is a controlled vocabulary of over 9,000 descriptive terms...",
+        "publisher_label": "Institute of Electrical and Electronics Engineers",
+        "created_dt": "2013-09-02T14:17:00Z",
+        "modified_dt": "2019-04-23T15:50:00Z"
+      }
+      // …more documents…
+    ]
+  }
+}
+```
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `responseHeader.status` | integer | Solr execution status (0 = success). |
+| `responseHeader.QTime` | integer | Query execution time in milliseconds. |
+| `responseHeader.params` | object | Echoes back the parameters used for the query. |
+| `response.numFound` | integer | Total number of matching documents. |
+| `response.start` | integer | Offset into the result set. |
+| `response.numFoundExact` | boolean | Indicates if `numFound` is an exact count. |
+| `response.docs` | array | Array of document objects matching the query. |
+| └─ `id` | string | Unique document identifier (URI). |
+| └─ `title_en` | string | English title of the thesaurus or concept scheme. |
+| └─ `description_en` | string | Short English description or abstract. |
+| └─ `publisher_label` | string | Label of the publishing organization. |
+| └─ `created_dt` | string | Creation timestamp (ISO-8601). |
+| └─ `modified_dt` | string | Last modification timestamp (ISO-8601). |
+
+#### Error Responses
+
+...
+  
+### GET /api/status
+
+Returns a concise health check of the service, including environment and Solr index status.
+
+#### Response
+
+| Field                  | Type    | Description                                                                |
+| ---------------------- | ------- | -------------------------------------------------------------------------- |
+| `ok`                   | boolean | Whether the application is running fine                                    |
+| `config.env`           | string  | The environment the server is run in (e.g. `development` or `production`)  |
+| `config.serverVersion` | string  | Version number of the application                                          |
+| `config.title`         | string  | A custom title of the BARTOC Search application instance                   |
+| `solr.connected`       | boolean | Whether Solr responded to a basic stats query                              |
+| `solr.indexedRecords`  | number  | Total number of documents currently indexed in the Solr `bartoc` core      |
+| `solr.lastIndexedAt`   | string  | ISO‑8601 timestamp of the most recent update of a record into the index    |
+| `jskos.connected`      | boolean | Whether WebSocket connection (JSKOS API) has been established for updates  |
+
+In case of an error, for instance failed connection to Solr or to jskos-server backend, the response field `ok` is set to `false`.
+
+The response may temporarily include additional fields for debugging.
+
+**Example:**
+
+```json
+{
+  "ok": true,
+  "config": {
+    "env": "development",
+    "serverVersion": "0.1.0",
+    "title": "BARTOC Search (dev)"
+  },
+  "solr": {
+    "connected": true 
+    "indexedRecords": 3782, 
+    "lastIndexedAt": "2025-07-13T10:28:27"
+  },
+  "jskos-server": {
+    "connected": true 
+  }
+}
+```
+
+## Architecture
 
 ### JSKOS Server Instance (Optional)
 
@@ -302,11 +465,13 @@ This setup ensures that background processing is robust and does not block the m
 
 ---
 
+## Development
 
-## API
-Read the documentation [here](api_docu.md).
+### Project Goals
 
-## Development (Under WIP)
+* Provide a reliable pipeline to synchronize BARTOC database with a Solr index
+* Enrich data before to improve search
+* Experiment with relevance ranking and facetted search
 
 ###  Technologies
 
@@ -325,8 +490,11 @@ The search application architecture has been initialized using a combination of 
 - **Vite SSR Dev Server:**  
   Configured following the Vite official guide on setting up the SSR development server, enabling seamless hot module replacement and middleware integration – see [Vite SSR Guide](https://vite.dev/guide/ssr.html#setting-up-the-dev-server).
   
+### Code Style
 
-This combination ensures a modern, high-performance development workflow with SSR capabilities out of the box.
+* TypeScript strict mode enabled
+* Use ESLint and Prettier (`npm run lint`)
+* Tests must be provided for new features
 
 ## Maintainers
 
@@ -336,9 +504,6 @@ This combination ensures a modern, high-performance development workflow with SS
 ## License
 
 MIT © 2025- Verbundzentrale des GBV (VZG)
-
-
-
 
 [jskos-server]: https://github.com/gbv/jskos-server
 [BARTOC]: https://bartoc.org/
