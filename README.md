@@ -4,7 +4,7 @@
 
 > Experimental BARTOC Search engine with indexing pipeline and discovery interface
 
-This application extracts JSKOS data and metadata about terminologies from the [BARTOC](https://bartoc.org) registry (managed by [jskos-server](https://github.com/gbv/jskos-server) and MongoDB), transforms and enriches the data, and loads it into a [Solr](https://solr.apache.org/) search index. The indexed data is then exposed via a robust search API and a modern, experimental discovery interface for users and applications.
+This application extracts JSKOS data with metadata about terminologies from [BARTOC] knowledge organization systems registry (managed in [jskos-server]), transforms and enriches the data and loads in into a [Solr] search index. The index is then made available via a search API and a discovery interface.
 
 
 ### System Architecture Overview
@@ -12,7 +12,7 @@ This application extracts JSKOS data and metadata about terminologies from the [
 ~~~mermaid
 graph TD
   Solr[(🔎 Solr Index)]
-  DB[(🍃 Jskos-Server)]
+  DB[(BARTOC database Jskos-Server)]
   Redis[(🧩 Redis)]
   BullMQ[(📦 BullMQ Queue)]
   subgraph search service [ ]
@@ -29,15 +29,16 @@ graph TD
 
   %% FLOWS %%
   DB <-- "Watching Streams" --> Server
-  Server -->|Transform and Load| Solr
-  Solr -->|Indexing| Server
+  DB <-- "full dump" --> Server
+  Server -->|update| Solr
+  Solr -->|search| Server
 
   Server -- "Queue Jobs" --> BullMQ
   BullMQ -- "Backed by" --> Redis
 
-  Server <--> Client
   Client -- "Browser" --> User
   Server -- "API" --> Applications
+  Server -- "API" --> Client
 ~~~
 
 
@@ -105,7 +106,8 @@ If you prefer to run services manually (not recommended for most users):
 
 1. **Install prerequisites:**
    - Node.js >= 18
-   - Solr (with the provided configset)
+   - jskos-server instance (local or remote)
+   - Solr instance with configured schema
    - Redis
 
 2. **Clone and install dependencies:**
@@ -335,3 +337,9 @@ This combination ensures a modern, high-performance development workflow with SS
 
 MIT © 2025- Verbundzentrale des GBV (VZG)
 
+
+
+
+[jskos-server]: https://github.com/gbv/jskos-server
+[BARTOC]: https://bartoc.org/
+[Solr]: https://solr.apache.org/
