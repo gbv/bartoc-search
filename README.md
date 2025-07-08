@@ -4,18 +4,21 @@
 
 > Experimental BARTOC Search engine with indexing pipeline and discovery interface
 
-This application extracts JSKOS data with metadata about terminologies from [BARTOC](https://bartoc.org) knowledge organization systems registry (managed in [jskos-server](https://github.com/gbv/jskos-server) / MongoDB), transforms and enriches the data and loads in into a [Solr](https://solr.apache.org/) search index. The index is then made available via a search API and an experimental discovery interface.
+This application extracts JSKOS data and metadata about terminologies from the [BARTOC](https://bartoc.org) registry (managed by [jskos-server](https://github.com/gbv/jskos-server) and MongoDB), transforms and enriches the data, and loads it into a [Solr](https://solr.apache.org/) search index. The indexed data is then exposed via a robust search API and a modern, experimental discovery interface for users and applications.
 
 
-### System Diagram (TO DO, deprecated)
+### System Architecture Overview
 
 ~~~mermaid
 graph TD
   Solr[(🔎 Solr Index)]
-  DB[(🍃 BARTOC database)]
+  DB[(🍃 Jskos-Server)]
+  Redis[(🧩 Redis)]
+  BullMQ[(📦 BullMQ Queue)]
   subgraph search service [ ]
     direction TB
     Server[⚙️ Search service]
+    BullMQ[(📦 BullMQ Queue)]
     Client[🖥️ Vue Client]
   end
   Client[🖥️ Vue Client]
@@ -25,42 +28,40 @@ graph TD
   Applications
 
   %% FLOWS %%
-  DB -- "Extract initial load" --> Server
-  DB <-- "Watching Streams"        --> Server
-
+  DB <-- "Watching Streams" --> Server
   Server -->|Transform and Load| Solr
-  Solr   -->|Indexing         | Server
+  Solr -->|Indexing| Server
+
+  Server -- "Queue Jobs" --> BullMQ
+  BullMQ -- "Backed by" --> Redis
 
   Server <--> Client
   Client -- "Browser" --> User
-  Server -- "API"     --> Applications
+  Server -- "API" --> Applications
 ~~~
 
 
-So, we have three pieces, everything is configurable in `config/config.default.json`. 
+The diagram above illustrates the architecture of the BARTOC Search application and its supporting services:
 
-The ETL pipeline can be executed  via the dockerized setup. The workflow is composed of the following stages:
+- **Jskos-Server** provides a real-time stream of vocabulary changes, which the Search service consumes via a WebSocket connection ("Watching Streams").
+- **Search service** is the core backend, responsible for transforming and loading data into the **Solr Index** for search and discovery. It also manages background jobs using a **BullMQ Queue**.
+- **BullMQ Queue** is used for job scheduling and processing, and is backed by a **Redis** instance for fast, reliable message handling.
+- The **Vue Client** communicates with the Search service for user-facing search and discovery features.
+- Users interact with the system through the browser, while external applications can access the API directly.
+- Data flows are bi-directional where appropriate (e.g., between Server and Client, and for API access), and the system is designed for modularity and resilience.
 
-
-The application exposes dedicated commands (usually via CLI or internal scripts), but in normal production use, everything runs automatically inside the docker service `search`.
-
-
-All configuration for Solr is set in `config/config.default.json` and can be overridden by local files.
+This architecture ensures robust, scalable, and real-time search capabilities, with clear separation of concerns between data ingestion, indexing, background processing, and user interaction.
 
 ---
 
 ## Table of Contents
 
 - [Install](#installation)
-- [Usage](#usage)
 - [Services](#services)
   - [Jskos Server (optional)](#jskos-server-instance-optional)
   - [Solr](#solr)
   - [Redis](#redis)
 - [API](#api)
-  - [GET /](#get)
-  - [GET /search](#get-search)
-  - [GET /status](#get-status)
 - [Development](#development)
 - [Maintainers](#maintainers)
 - [License](#license)
@@ -104,7 +105,6 @@ If you prefer to run services manually (not recommended for most users):
 
 1. **Install prerequisites:**
    - Node.js >= 18
-   - MongoDB (local or remote) (?) **To be clarified!** 
    - Solr (with the provided configset)
    - Redis
 
@@ -116,8 +116,7 @@ If you prefer to run services manually (not recommended for most users):
    ```
 
 3. **Configure environment:**
-   - Create a `.env` file in the project root to define your local settings (see below for example).
-   - Do **not** edit `config/config.default.json` for local development; it is used by Docker and CI.
+   - Create a `.env` file in the project root to define your local settings for Redis and Solr services, and websocket host (see below for example).
 
 #### Example `.env` file for localhost development
 
@@ -129,9 +128,18 @@ REDIS_PORT=6379
 # Solr configuration
 SOLR_HOST=127.0.0.1
 SOLR_PORT=8983
+
+
+# Websocket configuration acess to Jskos server changes API
+# - If you are running the Jskos server in a Docker container, you can use the
+#   container name as the host, e.g., `ws://jskos-server:3000`
+# - If you are running the Jskos server on your local machine, you can use
+#   `ws://localhost:3000` or `ws://127.0.0.   
+WS_HOST=ws://jskos-server:3000
+
 ```
 
-Uncomment and adjust values as needed for your environment. If you are running services via Docker, keep these lines commented out or remove the `.env` file entirely.
+Uncomment and adjust values as needed for your environment. If you are running services via Docker, keep these lines related to both Solr and Redis commented out.
 
 4. **Start the app:**
    ```bash
@@ -162,7 +170,7 @@ The JSKOS server is provided as a Docker service (`jskos-server`) in the `docker
 - **Dependencies:** The JSKOS server depends on the `mongo` service for its database.
 
 **Note:**
-> The local JSKOS server instance is **not strictly required**. You can configure the backend to consume a remote WebSocket endpoint (such as the public instance at `wss://coli-conc.gbv.de/dev-api/voc/changes`) by setting the `WS_HOST` environment variable in your `.env` file or in `config.default.json`. This allows Redis and the queue to receive vocabulary change events from any compatible JSKOS server, local or remote.
+> The local JSKOS server instance is **not strictly required**. You can configure the backend to consume a remote WebSocket endpoint (such as the public instance at `wss://coli-conc.gbv.de/dev-api/voc/changes`) by setting the `WS_HOST` environment variable in your `.env` file or in `config.default.json` the `webSocket` key.
 
 ### WebSocket Usage in `useVocChanges.ts`
 
@@ -173,28 +181,22 @@ The backend service listens for vocabulary change events from the JSKOS server u
 - **Configuration:**  
   You can override the WebSocket endpoint by setting `WS_HOST` in your environment (e.g., in your `.env` file or defined in `/config/config.default.json` as `webSocket` field.).
 
-**Example `.env` entry:**
-```
-# Websocket configuration acess to Jskos server changes API
-# - If you are running the Jskos server in a Docker container, you can use the
-#   container name as the host, e.g., `ws://jskos-server:3000`
-# - If you are running the Jskos server on your local machine, you can use
-#   `ws://localhost:3000` or `ws://127.0.0.   
-WS_HOST=ws://jskos-server:3000
-```
-
 ### Solr
 
-This section contains 
+This section is about getting running the Solr service in a dockerized environment. 
 
 - [Environment Variables (`.env`)](#environment-variables-env)
 - [Docker Compose Setup](#docker-compose-setup)
 - [Application Service Configuration](#application-service-configuration)
 - [Bootstrapping at Startup](#bootstrapping-at-startup)
+- [Solr Schema](#solr-schema)
 - [Troubleshooting](#troubleshooting)
 
 
-#### Environment Variables (`.env`)
+
+#### Docker 
+
+##### Environment Variables (`.env`)
 
 Create a file named `.env` in `/docker` where the compose file is containing:
 
@@ -205,7 +207,7 @@ SOLR_CORE_NAME=terminologies
 
 - `SOLR_CORE_NAME` drives both the Solr container’s precreation step and your app’s `config.solr.coreName`.
 
-#### Docker Compose Setup
+##### Docker Compose Setup
 
 In `docker-compose.yml`, define a Solr service that pre-creates your core from a custom configset:
 
@@ -232,6 +234,11 @@ volumes:
 - **`solr-precreate ${SOLR_CORE_NAME}`** automatically creates the core on startup.
 - Place your `managed-schema`, `solrconfig.xml` etc. under `solr-config/${SOLR_CORE_NAME}-configset/`.
 
+
+#### Localhost (without Docker)
+TBA
+
+
 #### Bootstrapping at Startup
 
 When the `indexDataAtBoot` setting is enabled, the application performs a series of coordinated steps at startup to populate the Solr core:
@@ -251,6 +258,8 @@ When the `indexDataAtBoot` setting is enabled, the application performs a series
 
 All of these operations are orchestrated by the `connectToSolr()` and `bootstrapIndexSolr()` functions, ensuring that the core is ready and data is indexed without manual intervention.
   
+#### Solr Schema
+Read the documentation [here](solr_schema.md).
 
 #### Troubleshooting
 
@@ -292,181 +301,14 @@ This setup ensures that background processing is robust and does not block the m
 ---
 
 
-## API (To be reviewed)
-
-This service exposes three HTTP endpoints:
-
-- **[GET /](#get)** – Root endpoint, returns the Vue Client.
-- **[GET /api/search](#get-search)** – Search endpoint, accepts query parameters and returns matching results in json format.
-- **[GET /api/status](#get-status)** – Health-check endpoint, returns service status about mongoDb and Solr connection.
-
-All endpoints respond with JSON and use standard HTTP status codes.
-
-### GET /
-
-Returns the discovery interface in form of an HTML page with the experimental Vue client.
-
-### GET /api/search
-
-Executes a search query against the Solr index, returning results along with query metrics.
-
-#### Query Parameters
-
-| Name | Type | Required | Description |
-| --- | --- | --- | --- |
-| `q` | string | yes | Solr query string (e.g., `*:*` for all documents). |
-| `start` | integer | no  | Zero-based offset into result set (default: `0`). |
-| `rows` | integer | no  | Number of results to return (default: `10`). |
-| `wt` | string | no  | Response writer type (default: `json`). |
-
-#### Request Example
-
-```http
-GET /api/search?q=*:*&start=0&rows=10&wt=json HTTP/1.1
-Host: api.example.com
-Accept: application/json
-```
-
-#### Response
-
-- **Status:** `200 OK`
-- **Body:**
-  
-  ```json
-  {
-    "responseHeader": {
-      "status": 0,
-      "QTime": 3,
-      "params": {
-        "q": "*:*",
-        "defType": "lucene",
-        "start": "0",
-        "rows": "10",
-        "wt": "json"
-      }
-    },
-    "response": {
-      "numFound": 3684,
-      "start": 0,
-      "numFoundExact": true,
-      "docs": [
-        {
-          "id": "http://bartoc.org/en/node/10",
-          "title_en": "Australian Public Affairs Information Service Thesaurus",
-          "description_en": "The APAIS thesaurus lists the subject terms used to index articles for APAIS...",
-          "publisher_label": "National Library of Australia",
-          "created_dt": "2013-08-14T10:23:00Z",
-          "modified_dt": "2021-02-10T10:31:55.487Z"
-        },
-        {
-          "id": "http://bartoc.org/en/node/100",
-          "title_en": "The Institute of Electrical and Electronics Engineers Thesaurus",
-          "description_en": "The IEEE Thesaurus is a controlled vocabulary of over 9,000 descriptive terms...",
-          "publisher_label": "Institute of Electrical and Electronics Engineers",
-          "created_dt": "2013-09-02T14:17:00Z",
-          "modified_dt": "2019-04-23T15:50:00Z"
-        }
-        // …more documents…
-      ]
-    }
-  }
-  ```
-
-#### Response Fields
-
-| Field | Type | Description |
-| --- | --- | --- |
-| `responseHeader.status` | integer | Solr execution status (0 = success). |
-| `responseHeader.QTime` | integer | Query execution time in milliseconds. |
-| `responseHeader.params` | object | Echoes back the parameters used for the query. |
-| `response.numFound` | integer | Total number of matching documents. |
-| `response.start` | integer | Offset into the result set. |
-| `response.numFoundExact` | boolean | Indicates if `numFound` is an exact count. |
-| `response.docs` | array | Array of document objects matching the query. |
-| └─ `id` | string | Unique document identifier (URI). |
-| └─ `title_en` | string | English title of the thesaurus or concept scheme. |
-| └─ `description_en` | string | Short English description or abstract. |
-| └─ `publisher_label` | string | Label of the publishing organization. |
-| └─ `created_dt` | string | Creation timestamp (ISO-8601). |
-| └─ `modified_dt` | string | Last modification timestamp (ISO-8601). |
-
-#### Error Responses
-TBA
-  
-### GET /status
-
-
-Returns a concise health check of the service, including environment and Solr index status.
-
-**Request**
-
-```
-GET /status
-```
-
-**Response (HTTP 200)**
-
-```json
-"ok": true,
-"appVersion": "1.0.0",
-"environment": "development",
-"runtimeInfo": 
-  "nodeVersion": "v20.19.2",
-  "uptime": "3 hours, 28 minutes, 39 seconds",
-  "memoryUsage":  
-    "rss": "131.9 MB",
-    "heapTotal": "59.6 MB",
-    "heapUsed": "57.9 MB",
-    "external": "7.5 MB",
-    "arrayBuffers": "0.6 MB",
-  "timestamp":" Jun 18, 2025, 11:57:37 AM UTC",
-"services":  
-  "solr": 
-    "connected": false, 
-    "indexedRecords": 0, 
-    "lastIndexedAt": "Jun 17, 2025, 10:28:27 AM UTC", 
-    "firstUpdate": "",
-    "lastUpdate": ""
-```
-
-| Field                 | Type    | Description                                                                               |
-| --------------------- | ------- | ----------------------------------------------------------------------------------------- |
-| `ok`                  | boolean | Always `true` when the endpoint itself is reachable.                                      |
-| `environment`         | string  | The `NODE_ENV` the server is running in (e.g. `development` or `production`).             |
-| `solr.connected`      | boolean | `true` if Solr responded to a basic stats query; otherwise `false`.                       |
-| `solr.indexedRecords` | number  | Total number of documents currently indexed in the Solr `bartoc` core.                    |
-| `solr.lastIndexedAt`  | string  | ISO‑8601 timestamp of the most recent indexing run.                                       |
-
-> **Note:**
->
-> * Here, **`lastIndexedAt`** refers to the time when the most recent indexing procedure was pushed into Solr (the indexing timestamp).
-> * Other internal or experimental fields are omitted from this public API, as they may change without notice.
-
+## API
+Read the documentation [here](api_docu.md).
 
 ## Development (Under WIP)
-
-### Project Goals
-
-* Provide a reliable pipeline to synchronize BARTOC database with a Solr index
-* Enrich data before to improve search
-* Experiment with relevance ranking and facetted search
-
-### Architecture
-
-```
-JSKOS Server / MongoDB (BARTOC Database) → bartoc-search server → Solr Index → Search frontend
-```
-
-The ETL process consists of:
-
-1. **Extract**: Connect to MongoDB and extract JSKOS data from the `terminologies` collection.
-2. **Transform**: Validate and enrich JSKOS records (e.g., with labels from vocabularies).
-3. **Load**: Push the transformed data into a Solr index.
 
 ###  Technologies
 
 * Node.js + TypeScript
-* Solr (sketched a minimal `solr-client`)
 * Vite for build tooling
 * Docker & Docker Compose for containerization
 * Jest for unit and integration tests (?) -- no tests at the moment
@@ -483,93 +325,6 @@ The search application architecture has been initialized using a combination of 
   
 
 This combination ensures a modern, high-performance development workflow with SSR capabilities out of the box.
-
-###  Features
-
-* Solr client with retry logic and batching
-* Frontend 
-
-
-### Code Style
-
-* TypeScript strict mode enabled
-* Use ESLint and Prettier (`npm run lint`)
-* Tests must be provided for new features
-
-### Comments on Solr schema
-
-This document explains the design decisions and structure of the Solr schema used in the bartoc-search project. The schema has been firstly designed to balance flexibility, multilingual content handling, and optimized full-text search across structured and unstructured data.
-
-### Field Types
-- **string**: Used for non-tokenized fields (IDs, keywords, URIs).
-- **long**: Used for versioning fields (`_version_`).
-- **text**: Configured with analyzers and filters suitable for full-text English search. Includes support for synonyms, word delimiters, unicode folding, stemming, and duplicate removal.
-- **pdate**: Handles date fields (ISO 8601).  
-  _Note: `TrieDateField` is currently used; maybe consider `DatePointField` for future versions._
-- **pint**: Handles integer fields.  
-  _Note: `TrieIntField` is currently used; maybe consider `IntPointField` for future versions._
-
-### Fields
-Each field is defined with appropriate attributes (`indexed`, `stored`, and `multiValued` where applicable) to match the data structure and search needs:
-- Unique identifier (`id`).
-- Language codes (`languages_ss`).
-- Publisher labels and IDs (`publisher_label`, `publisher_id`).
-- Alternative labels (`alt_labels_ss`).
-- Dewey Decimal Classifications (`ddc_ss`).
-- Date fields (`created_dt`, `modified_dt`).
-- Start year (`start_year_i`).
-- URL field (`url_s`).
-- Type URIs (`type_uri`).
-- Full-text title search support (`title_search`).
-
-### Dynamic Fields
-Dynamic fields handle unforeseen or future fields following naming conventions:
-- `title_*`, `description_*`, `subject_*`, `type_label_*`: Full-text fields for multilingual and descriptive content.
-- `*_s`: String fields for structured data.
-- `*_i`: Integer fields.
-- `*_dt`: Date fields.
-
-### Copy Fields
-Copy fields allow for flexible and comprehensive search capabilities:
-- Selected fields (`title_*`, `description_*`, `publisher_label`, `subject_*`, `alt_labels_ss`) are copied into the general-purpose `allfields` field for global search.
-- `title_*` is also copied into `title_search` to enable dedicated title-only search functionality.
-
-### Schema Metadata
-- The `uniqueKey` is set to `id` to ensure unique document identification.
-- No default search field is defined explicitly; search functionality is primarily driven by `allfields` and custom query logic.
-
-### Example Document Structure
-
-The following example illustrates a typical Solr document indexed in the bartoc-search core:
-
-```json
-{
-  "doc":
-  {
-    "alt_labels_ss":["Classification system for films"],
-    "created_dt":"2015-04-20T11:08:00Z",
-    "id":"http://bartoc.org/en/node/1313",
-    "languages_ss":["en",
-      "fr"],
-    "modified_dt":"2019-04-23T15:50:00Z",
-    "publisher_id":"http://viaf.org/viaf/151723291",
-    "publisher_label":"Bibliothèque et Archives nationales du Québec",
-    "subject_uri":["http://dewey.info/class/7/e23/",
-      "http://dewey.info/class/791/e23/"],
-    "subject_scheme":["http://bartoc.org/en/node/241",
-      "http://bartoc.org/en/node/241"],
-    "type_uri":["http://www.w3.org/2004/02/skos/core#ConceptScheme",
-      "http://w3id.org/nkos/nkostype#classification_schema"],
-    "url_s":"https://www.banq.qc.ca/collections/collection_universelle/musique_films/classification_enregistrements_films/index.html?language_id=3#films",
-    "type_label_de":"Klassifikation",
-    "title_en":"Film Classification Plan",
-    "description_en":"\"Fiction films are grouped into eight major cinematographic genres to help you choose from the collection. The films are sorted in alphabetical order according to each genre.\"",
-    "type_label_en":"Classification schema",
-    "title_und":"Plan de classement des films",
-    "description_und":"\"Les films de fiction sont regroupés en huit grands genres cinématographiques afin de vous aider à faire un choix parmi la collection. Sous chaque genre, les films sont classés selon l’ordre alphabétique des réalisateurs.\"",
-    "_version_":1832086555959754752}
-}
-```
 
 ## Maintainers
 
