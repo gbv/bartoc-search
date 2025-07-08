@@ -54,6 +54,7 @@ All configuration for Solr is set in `config/config.default.json` and can be ove
 - [Install](#installation)
 - [Usage](#usage)
 - [Services](#services)
+  - [Jskos Server (optional)](#jskos-server-instance-optional)
   - [Solr](#solr)
   - [Redis](#redis)
 - [API](#api)
@@ -150,6 +151,37 @@ Uncomment and adjust values as needed for your environment. If you are running s
 ---
 
 ## Services
+
+### JSKOS Server Instance (Optional)
+
+The JSKOS server is provided as a Docker service (`jskos-server`) in the `docker-compose.yml` file. It is responsible for exposing the BARTOC MongoDB data and providing a WebSocket endpoint for real-time vocabulary change events.
+
+- **Image:** `ghcr.io/gbv/jskos-server:dev`
+- **Port:** `3000` (exposed as `http://localhost:3000` on the host)
+- **Configuration:** The server is configured via `../config/jskos-server-dev.json` (mounted into the container).
+- **Dependencies:** The JSKOS server depends on the `mongo` service for its database.
+
+**Note:**
+> The local JSKOS server instance is **not strictly required**. You can configure the backend to consume a remote WebSocket endpoint (such as the public instance at `wss://coli-conc.gbv.de/dev-api/voc/changes`) by setting the `WS_HOST` environment variable in your `.env` file or in `config.default.json`. This allows Redis and the queue to receive vocabulary change events from any compatible JSKOS server, local or remote.
+
+### WebSocket Usage in `useVocChanges.ts`
+
+The backend service listens for vocabulary change events from the JSKOS server using a WebSocket connection. This is handled in `src/server/composables/useVocChanges.ts`. See also from `jskos-server` repository, [here](https://github.com/gbv/jskos-server?tab=readme-ov-file#real-time-change-stream-endpoints) some reference
+
+- **Purpose:**  
+  The WebSocket connection allows the backend to receive real-time notifications about vocabulary changes (create, update, delete) and enqueue them for processing in Solr.
+- **Configuration:**  
+  You can override the WebSocket endpoint by setting `WS_HOST` in your environment (e.g., in your `.env` file or defined in `/config/config.default.json` as `webSocket` field.).
+
+**Example `.env` entry:**
+```
+# Websocket configuration acess to Jskos server changes API
+# - If you are running the Jskos server in a Docker container, you can use the
+#   container name as the host, e.g., `ws://jskos-server:3000`
+# - If you are running the Jskos server on your local machine, you can use
+#   `ws://localhost:3000` or `ws://127.0.0.   
+WS_HOST=ws://jskos-server:3000
+```
 
 ### Solr
 
