@@ -9,7 +9,7 @@ import { VocChangeEventSchema } from "../validation/vocChangeEvent";
 
 dotenv.config();
 const WS_URL =
-  (process.env.JSKOS_WS_URL ?? "ws://jskos-server:3000") + "/voc/changes";
+  process.env.WS_HOST ?? config.webSocket.host + config.webSocket.path;
 
 // **Example buffering logic**: collect up to BATCH_SIZE docs then flush as one job
 const BATCH_SIZE = config.solr.batchSize;
@@ -45,7 +45,7 @@ export async function startVocChangesListener(): Promise<void> {
   const socket = new WebSocket(WS_URL);
 
   socket.on("open", () => {
-    config.log?.(`[WS] Connected to ${WS_URL}`);
+    config.log?.(`[WS] Websocket connected to ${WS_URL}`);
   });
 
   socket.on("message", async (data) => {
@@ -96,20 +96,20 @@ export async function startVocChangesListener(): Promise<void> {
             ? err
             : JSON.stringify(err);
 
-      config.error?.(`[WS] Error parsing message: ${message}`);
-      config.error?.(`[WS] Raw payload was: ${data.toString()}`);
+      config.error?.(`[WS] Websocket Error parsing message: ${message}`);
+      config.error?.(`[WS] Websocket Raw payload was: ${data.toString()}`);
     }
   });
 
   socket.on("close", () => {
-    config.warn?.("[WS] Connection closed. Reconnecting in 5s...");
+    config.warn?.("[WS] Websocket Connection closed. Reconnecting in 5s...");
     // Clean up our timer, then restart the listener
     clearInterval(flushInterval);
     setTimeout(() => startVocChangesListener(), 5000);
   });
 
   socket.on("error", (err) => {
-    config.error?.("[WS] Error:", err.message);
+    config.error?.("[WS] Websocket Error:", err.message);
     socket.close();
   });
 }

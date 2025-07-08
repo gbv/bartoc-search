@@ -36,6 +36,15 @@ export interface SolrConfig {
   version: number;
 }
 
+export interface WebSocketConfig {
+  host: string;
+  port?: number; // Optional, defaults to 443 for wss or 80 for ws
+  path: string; // e.g., "/voc/changes"
+  pingTimeout?: number; // Timeout for ping responses
+  pingRetries?: number; // Number of ping retries before considering the connection dead
+  pingRetryDelay?: number; // Delay between ping retries in milliseconds
+}
+
 export interface DefaultConfig {
   baseUrl?: string | null;
   closedWorldAssumption?: boolean;
@@ -59,6 +68,7 @@ export interface DefaultConfig {
   error?: (...args: string[]) => void;
   getDirname?: (url: string) => string;
   status?: unknown;
+  webSocket: WebSocketConfig;
 }
 
 export interface UserConfig {

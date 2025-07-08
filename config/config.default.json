@@ -32,5 +32,13 @@
   },
   "title": "Search for Bartoc",
   "verbosity": "log",
-  "version": null
+  "version": null,
+  "webSocket": {
+    "host": "wss://coli-conc.gbv.de/dev-api",
+    "port": 443,
+    "path": "/voc/changes",
+    "pingTimeout": 10000,
+    "pingRetries": 5,
+    "pingRetryDelay": 1000
+  }
 }
