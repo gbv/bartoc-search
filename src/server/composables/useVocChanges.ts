@@ -3,13 +3,13 @@ import WebSocket from "ws";
 import dotenv from "dotenv";
 import config from "../conf/conf";
 import { SolrDeletePayload, SolrUpsertPayload } from "../types/solr";
-import { terminologiesQueue } from "../queue/worker";
+import { getTerminologiesQueue } from "../queue/worker";
 import { VocChangeEvent, OperationType } from "../types/ws";
 import { VocChangeEventSchema } from "../validation/vocChangeEvent";
 
 dotenv.config();
 const WS_URL =
-  (process.env.JSKOS_WS_URL ?? "ws://jskos-server:3000") + "/voc/changes";
+  process.env.WS_HOST ?? config.webSocket.host + config.webSocket.path;
 
 // **Example buffering logic**: collect up to BATCH_SIZE docs then flush as one job
 const BATCH_SIZE = config.solr.batchSize;
@@ -29,8 +29,14 @@ async function flushBuffer() {
     data: payload,
   }));
 
+  // Get the queue instance
+  const queue = await getTerminologiesQueue();
+  if (!queue) {
+    config.error?.("terminologiesQueue unavailable: Redis not connected");
+    return;
+  }
   // Pipeline them in one Redis call
-  await terminologiesQueue.addBulk(jobs);
+  await queue.addBulk(jobs);
 }
 
 const flushInterval = setInterval(flushBuffer, BATCH_TIMEOUT);
@@ -39,7 +45,7 @@ export async function startVocChangesListener(): Promise<void> {
   const socket = new WebSocket(WS_URL);
 
   socket.on("open", () => {
-    config.log?.(`[WS] Connected to ${WS_URL}`);
+    config.log?.(`[WS] Websocket connected to ${WS_URL}`);
   });
 
   socket.on("message", async (data) => {
@@ -55,7 +61,12 @@ export async function startVocChangesListener(): Promise<void> {
           id: event.id,
           receivedAt: Date.now(),
         };
-        await terminologiesQueue.add(payloadDelete.operation, payloadDelete); // Add job to solr queue for deleting
+        const queue = await getTerminologiesQueue();
+        if (!queue) {
+          config.error?.("terminologiesQueue unavailable: Redis not connected");
+          return;
+        }
+        await queue.add(payloadDelete.operation, payloadDelete); // Add job to solr queue for deleting
         return;
       }
 
@@ -85,20 +96,20 @@ export async function startVocChangesListener(): Promise<void> {
             ? err
             : JSON.stringify(err);
 
-      config.error?.(`[WS] Error parsing message: ${message}`);
-      config.error?.(`[WS] Raw payload was: ${data.toString()}`);
+      config.error?.(`[WS] Websocket Error parsing message: ${message}`);
+      config.error?.(`[WS] Websocket Raw payload was: ${data.toString()}`);
     }
   });
 
   socket.on("close", () => {
-    config.warn?.("[WS] Connection closed. Reconnecting in 5s...");
+    config.warn?.("[WS] Websocket Connection closed. Reconnecting in 5s...");
     // Clean up our timer, then restart the listener
     clearInterval(flushInterval);
     setTimeout(() => startVocChangesListener(), 5000);
   });
 
   socket.on("error", (err) => {
-    config.error?.("[WS] Error:", err.message);
+    config.error?.("[WS] Websocket Error:", err.message);
     socket.close();
   });
 }

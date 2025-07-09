@@ -42,6 +42,9 @@ export const solrSchema = z.object({
 
 export const redisSchema = z.object({
   host: z.string(),
+  pingTimeout: z.number().optional(),
+  pingRetries: z.number().optional(),
+  pingRetryDelay: z.number().optional(),
   port: z.number(),
   url: z.string().optional(),
 });
@@ -61,6 +64,15 @@ export const QueueConfigSchema = z.object({
   limiter: LimiterSchema.optional(),
 });
 
+export const WebSocketConfigSchema = z.object({
+  host: z.string(),
+  port: z.number().optional(),
+  path: z.string(),
+  pingTimeout: z.number().optional(),
+  pingRetries: z.number().optional(),
+  pingRetryDelay: z.number().optional(),
+});
+
 // Full config schema
 export const defaultConfigSchema = z.object({
   baseUrl: z.string().nullable().optional(),
@@ -78,6 +90,7 @@ export const defaultConfigSchema = z.object({
   title: z.string().optional(),
   verbosity: verbositySchema.optional(),
   version: z.string().nullable().optional(),
+  webSocket: WebSocketConfigSchema.optional(),
 });
 
 // Partial user schema for validation

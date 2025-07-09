@@ -26,12 +26,23 @@ if (env !== "test" && !fs.existsSync(configFilePath)) {
 const config: AppConfig = loadConfig(defaultFilePath, configFilePath);
 
 // Set composed config variables
+const redisHost = process.env.REDIS_HOST ?? config.redis.host;
+
+const redisPort = process.env.REDIS_PORT
+  ? Number(process.env.REDIS_PORT)
+  : config.redis.port;
 
 // Build redis url for local development
-config.redis.url = `redis://${config.redis.host}:${config.redis.port}`;
+config.redis.url = `redis://${redisHost}:${redisPort}`;
+
+const solrHost = process.env.SOLR_HOST ?? config.solr.host;
+
+const solrPort = process.env.SOLR_PORT
+  ? Number(process.env.SOLR_PORT)
+  : config.solr.port;
 
 // Build solr url, basic only for local development
-config.solr.url = `http://${config.solr.host}:${config.solr.port}/solr`;
+config.solr.url = `http://${solrHost}:${solrPort}/solr`;
 
 // Build ndJson data path, from latest.ndjson
 if (config.indexDataAtBoot && config.indexDataAtBoot === true) {

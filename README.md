@@ -6,26 +6,72 @@
 
 This application extracts JSKOS data with metadata about terminologies from [BARTOC] knowledge organization systems registry (managed in [jskos-server]), transforms and enriches the data and loads in into a [Solr] search index. The index is then made available via a search API and a discovery interface.
 
+
+### System Architecture Overview
+
+~~~mermaid
+graph TD
+  Solr[(🔎 Solr Index)]
+  DB[(BARTOC database Jskos-Server)]
+  Redis[(🧩 Redis)]
+  BullMQ[(📦 BullMQ Queue)]
+  subgraph search service [ ]
+    direction TB
+    Server[⚙️ Search service]
+    BullMQ[(📦 BullMQ Queue)]
+    Client[🖥️ Vue Client]
+  end
+  Client[🖥️ Vue Client]
+
+  User[👤 User]
+
+  Applications
+
+  %% FLOWS %%
+  DB <-- "Watching Streams" --> Server
+  DB <-- "full dump" --> Server
+  Server -->|update| Solr
+  Solr -->|search| Server
+
+  Server -- "Queue Jobs" --> BullMQ
+  BullMQ -- "Backed by" --> Redis
+
+  Client -- "Browser" --> User
+  Server -- "API" --> Applications
+  Server -- "API" --> Client
+~~~
+
+
+The diagram above illustrates the architecture of the BARTOC Search application and its supporting services:
+
+- **Jskos-Server** provides a real-time stream of vocabulary changes, which the Search service consumes via a WebSocket connection ("Watching Streams").
+- **Search service** is the core backend, responsible for transforming and loading data into the **Solr Index** for search and discovery. It also manages background jobs using a **BullMQ Queue**.
+- **BullMQ Queue** is used for job scheduling and processing, and is backed by a **Redis** instance for fast, reliable message handling.
+- The **Vue Client** communicates with the Search service for user-facing search and discovery features.
+- Users interact with the system through the browser, while external applications can access the API directly.
+- Data flows are bi-directional where appropriate (e.g., between Server and Client, and for API access), and the system is designed for modularity and resilience.
+
+This architecture ensures robust, scalable, and real-time search capabilities, with clear separation of concerns between data ingestion, indexing, background processing, and user interaction.
+
+---
+
 ## Table of Contents
 
-- [Install](#install)
+- [Install](#installation)
 - [Usage](#usage)
 - [API](#api)
   - [GET /](#get-)
   - [GET /api/search](#get-apisearch)
   - [GET /api/status](#get-apistatus)
 - [Architecture](#architecture)
+  - [Jskos Server (optional)](#jskos-server-instance-optional)
   - [Solr](#solr)
   - [Redis](#redis)
 - [Development](#development)
 - [Maintainers](#maintainers)
 - [License](#license)
 
-[jskos-server]: https://github.com/gbv/jskos-server
-[BARTOC]: https://bartoc.org/
-[Solr]: https://solr.apache.org/
-
-## Install
+## Installation
 
 ### Prerequisites
 
@@ -34,33 +80,99 @@ This application extracts JSKOS data with metadata about terminologies from [BAR
 - Solr instance with configured schema
 - Docker & Docker Compose (optional but recommended)
 
-### Fetch Repository or Docker image
+### Quick Start (Recommended: Docker)
+
+The fastest way to get BARTOC Search running locally is with Docker and Docker Compose. This will start all required services (Solr, Redis, and the app) with a single command.
+
+```bash
+cd docker
+docker-compose up --build
+```
+
+- The search app will be available at [http://localhost:3883](http://localhost:3000).
+- Solr Admin UI will be at [http://localhost:8983](http://localhost:8983).
+- Redis run in the background; no manual setup needed.
+
+#### Fetch Repository or Docker image
 
 A docker image [is published](https://github.com/orgs/gbv/packages/container/package/bartoc-search) on every push on branches `main` and `dev` and  when pushing a git tag starting with `v` (e.g., `v1.0.0`). Commits are ignored if they only modify documentation, GitHub workflows, config, or meta files.
 
 See `docker-compose.yml` in the `docker` directory for usage.
 
-Alternatively run from sources:
 
-```bash
-git clone https://github.com/gbv/bartoc-search.git
-cd bartoc-search
-npm install
+**Tip:** For Docker and most local development, configuration is handled automatically in the `config/` directory. The default setup works out of the box.
+
+**Note:**
+- **Choose one approach:**
+  - If you use **Docker** (recommended), do **not** create a `.env` file in the project root—Docker handles all configuration for you.
+  - If you use `npm run dev` (without Docker), you **must** create a `.env` file in the project root to define your local settings (e.g., database URLs, Solr, Redis). The `config/config.default.json` is primarily for Docker and CI setups, and should not be edited for local development.
+
+
+Uncomment and adjust values as needed for your environment. If you are running services via Docker, keep these lines commented out or remove the `.env` file entirely.
+
+### Manual Setup (Advanced)
+
+If you prefer to run services manually (not recommended for most users):
+
+1. **Install prerequisites:**
+   - Node.js >= 18
+   - jskos-server instance (local or remote)
+   - Solr instance with configured schema
+   - Redis
+
+2. **Clone and install dependencies:**
+   ```bash
+   git clone https://github.com/gbv/bartoc-search.git
+   cd bartoc-search
+   npm install
+   ```
+
+3. **Configure environment:**
+   - Create a `.env` file in the project root to define your local settings for Redis and Solr services, and websocket host (see below for example).
+
+#### Example `.env` file for localhost development
+
+```dotenv
+# Redis configuration
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
+
+# Solr configuration
+SOLR_HOST=127.0.0.1
+SOLR_PORT=8983
+
+
+# Websocket configuration acess to Jskos server changes API
+# - If you are running the Jskos server in a Docker container, you can use the
+#   container name as the host, e.g., `ws://jskos-server:3000`
+# - If you are running the Jskos server on your local machine, you can use
+#   `ws://localhost:3000` or `ws://127.0.0.   
+WS_HOST=ws://jskos-server:3000
 ```
+
+Uncomment and adjust values as needed for your environment. If you are running services via Docker, keep these lines related to both Solr and Redis commented out.
+
+4. **Start the app:**
+   ```bash
+   npm run dev
+   ```
+   - The app will attempt to connect to all services and retry if any are temporarily unavailable.
+   - If Redis or Solr are not running, background jobs and search will be disabled, but the app will still start.
+
+
+
+
+
+### Troubleshooting
+
+- **Docker issues:** Make sure Docker Desktop or the Docker daemon is running.
+- **Port conflicts:** Stop any other services using ports 3883, 3000, 8983, 6379, or 27017.
+- **Service not available:** The app will log warnings if Solr or Redis are unavailable, but will keep running for development convenience.
+- **Configuration:** See the `config/` directory and comments in `config.default.json` for all options.
+
 ---
 
-## Usage
 
-To run from the `docker` directory:
-
-```bash
-docker-compose up --build
-```
-
-This starts:
-
-- Solr (`solr`) at localhost:8983
-- bartoc-search app (`search`) at localhost:3000
 
 ### Configuration
 
@@ -215,131 +327,98 @@ The response may temporarily include additional fields for debugging.
 
 ## Architecture
 
-*This section is outdated and/or incomplete*
+### JSKOS Server Instance (Optional)
 
-### Data Flow
+The JSKOS server is provided as a Docker service (`jskos-server`) in the `docker-compose.yml` file. It is responsible for exposing the BARTOC MongoDB data and providing a WebSocket endpoint for real-time vocabulary change events.
 
-The application gets data from the [jskos-server] instance of [BARTOC], publically available at <https://bartoc.org/api>.
+- **Image:** `ghcr.io/gbv/jskos-server:dev`
+- **Port:** `3000` (exposed as `http://localhost:3000` on the host)
+- **Configuration:** The server is configured via `../config/jskos-server-dev.json` (mounted into the container).
+- **Dependencies:** The JSKOS server depends on the `mongo` service for its database.
 
-*TODO: update with Redis*
+**Note:**
+> The local JSKOS server instance is **not strictly required**. You can configure the backend to consume a remote WebSocket endpoint (such as the public instance at `wss://coli-conc.gbv.de/dev-api/voc/changes`) by setting the `WS_HOST` environment variable in your `.env` file or in `config.default.json` the `webSocket` key.
 
-~~~mermaid
-graph TD
-  Solr[(🔎 Solr Index)]
-  DB[("BARTOC database<br>jskos-server")]
-  subgraph bartoc-search [ ]
-    direction TB
-    Server[⚙️ Search service]
-    Client[🖥️ Vue Client]
-  end
+### WebSocket Usage in `useVocChanges.ts`
 
-  User[👤 User]
+The backend service listens for vocabulary change events from the JSKOS server using a WebSocket connection. This is handled in `src/server/composables/useVocChanges.ts`. See also from `jskos-server` repository, [here](https://github.com/gbv/jskos-server?tab=readme-ov-file#real-time-change-stream-endpoints) some reference
 
-  DB -- full dump --> Server
-  DB -- changes --> Server
-
-  Server -->|update| Solr
-  Solr   -->|search| Server
-
-  Server --API --> Client
-  Client -- Browser --> User
-  Server -- API     --> Applications
-~~~
-
-The ETL process consists of:
-
-1. **Extract**: Connect to MongoDB and extract JSKOS data from the `terminologies` collection.
-2. **Transform**: Validate and enrich JSKOS records (e.g., with labels from vocabularies).
-3. **Load**: Push the transformed data into a Solr index.
-
-The ETL pipeline can be executed  via the dockerized setup. The workflow is composed of the following stages:
-
-The application exposes dedicated commands (usually via CLI or internal scripts), but in normal production use, everything runs automatically inside the docker service `search`.
+- **Purpose:**  
+  The WebSocket connection allows the backend to receive real-time notifications about vocabulary changes (create, update, delete) and enqueue them for processing in Solr.
+- **Configuration:**  
+  You can override the WebSocket endpoint by setting `WS_HOST` in your environment (e.g., in your `.env` file or defined in `/config/config.default.json` as `webSocket` field.).
 
 ### Solr
 
-This section contains 
+This section is about getting running the Solr service in a dockerized environment. 
 
 - [Environment Variables (`.env`)](#environment-variables-env)
 - [Docker Compose Setup](#docker-compose-setup)
 - [Application Service Configuration](#application-service-configuration)
 - [Bootstrapping at Startup](#bootstrapping-at-startup)
+- [Solr Schema](#solr-schema)
 - [Troubleshooting](#troubleshooting)
 
-#### Docker Compose Setup
+
+
+#### Docker 
+
+##### Environment Variables (`.env`)
+
+Create a file named `.env` in `/docker` where the compose file is containing:
+
+```dotenv
+# Name of the Solr core (must match /docker/solr-config/SOLR_CORE_NAME-configset/conf)
+SOLR_CORE_NAME=terminologies
+```
+
+- `SOLR_CORE_NAME` drives both the Solr container’s precreation step and your app’s `config.solr.coreName`.
+
+##### Docker Compose Setup
 
 In `docker-compose.yml`, define a Solr service that pre-creates your core from a custom configset:
 
 ```yaml
-services:
-  solr:
+solr:
     image: solr:8
     container_name: bartoc-solr
     ports:
-      - "8983:8983"   # Solr Admin UI & HTTP API
-    volumes:
-      - solr_data:/var/solr
-      - ./solr-config/terminologies-configset:/configsets/terminologies-configset
+      - "8983:8983"
     environment:
       - SOLR_CORE_NAME=${SOLR_CORE_NAME}
+    volumes:
+      - solr_data:/var/solr
+      - ./solr-config/${SOLR_CORE_NAME}-configset:/configsets/${SOLR_CORE_NAME}-configset
     command:
       - solr-precreate
       - ${SOLR_CORE_NAME}
-      - /configsets/terminologies-configset
+      - /configsets/${SOLR_CORE_NAME}-configset
 
 volumes:
   solr_data:
 ```
 
 - **`solr-precreate ${SOLR_CORE_NAME}`** automatically creates the core on startup.
-- Place your `managed-schema`, `solrconfig.xml` etc. under `solr-config/terminologies-configset/`.
+- Place your `managed-schema`, `solrconfig.xml` etc. under `solr-config/${SOLR_CORE_NAME}-configset/`.
 
-#### Application Service Configuration
 
-Ensure your app service reads the same `.env` values and depends on Solr:
+#### Localhost (without Docker)
+TBA
 
-```yaml
-services:
-  bartoc-search:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
-    container_name: bartoc-search
-    env_file:
-      - .env
-    environment:
-      - NODE_ENV=development
-      - CONFIG_FILE=./config/config.json
-      # …other vars…
-    depends_on:
-      - solr
-    ports:
-      - "3883:3883"     # HTTP
-      - "24678:24678"   # HMR WebSocket
-    volumes:
-      - ../:/usr/src/app
-      - /usr/src/app/node_modules
-```
 
 #### Bootstrapping at Startup
 
-When the `indexDataAtBoot` setting is enabled, the application performs a series of coordinated steps at startup to populate the Solr core:
+When `indexDataAtBoot` is enabled, the app will automatically:
 
-1. **Ping & Retry**  
-  Check that the Solr core endpoint is responsive. If the service returns a “SolrCore is loading” status, automatically retry the ping operation multiple times with a short delay until the core is fully up.
-  
-2. **Stream-Fetch NDJSON**  
-  Download the latest NDJSON dump from the [remote URL](https://bartoc.org/data/dumps/latest.ndjson) as a streaming response. This allows line-by-line processing without loading the entire file into memory at once.
-  
-3. **Line-by-Line Parsing & Transformation**  
-  Read each line from the streamed data, skip any empty lines, parse it as JSON to obtain individual records, and convert each record into the Solr document format using the project’s transformation logic.
-  
-4. **Batch Indexing**  
-  Group the transformed documents into manageable batches and send each batch to the Solr update API, committing after each batch to populate the core efficiently.
-  
+1. Wait for Solr to be ready (with retries if needed)
+2. Download the latest NDJSON dump from BARTOC
+3. Parse and transform records on the fly
+4. Batch and index them into Solr
 
-All of these operations are orchestrated by the `connectToSolr()` and `bootstrapIndexSolr()` functions, ensuring that the core is ready and data is indexed without manual intervention.
+This is handled by `connectToSolr()` and `bootstrapIndexSolr()`—no manual steps required.
   
+#### Solr Schema
+Read the documentation [here](solr_schema.md).
 
 #### Troubleshooting
 
@@ -357,8 +436,23 @@ All of these operations are orchestrated by the `connectToSolr()` and `bootstrap
 
 ### Redis
 
-...TODO...
+Redis is used for fast, in-memory job queues and background processing (via BullMQ). If Redis is unavailable, background jobs are paused but the app continues to serve API and search requests. Connection settings are read from config or environment variables (`localhost` in development, `redis` in Docker). Jobs are retried automatically if Redis goes down temporarily.
 
+### BullMQ Monitoring Board
+
+You can monitor and manage background jobs (queues, workers, job status) using the [bull-board](https://github.com/felixmosh/bull-board) UI. This is highly recommended for development and debugging.
+
+Replace `myQueue` with your actual BullMQ queue instance(s) and the board will be available at [http://localhost:3883/admin/queues](http://localhost:3883/admin/queues) (or your app port).
+
+
+**Features:**
+  - View, retry, or remove jobs
+  - Inspect job data and logs
+  - Monitor queue and worker status in real time
+
+For more details, see the [bull-board documentation](https://github.com/felixmosh/bull-board).
+
+---
 
 ## Development
 
@@ -371,7 +465,6 @@ All of these operations are orchestrated by the `connectToSolr()` and `bootstrap
 ###  Technologies
 
 * Node.js + TypeScript
-* Solr (sketched a minimal `solr-client`)
 * Vite for build tooling
 * Docker & Docker Compose for containerization
 * Jest for unit and integration tests (?) -- no tests at the moment
@@ -392,86 +485,6 @@ The search application architecture has been initialized using a combination of 
 * Use ESLint and Prettier (`npm run lint`)
 * Tests must be provided for new features
 
-### Comments on Solr schema
-
-This document explains the design decisions and structure of the Solr schema used in the bartoc-search project. The schema has been firstly designed to balance flexibility, multilingual content handling, and optimized full-text search across structured and unstructured data.
-
-### Field Types
-
-- **string**: Used for non-tokenized fields (IDs, keywords, URIs).
-- **long**: Used for versioning fields (`_version_`).
-- **text**: Configured with analyzers and filters suitable for full-text English search. Includes support for synonyms, word delimiters, unicode folding, stemming, and duplicate removal.
-- **pdate**: Handles date fields (ISO 8601).  
-  _Note: `TrieDateField` is currently used; maybe consider `DatePointField` for future versions._
-- **pint**: Handles integer fields.  
-  _Note: `TrieIntField` is currently used; maybe consider `IntPointField` for future versions._
-
-### Fields
-
-Each field is defined with appropriate attributes (`indexed`, `stored`, and `multiValued` where applicable) to match the data structure and search needs:
-- Unique identifier (`id`).
-- Language codes (`languages_ss`).
-- Publisher labels and IDs (`publisher_label`, `publisher_id`).
-- Alternative labels (`alt_labels_ss`).
-- Dewey Decimal Classifications (`ddc_ss`).
-- Date fields (`created_dt`, `modified_dt`).
-- Start year (`start_year_i`).
-- URL field (`url_s`).
-- Type URIs (`type_uri`).
-- Full-text title search support (`title_search`).
-
-### Dynamic Fields
-
-Dynamic fields handle unforeseen or future fields following naming conventions:
-- `title_*`, `description_*`, `subject_*`, `type_label_*`: Full-text fields for multilingual and descriptive content.
-- `*_s`: String fields for structured data.
-- `*_i`: Integer fields.
-- `*_dt`: Date fields.
-
-### Copy Fields
-
-Copy fields allow for flexible and comprehensive search capabilities:
-- Selected fields (`title_*`, `description_*`, `publisher_label`, `subject_*`, `alt_labels_ss`) are copied into the general-purpose `allfields` field for global search.
-- `title_*` is also copied into `title_search` to enable dedicated title-only search functionality.
-
-### Schema Metadata
-
-- The `uniqueKey` is set to `id` to ensure unique document identification.
-- No default search field is defined explicitly; search functionality is primarily driven by `allfields` and custom query logic.
-
-### Example Document Structure
-
-The following example illustrates a typical Solr document indexed in the bartoc-search core:
-
-```json
-{
-  "doc":
-  {
-    "alt_labels_ss":["Classification system for films"],
-    "created_dt":"2015-04-20T11:08:00Z",
-    "id":"http://bartoc.org/en/node/1313",
-    "languages_ss":["en",
-      "fr"],
-    "modified_dt":"2019-04-23T15:50:00Z",
-    "publisher_id":"http://viaf.org/viaf/151723291",
-    "publisher_label":"Bibliothèque et Archives nationales du Québec",
-    "subject_uri":["http://dewey.info/class/7/e23/",
-      "http://dewey.info/class/791/e23/"],
-    "subject_scheme":["http://bartoc.org/en/node/241",
-      "http://bartoc.org/en/node/241"],
-    "type_uri":["http://www.w3.org/2004/02/skos/core#ConceptScheme",
-      "http://w3id.org/nkos/nkostype#classification_schema"],
-    "url_s":"https://www.banq.qc.ca/collections/collection_universelle/musique_films/classification_enregistrements_films/index.html?language_id=3#films",
-    "type_label_de":"Klassifikation",
-    "title_en":"Film Classification Plan",
-    "description_en":"\"Fiction films are grouped into eight major cinematographic genres to help you choose from the collection. The films are sorted in alphabetical order according to each genre.\"",
-    "type_label_en":"Classification schema",
-    "title_und":"Plan de classement des films",
-    "description_und":"\"Les films de fiction sont regroupés en huit grands genres cinématographiques afin de vous aider à faire un choix parmi la collection. Sous chaque genre, les films sont classés selon l’ordre alphabétique des réalisateurs.\"",
-    "_version_":1832086555959754752}
-}
-```
-
 ## Maintainers
 
 - [@rodolv-commons](https://github.com/rodolv-commons)
@@ -481,3 +494,6 @@ The following example illustrates a typical Solr document indexed in the bartoc-
 
 MIT © 2025- Verbundzentrale des GBV (VZG)
 
+[jskos-server]: https://github.com/gbv/jskos-server
+[BARTOC]: https://bartoc.org/
+[Solr]: https://solr.apache.org/

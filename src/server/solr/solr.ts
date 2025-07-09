@@ -4,7 +4,6 @@ import config from "../conf/conf";
 import { SolrClient } from "./SolrClient";
 import { PingResponse, SolrDocument } from "../types/solr";
 import { SupportedLang } from "../types/lang";
-import { conceptSchemeZodSchema } from "../validation/conceptScheme";
 import { ConceptZodType } from "../validation/concept";
 import {
   SolrResponse,
@@ -16,7 +15,6 @@ import { writeFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { ConceptSchemeDocument } from "../types/jskos";
-import readAndValidateNdjson from "../utils/loadNdJson";
 import { sleep } from "../utils/utils";
 import readline from "readline";
 
@@ -115,12 +113,6 @@ export async function bootstrapIndexSolr() {
   }
 
   config.log?.(`✅ Bootstrapped ${docs.length} documents from ${url}`);
-
-  /* const ndjsonPath = config.ndJsonDataPath ?? "./data/terminologies.ndjson";
-  const docs = await readAndValidateNdjson(ndjsonPath, conceptSchemeZodSchema);
-
-  const solrDocs = docs.map((doc) => transformConceptSchemeToSolr(doc, []));
-  await addDocuments(config.solr.coreName, solrDocs); */
 }
 
 export async function solrStatus(): Promise<SolrResponse> {
