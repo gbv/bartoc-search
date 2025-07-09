@@ -37,13 +37,13 @@
   const selectedField = ref('allfields')
   
   async function onSearch() {
-    const q = query.value.trim()
+    const search = query.value.trim()
     const field = selectedField.value;
   
     router.push({
       name: 'search',
       query: {
-        q,
+        search,
         field
       },
     })
