@@ -161,6 +161,8 @@ Uncomment and adjust values as needed for your environment. If you are running s
 
 
 
+
+
 ### Troubleshooting
 
 - **Docker issues:** Make sure Docker Desktop or the Docker daemon is running.
@@ -406,22 +408,14 @@ TBA
 
 #### Bootstrapping at Startup
 
-When the `indexDataAtBoot` setting is enabled, the application performs a series of coordinated steps at startup to populate the Solr core:
+When `indexDataAtBoot` is enabled, the app will automatically:
 
-1. **Ping & Retry**  
-  Check that the Solr core endpoint is responsive. If the service returns a “SolrCore is loading” status, automatically retry the ping operation multiple times with a short delay until the core is fully up.
-  
-2. **Stream-Fetch NDJSON**  
-  Download the latest NDJSON dump from the [remote URL](https://bartoc.org/data/dumps/latest.ndjson) as a streaming response. This allows line-by-line processing without loading the entire file into memory at once.
-  
-3. **Line-by-Line Parsing & Transformation**  
-  Read each line from the streamed data, skip any empty lines, parse it as JSON to obtain individual records, and convert each record into the Solr document format using the project’s transformation logic.
-  
-4. **Batch Indexing**  
-  Group the transformed documents into manageable batches and send each batch to the Solr update API, committing after each batch to populate the core efficiently.
-  
+1. Wait for Solr to be ready (with retries if needed)
+2. Download the latest NDJSON dump from BARTOC
+3. Parse and transform records on the fly
+4. Batch and index them into Solr
 
-All of these operations are orchestrated by the `connectToSolr()` and `bootstrapIndexSolr()` functions, ensuring that the core is ready and data is indexed without manual intervention.
+This is handled by `connectToSolr()` and `bootstrapIndexSolr()`—no manual steps required.
   
 #### Solr Schema
 Read the documentation [here](solr_schema.md).
@@ -442,26 +436,21 @@ Read the documentation [here](solr_schema.md).
 
 ### Redis
 
-Redis is used as a fast, in-memory job queue and messaging system for background processing in bartoc-search. The application uses Redis to coordinate and manage tasks such as indexing, updating, and deleting records in Solr, ensuring that these operations are reliable and can be retried if needed.
+Redis is used for fast, in-memory job queues and background processing (via BullMQ). If Redis is unavailable, background jobs are paused but the app continues to serve API and search requests. Connection settings are read from config or environment variables (`localhost` in development, `redis` in Docker). Jobs are retried automatically if Redis goes down temporarily.
 
-- **Automatic Connection & Retry:**
-  - On startup, the app tries to connect to Redis. If Redis is not available, it will keep retrying for a limited number of attempts before giving up. This prevents the app from crashing if Redis is temporarily down.
-  - If Redis is not reachable, features that depend on background jobs (like indexing) are disabled, but the rest of the app continues to work.
+### BullMQ Monitoring Board
 
-- **Job Queues:**
-  - The app uses Redis to manage queues for background jobs (using BullMQ). Each queue is created only once and shared across the app, so jobs are not duplicated.
-  - If Redis is not available, the queues are not started, and a clear warning is logged.
+You can monitor and manage background jobs (queues, workers, job status) using the [bull-board](https://github.com/felixmosh/bull-board) UI. This is highly recommended for development and debugging.
 
-- **Worker Resilience:**
-  - Workers that process jobs from the queue will only start if Redis is available. If Redis goes down, workers will stop and automatically try to reconnect when Redis is back.
+Replace `myQueue` with your actual BullMQ queue instance(s) and the board will be available at [http://localhost:3883/admin/queues](http://localhost:3883/admin/queues) (or your app port).
 
-- **Configuration:**
-  - Redis connection settings (host, port, etc.) are read from the app's config files or environment variables. By default, the app connects to `localhost` in development, or to the `redis` service in Docker.
 
-- **No Data Loss:**
-  - If Redis is temporarily unavailable, jobs are not lost—they are retried once Redis is back online.
+**Features:**
+  - View, retry, or remove jobs
+  - Inspect job data and logs
+  - Monitor queue and worker status in real time
 
-This setup ensures that background processing is robust and does not block the main application if Redis is down. All Redis-related errors are logged, and the app continues to serve search and API requests even if background jobs are paused.
+For more details, see the [bull-board documentation](https://github.com/felixmosh/bull-board).
 
 ---
 
