@@ -71,12 +71,12 @@ app.get("/api/status", getStatus);
 // ==========================
 app.get("/api/search", async (req: Request, res: Response): Promise<void> => {
   // Read params
-  const rawQ = (req.query.q as string) || "";
+  const search = (req.query.search as string) || "";
   const field = (req.query.field as string) || "allfields";
-  const rows = parseInt((req.query.rows as string) || "10");
+  const limit = parseInt((req.query.limit as string) || "10");
 
   // Building the query
-  const query = LuceneQuery.fromText(rawQ, field, 3, 2).operator("OR");
+  const query = LuceneQuery.fromText(search, field, 3, 2).operator("OR");
 
   try {
     const solrQueryBuilder = new SolrClient(config.solr.version)
@@ -85,7 +85,7 @@ app.get("/api/search", async (req: Request, res: Response): Promise<void> => {
     const results = await solrQueryBuilder
       .prepareSelect(config.solr.coreName)
       .for(query)
-      .limit(rows)
+      .limit(limit)
       .execute<SolrSearchResponse>();
     res.json(results);
   } catch (error) {

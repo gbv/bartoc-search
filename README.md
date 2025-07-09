@@ -187,6 +187,10 @@ SOLR_CORE_NAME=terminologies
 
 The environment variables `SOLR_CORE_NAME` drives both the Solr container’s precreation step and your app’s `config.solr.coreName`.
 
+## Usage
+
+The web interface is currently being developed. Feedback is welcome!
+
 ## API
 
 This service exposes three HTTP endpoints:
@@ -211,12 +215,13 @@ Performs a search query against the Solr index, returning results along with que
 
 #### Query Parameters
 
-| Name | Type | Required | Description |
+All query parameters are optional.
+
+| Name | Type | Description |
 | --- | --- | --- | --- |
-| `q` | string | yes | Solr query string (e.g., `*:*` for all documents). |
-| `start` | integer | no  | Zero-based offset into result set (default: `0`). |
-| `rows` | integer | no  | Number of results to return (default: `10`). |
-| `wt` | string | no  | Response writer type (default: `json`). |
+| `search` | string | Search string |
+| `field` | string | specific field to search in |
+| `limit` | integer | Number of results to return (default: `10`) |
 
 #### Response
 

@@ -19,7 +19,7 @@ async function fetchResults() {
 
   try {
     const res = await axios.get(`${import.meta.env.BASE_URL}api/search`, {
-      params: { q: query.value, field: field.value },
+      params: { search: query.value, field: field.value },
     })
     results.value = res.data.response.docs || []
   } catch (error) {
