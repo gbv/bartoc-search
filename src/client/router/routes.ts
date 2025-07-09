@@ -1,6 +1,5 @@
 import HomeView from '../views/HomeView.vue'
 import SearchView from '../views/SearchView.vue'
-import AboutView from '../views/AboutView.vue'
 
 const routes = [
   {
@@ -12,11 +11,6 @@ const routes = [
     path: '/search',
     name: 'search',
     component: SearchView,
-  },
-  {
-    path: '/about',
-    name: 'about',
-    component: AboutView,
   },
 ]
 

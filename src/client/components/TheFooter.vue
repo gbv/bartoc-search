@@ -4,7 +4,7 @@
       <div class="footer__info">
         <span class="footer__links">
           <a href="https://github.com/gbv/bartoc-search" target="_blank" rel="noopener">GitHub</a>
-          <a href="/about">About</a>
+          
         </span>
       </div>
       <div>
