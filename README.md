@@ -296,7 +296,7 @@ Returns a concise health check of the service, including environment and Solr in
 | `config.serverVersion` | string  | Version number of the application                                          |
 | `config.title`         | string  | A custom title of the BARTOC Search application instance                   |
 | `solr.connected`       | boolean | Whether Solr responded to a basic stats query                              |
-| `solr.indexedRecords`  | number  | Total number of documents currently indexed in the Solr `bartoc` core      |
+| `solr.indexedRecords`  | number  | Total number of documents currently indexed in the Solr `terminologies` core      |
 | `solr.lastIndexedAt`   | string  | ISO‑8601 timestamp of the most recent update of a record into the index    |
 | `jskos.connected`      | boolean | Whether WebSocket connection (JSKOS API) has been established for updates  |
 
@@ -319,7 +319,7 @@ The response may temporarily include additional fields for debugging.
     "indexedRecords": 3782, 
     "lastIndexedAt": "2025-07-13T10:28:27"
   },
-  "jskos-server": {
+  "jskosServer": {
     "connected": true 
   }
 }

@@ -94,7 +94,6 @@ export interface SolrSearchResponse {
     docs: SolrDocument[];
     numFoundExact?: boolean;
   };
-  stats?: SolrStats;
   // Optionally facets, spellcheck etc.
 }
 
@@ -130,30 +129,10 @@ export interface SolrErrorResponse {
  */
 export type SolrResponse = SolrSearchResponse | SolrErrorResponse;
 
-export interface SolrStatsField {
-  min?: string | number;
-  max?: string | number;
-  sum?: number;
-  sumOfSquares?: number;
-  mean?: number;
-  stddev?: number;
-  count?: number;
-  missing?: number;
-  [key: string]: unknown; // allow extra stats fields if Solr adds more
-}
-
-export interface SolrStats {
-  stats_fields: {
-    [fieldName: string]: SolrStatsField;
-  };
-}
-
 export interface SolrStatusResult {
   connected: boolean;
   indexedRecords: number;
   lastIndexedAt: string | number | undefined;
-  lastUpdate: SolrStatsField["max"] | null;
-  firstUpdate: SolrStatsField["min"] | null;
 }
 
 interface BasePayload {

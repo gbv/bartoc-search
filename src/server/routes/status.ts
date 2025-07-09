@@ -8,15 +8,16 @@ import {
   SolrStatusResult,
   SolrResponse,
 } from "../types/solr";
-import { StatusResponse, StatusRuntimeInfo } from "../types/status";
-import { formatBytes, formatTimestamp } from "../utils/utils";
+import { StatusResponse } from "../types/status";
+import config from "../conf/conf";
+import { isWebsocketConnected } from "../composables/useVocChanges.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const LAST_INDEX_FILE = join(__dirname, "../../../data/lastIndexedAt.txt");
 
 // read version dal package.json
-const { version: appVersion } = JSON.parse(
+const { version: serverVersion } = JSON.parse(
   readFileSync(join(__dirname, "../../../package.json"), "utf-8"),
 );
 
@@ -24,21 +25,31 @@ export const getStatus = async (
   req: Request,
   res: Response<StatusResponse>,
 ) => {
-  // Runtime infos
-  const runtimeInfo: StatusRuntimeInfo = getRuntimeInfo();
-
   // services checks
 
-  //solr
+  //solr Status
   const solrStatus = await solr.solrStatus();
   const solrStatusResult: SolrStatusResult = mapSolrToStatus(solrStatus);
 
+  // jskos status
+  const jskosStatus = await isWebsocketConnected();
+
+  // app title
+  const title = config.title
+    ? `${config.title}${process.env.NODE_ENV === "development" ? " (dev)" : ""}`
+    : "BARTOC Search";
+
   const statusResponse: StatusResponse = {
     ok: true,
-    appVersion,
-    environment: process.env.NODE_ENV ?? "development",
-    runtimeInfo,
+    config: {
+      env: process.env.NODE_ENV ?? "development",
+      serverVersion,
+      title,
+    },
     solr: solrStatusResult,
+    jskosServer: {
+      connected: jskosStatus,
+    },
   };
 
   res.json(statusResponse);
@@ -50,53 +61,19 @@ export function mapSolrToStatus(status: SolrResponse): SolrStatusResult {
       connected: false,
       indexedRecords: 0,
       lastIndexedAt: "",
-      firstUpdate: null,
-      lastUpdate: null,
     };
   }
 
   const currentStatus = status as SolrSearchResponse;
   const numFound = currentStatus.response?.numFound ?? 0;
-  const fields = currentStatus.stats?.stats_fields?.modified_dt ?? {};
 
   const solrStatusResult: SolrStatusResult = {
     connected: true,
     indexedRecords: numFound,
-    lastIndexedAt: formatTimestamp(getLastIndexedAt()),
-    firstUpdate: formatTimestamp(fields.min) ?? null,
-    lastUpdate: formatTimestamp(fields.max) ?? null,
+    lastIndexedAt: getLastIndexedAt(),
   };
 
   return solrStatusResult;
-}
-
-function getRuntimeInfo(): StatusRuntimeInfo {
-  // Uptime
-  const uptime = process.uptime();
-  const seconds = Math.floor(uptime % 60);
-  const minutes = Math.floor((uptime / 60) % 60);
-  const hours = Math.floor(uptime / 3600);
-
-  // Memory usage
-  const rawMem = process.memoryUsage();
-
-  // Build a Record<keyof MemoryUsage, string> in a type-safe way
-  const memoryUsage = (
-    Object.keys(rawMem) as (keyof NodeJS.MemoryUsage)[]
-  ).reduce(
-    (acc, key) => {
-      acc[key] = formatBytes(rawMem[key]);
-      return acc;
-    },
-    {} as Record<keyof NodeJS.MemoryUsage, string>,
-  );
-
-  return {
-    nodeVersion: process.version,
-    uptime: `${hours} hours, ${minutes} minutes, ${seconds} seconds`,
-    memoryUsage,
-    timestamp: formatTimestamp(new Date().toISOString()),
-  };
 }
 
 /**

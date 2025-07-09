@@ -40,11 +40,17 @@ async function flushBuffer() {
 }
 
 const flushInterval = setInterval(flushBuffer, BATCH_TIMEOUT);
+let isVocChangesConnected: boolean = false;
+
+export async function isWebsocketConnected(): Promise<boolean> {
+  return isVocChangesConnected;
+}
 
 export async function startVocChangesListener(): Promise<void> {
   const socket = new WebSocket(WS_URL);
 
   socket.on("open", () => {
+    isVocChangesConnected = true;
     config.log?.(`[WS] Websocket connected to ${WS_URL}`);
   });
 
@@ -102,6 +108,7 @@ export async function startVocChangesListener(): Promise<void> {
   });
 
   socket.on("close", () => {
+    isVocChangesConnected = false;
     config.warn?.("[WS] Websocket Connection closed. Reconnecting in 5s...");
     // Clean up our timer, then restart the listener
     clearInterval(flushInterval);
@@ -109,6 +116,7 @@ export async function startVocChangesListener(): Promise<void> {
   });
 
   socket.on("error", (err) => {
+    isVocChangesConnected = false;
     config.error?.("[WS] Websocket Error:", err.message);
     socket.close();
   });

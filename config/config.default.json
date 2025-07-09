@@ -30,7 +30,7 @@
     "port": 8983,
     "version": 8.1
   },
-  "title": "Search for Bartoc",
+  "title": "BARTOC Search",
   "verbosity": "log",
   "version": null,
   "webSocket": {

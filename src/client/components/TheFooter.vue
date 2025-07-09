@@ -12,6 +12,10 @@
             .map(([key, value]) => `${key} = ${value}`)
             .join(' | ') }}
         </div>
+        <div> Jskos Server Websocket : {{ Object.entries(jskosStatus)
+            .map(([key, value]) => `${key} = ${value}`)
+            .join(' | ') }}
+        </div>
       </div>
     </div>
   </footer>
@@ -26,14 +30,17 @@ const solrStatus = reactive<SolrStatusResult>({
   connected: false,
   indexedRecords: 0,
   lastIndexedAt: '',
-  lastUpdate: '',
-  firstUpdate: '',
+})
+
+const jskosStatus = reactive<{ connected: boolean }>({
+  connected: false,
 })
 
 onMounted(async () => {
   try {
     const res = await axios.get(`${import.meta.env.BASE_URL}api/status`)
     Object.assign(solrStatus, res.data.solr)
+    Object.assign(jskosStatus, res.data.jskosServer)
   } catch (e) {
     console.warn('Could not fetch Solr status')
   }
