@@ -64,7 +64,6 @@ This architecture ensures robust, scalable, and real-time search capabilities, w
   - [GET /api/search](#get-apisearch)
   - [GET /api/status](#get-apistatus)
 - [Architecture](#architecture)
-  - [Jskos Server (optional)](#jskos-server-instance-optional)
   - [Solr](#solr)
   - [Redis](#redis)
 - [Development](#development)
@@ -110,6 +109,54 @@ See `docker-compose.yml` in the `docker` directory for usage.
 
 Uncomment and adjust values as needed for your environment. If you are running services via Docker, keep these lines commented out or remove the `.env` file entirely.
 
+### Run Backends via Docker
+
+Start redis and Solr from Docker images:
+
+```bash
+docker compose -f docker/docker-compose-backends.yml create --remove-orphans
+docker compose -f docker/docker-compose-backends.yml start
+```
+
+Create a local `config/config.json` to refer to these backend services:
+
+~~~json
+{
+   "redis": {
+    "host": "localhost",
+    "pingTimeout": 10000,
+    "pingRetries": 5,
+    "pingRetryDelay": 1000,
+    "port": 6379
+  },
+  "solr": {
+    "batchSize": 500,
+    "coreName": "terminologies",
+    "host": "localhost",
+    "pingTimeout": 10000,
+    "pingRetries": 5,
+    "pingRetryDelay": 1000,
+    "port": 8983,
+    "version": 8.1
+  }
+}
+~~~
+
+And a local `.env` file:
+
+~~~
+CONFIG_FILE=./config/config.json
+__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS=.coli-conc.gbv.de
+VITE_JSKOS_WS_URL=ws://bartoc.org/api/voc/changes
+BASE_URL=http://localhost:3883/
+~~~
+
+Then start bartoc-search for development:
+
+```bash
+npm run dev
+```
+
 ### Manual Setup (Advanced)
 
 If you prefer to run services manually (not recommended for most users):
@@ -120,12 +167,7 @@ If you prefer to run services manually (not recommended for most users):
    - Solr instance with configured schema
    - Redis
 
-2. **Clone and install dependencies:**
-   ```bash
-   git clone https://github.com/gbv/bartoc-search.git
-   cd bartoc-search
-   npm install
-   ```
+2. **Clone and install dependencies**
 
 3. **Configure environment:**
    - Create a `.env` file in the project root to define your local settings for Redis and Solr services, and websocket host (see below for example).
@@ -332,17 +374,9 @@ The response may temporarily include additional fields for debugging.
 
 ## Architecture
 
-### JSKOS Server Instance (Optional)
+[jskos-server]: https://github.com/gbv/jskos-server
 
-The JSKOS server is provided as a Docker service (`jskos-server`) in the `docker-compose.yml` file. It is responsible for exposing the BARTOC MongoDB data and providing a WebSocket endpoint for real-time vocabulary change events.
-
-- **Image:** `ghcr.io/gbv/jskos-server:dev`
-- **Port:** `3000` (exposed as `http://localhost:3000` on the host)
-- **Configuration:** The server is configured via `../config/jskos-server-dev.json` (mounted into the container).
-- **Dependencies:** The JSKOS server depends on the `mongo` service for its database.
-
-**Note:**
-> The local JSKOS server instance is **not strictly required**. You can configure the backend to consume a remote WebSocket endpoint (such as the public instance at `wss://coli-conc.gbv.de/dev-api/voc/changes`) by setting the `WS_HOST` environment variable in your `.env` file or in `config.default.json` the `webSocket` key.
+The application requires a [jskos-server] with Changes API to get live updates. The API endpoint can be configured in configuration key `webSocket` or with `WS_HOST` environment variable (e.g. `wss://coli-conc.gbv.de/dev-api/voc/changes` for BARTOC production).
 
 ### WebSocket Usage in `useVocChanges.ts`
 

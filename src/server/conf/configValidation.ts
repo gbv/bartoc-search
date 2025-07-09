@@ -8,25 +8,6 @@ const verbositySchema = z.union([
   z.boolean(),
 ]);
 
-// MongoOptions schema
-export const mongoOptionsSchema = z.object({
-  connectTimeoutMS: z.number().optional(),
-  socketTimeoutMS: z.number().optional(),
-  heartbeatFrequencyMS: z.number().optional(),
-});
-
-// MongoConfig schema
-export const mongoSchema = z.object({
-  user: z.string().optional(),
-  pass: z.string().optional(),
-  host: z.string(),
-  port: z.number(),
-  db: z.string(),
-  options: mongoOptionsSchema.optional(),
-  auth: z.string().optional(),
-  url: z.string().optional(),
-});
-
 // SolrConfig schema
 export const solrSchema = z.object({
   batchSize: z.number(),
@@ -80,7 +61,6 @@ export const defaultConfigSchema = z.object({
   env: z.string().default("development"),
   indexDataAtBoot: z.boolean().optional(),
   logLevel: z.string().default("info"),
-  mongo: mongoSchema.optional(),
   ndJsonDataPath: z.string().optional(),
   port: z.number(),
   proxies: z.array(z.string()).optional(),

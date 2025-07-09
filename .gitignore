@@ -16,10 +16,11 @@ temp/
 logs/
 *.log
 
-# Environment variables
+# Local configuration
 .env
 .env.local
 .env.*.local
+config/config.json
 
 # Vite cache
 .vite/
@@ -34,4 +35,5 @@ logs/
 # OS specific files
 .DS_Store
 Thumbs.db
+
 

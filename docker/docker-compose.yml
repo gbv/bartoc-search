@@ -19,16 +19,6 @@ services:
       - BASE_URL=http://localhost:3883/
     working_dir: /usr/src/app
 
-  jskos-server:
-    image: ghcr.io/gbv/jskos-server:dev
-    container_name: jskos-server
-    depends_on:
-      - mongo
-    volumes:
-    - ../config/jskos-server-dev.json:/config/config.json
-    ports:
-      - "3000:3000" # HTTP
-  
   redis:
     image: redis:7
     container_name: bartoc-redis
@@ -37,23 +27,6 @@ services:
     restart: always
     volumes:
       - redis_data:/data
-
-  mongo:
-    image: mongo:7
-    container_name: bartoc-mongo
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
-    entrypoint: [ "/usr/bin/mongod", "--bind_ip_all", "--replSet", "rs0" ]
-
-  mongosetup:
-    image: mongo:7
-    depends_on:
-      - mongo
-    volumes: 
-      - ./mongo-initdb.d:/docker-entrypoint-initdb.d
-    restart: "no"
 
   solr:
     image: solr:8
@@ -71,6 +44,5 @@ services:
       - /configsets/${SOLR_CORE_NAME}-configset
 
 volumes:
-  mongo_data:
   solr_data:
   redis_data:
