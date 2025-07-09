@@ -1,22 +1,19 @@
 <template>
-  <footer class="footer">
-    <div class="footer__container">
+  <footer>
+    <div>
+      <div v-if="apiStatus.solr.connected">
+        search in <b>{{ apiStatus.solr.indexedRecords }}</b> terminologies,
+        most recent update <b>{{ apiStatus.solr.lastIndexedAt }}</b>,
+        live updates <b>{{ apiStatus.jskosServer.connected ? "enabled" : "disabled" }}</b>
+      </div>
+      <div v-else>
+         Search index not available! 
+      </div>
       <div class="footer__info">
         <span class="footer__links">
           <a href="https://github.com/gbv/bartoc-search" target="_blank" rel="noopener">GitHub</a>
-          
         </span>
-      </div>
-      <div>
-        <div> Solr Status : {{ Object.entries(solrStatus)
-            .map(([key, value]) => `${key} = ${value}`)
-            .join(' | ') }}
-        </div>
-        <div> Jskos Server Websocket : {{ Object.entries(jskosStatus)
-            .map(([key, value]) => `${key} = ${value}`)
-            .join(' | ') }}
-        </div>
-      </div>
+      </div>      
     </div>
   </footer>
 </template>
@@ -24,26 +21,14 @@
 <script setup lang="ts">
 import { reactive, onMounted } from 'vue'
 import axios from 'axios'
-import { SolrStatusResult } from '../../server/types/solr'
 
-const solrStatus = reactive<SolrStatusResult>({
-  connected: false,
-  indexedRecords: 0,
-  lastIndexedAt: '',
-})
-
-const jskosStatus = reactive<{ connected: boolean }>({
-  connected: false,
-})
+const apiStatus = reactive({ solr: {}, jskosServer: {} })
 
 onMounted(async () => {
-  try {
-    const res = await axios.get(`${import.meta.env.BASE_URL}api/status`)
-    Object.assign(solrStatus, res.data.solr)
-    Object.assign(jskosStatus, res.data.jskosServer)
-  } catch (e) {
-    console.warn('Could not fetch Solr status')
-  }
+  axios.get(`${import.meta.env.BASE_URL}api/status`)
+    .then( res => { Object.assign(apiStatus, res.data) } )
+    .catch(e => {
+      console.warn('Failed to fetch API status')
+    })
 })
-
 </script>

@@ -9,7 +9,6 @@
 @import './components/vocabulary-card.css';
  */
 
-@import './base/base.css';
 @import './components/header.css';
 @import './components/footer.css';
 @import './pages/home.css';

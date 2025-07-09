@@ -1,11 +1,9 @@
-.footer {
-  background: #f8f9fa;
-  border-top: 1px solid #e5e5e5;
-  color: #666;
-  font-size: 0.95rem;
+footer {
+  background: #343a40;
+  color: #6c757d;
 }
 
-.footer__container {
+footer > div {
   max-width: 1200px;
   margin: 0 auto;
   padding: 1rem 1.5rem;
@@ -28,17 +26,17 @@
 }
 
 .footer__links a {
-  color: #003366;
+  color: #fff;
   text-decoration: none;
   transition: color 0.2s;
 }
 
-.footer__links a:hover {
-  color: #0055a5;
+.footer__links > a:hover {
+  color: #007bff;
 }
 
 @media (max-width: 768px) {
-  .footer__container {
+  footer > div {
     flex-direction: column;
     padding: 1rem;
   }
