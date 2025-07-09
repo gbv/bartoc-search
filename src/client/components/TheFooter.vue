@@ -1,6 +1,5 @@
 <template>
   <footer>
-    <div>
       <div v-if="apiStatus.solr.connected">
         search in <b>{{ apiStatus.solr.indexedRecords }}</b> terminologies,
         most recent update <b>{{ apiStatus.solr.lastIndexedAt }}</b>,
@@ -9,12 +8,11 @@
       <div v-else>
          Search index not available! 
       </div>
-      <div class="footer__info">
-        <span class="footer__links">
-          <a href="https://github.com/gbv/bartoc-search" target="_blank" rel="noopener">GitHub</a>
-        </span>
+      <div>
+        <a :href="`${baseUrl}api/status`" target="_blank">API</a>
+        |
+        <a href="https://github.com/gbv/bartoc-search" target="_blank">GitHub</a>        
       </div>      
-    </div>
   </footer>
 </template>
 
@@ -22,10 +20,11 @@
 import { reactive, onMounted } from 'vue'
 import axios from 'axios'
 
+const baseUrl = import.meta.env.BASE_URL
 const apiStatus = reactive({ solr: {}, jskosServer: {} })
 
 onMounted(async () => {
-  axios.get(`${import.meta.env.BASE_URL}api/status`)
+  axios.get(`${baseUrl}api/status`)
     .then( res => { Object.assign(apiStatus, res.data) } )
     .catch(e => {
       console.warn('Failed to fetch API status')

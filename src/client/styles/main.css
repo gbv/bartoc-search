@@ -1,19 +1,7 @@
-/* @import './base/reset.css';
-@import './base/variables.css';
-@import './base/typography.css';
-
-@import './layouts/default-layout.css';
-
-@import './components/header.css';
-@import './components/search-bar.css';
-@import './components/vocabulary-card.css';
- */
-
-@import './components/header.css';
-@import './components/footer.css';
-@import './pages/home.css';
-@import './pages/search.css';
-
+@import './header.css';
+@import './footer.css';
+@import './home.css';
+@import './search.css';
 
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
