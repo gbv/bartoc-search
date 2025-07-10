@@ -1,5 +1,6 @@
-@import './header.css';
+@import './colors.css';
 @import './footer.css';
+@import './header.css';
 @import './home.css';
 @import './search.css';
 
@@ -83,9 +84,20 @@ a,
   padding: 3px;
 }
 
+.no-hover a,
+.no-hover a:hover,
+.no-hover a:focus,
+.no-hover a:active {
+  color: inherit;
+  background: none;
+  text-decoration: none;
+  outline: none;
+  box-shadow: none;
+}
+
 @media (prefers-color-scheme: light) {
   :root {
-    color: #213547;
+    color: var(-color-text);
     background-color: #ffffff;
   }
   a:hover {

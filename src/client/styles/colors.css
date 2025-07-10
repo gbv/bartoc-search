@@ -1,0 +1,40 @@
+:root {
+  /* Basic colors */  
+  --white: #ffffff;
+  --white-soft: #f8f8f8;
+  --white-mute: #f2f2f2;
+
+  --black: #181818;
+  --black-soft: #222222;
+  --black-mute: #282828;
+
+  --indigo: #2c3e50;
+
+  --gray-dark: #343A40;
+
+  --red: #961300;
+
+
+  --divider-light-1: rgba(60, 60, 60, 0.29);
+  --divider-light-2: rgba(60, 60, 60, 0.12);
+  --divider-dark-1: rgba(84, 84, 84, 0.65);
+  --divider-dark-2: rgba(84, 84, 84, 0.48);
+
+  --color-text-light-1: var(--indigo);
+  --color-text-light-2: rgba(60, 60, 60, 0.66);
+  --color-text-dark-1: var(--white);
+  --color-text-dark-2: rgba(235, 235, 235, 0.64);
+
+    /* Semantic color variables for this project */
+  --color-header-background: var(--red);
+
+  --color-primary: var(--red);
+  --color-background: var(--white);
+  --color-background-soft: var(--white-soft);
+  --color-background-mute: var(--white-mute);
+  --color-border: var(--divider-light-2);
+  --color-border-hover: var(--divider-light-1);
+  --color-heading: var(--color-text-light-1);
+  --color-text: var(--color-text-light-1);
+
+}

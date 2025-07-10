@@ -1,5 +1,5 @@
 .header {
-  background: #fff;
+  background: var(--color-header-background);
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   border-bottom: 1px solid #e5e5e5;
 }
@@ -15,7 +15,7 @@
 .header__logo a {
   font-size: 1.5rem;
   font-weight: bold;
-  color: #003366;
+  color: var(--color-text-dark-1);
   text-decoration: none;
 }
 .header__nav {

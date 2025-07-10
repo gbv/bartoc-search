@@ -1,7 +1,7 @@
 <template>
   <header class="header">
     <div class="header__container">
-      <div class="header__logo">
+      <div class="header__logo no-hover">
         <RouterLink to="/">Bartoc Search</RouterLink>
       </div>
     </div>
