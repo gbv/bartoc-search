@@ -147,7 +147,6 @@ And a local `.env` file:
 ~~~
 CONFIG_FILE=./config/config.json
 __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS=.coli-conc.gbv.de
-VITE_JSKOS_WS_URL=ws://bartoc.org/api/voc/changes
 BASE_URL=http://localhost:3883/
 ~~~
 
