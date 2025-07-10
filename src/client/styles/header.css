@@ -1,7 +1,10 @@
 .header {
-  background: var(--color-header-background);
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   border-bottom: 1px solid #e5e5e5;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--color-header-background);
 }
 .header__container {
   max-width: 1200px;
