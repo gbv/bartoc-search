@@ -1,5 +1,9 @@
-<script setup lang="ts">
-import SearchBar  from '../components/SearchBar.vue'
+<script setup lang="js">
+import SearchBar from '../components/SearchBar.vue'
+
+function onSearch(query) {
+  window.location = window.location + `search?${new URLSearchParams(query)}`
+}
 </script>
 
 <template>
@@ -9,7 +13,7 @@ import SearchBar  from '../components/SearchBar.vue'
         BARTOC Search <small class="hero__subtitle">prototype for testing</small>
       </h1>
       <div class="hero__search">
-        <SearchBar />
+        <SearchBar @search="onSearch" />
       </div>
     </section>
   </main>
