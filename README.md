@@ -216,17 +216,15 @@ Uncomment and adjust values as needed for your environment. If you are running s
 
 
 ### Configuration
+You can customize the application settings via a configuration file. By default, this configuration file resides in `config/config.json`. However, it is possible to adjust this path via the `CONFIG_FILE` environment variable. The path has to be either absolute (i.e. starting with `/`) or relative to the `config/` folder (i.e. it defaults to `./config.json`). If the file exists and contains invalid JSON data, JSKOS Server will refuse to start.
 
-All configuration for Solr is set in `config/config.default.json` and can be overridden by local files.
+Currently, there are only two environment variables:
+- `NODE_ENV` - either `development` (default) or `production`
+- `CONFIG_FILE` - alternate path to a configuration file, relative to the `config/` folder; defaults to `./config.json`.
 
-Create a file named `.env` at your project root containing:
+You can either provide the environment variables during the command to start the server, or in a `.env` file in the root folder.
 
-```dotenv
-# Name of the Solr core (must match /docker/solr-config/SOLR_CORE_NAME-configset/conf)
-SOLR_CORE_NAME=terminologies
-```
-
-The environment variables `SOLR_CORE_NAME` drives both the Solr container’s precreation step and your app’s `config.solr.coreName`.
+All missing keys will be defaulted from `config/config.default.json`:
 
 ## Usage
 
@@ -398,51 +396,9 @@ This section is about getting running the Solr service in a dockerized environme
 - [Troubleshooting](#troubleshooting)
 
 
-
 #### Docker 
 
-##### Environment Variables (`.env`)
-
-Create a file named `.env` in `/docker` where the compose file is containing:
-
-```dotenv
-# Name of the Solr core (must match /docker/solr-config/SOLR_CORE_NAME-configset/conf)
-SOLR_CORE_NAME=terminologies
-```
-
-- `SOLR_CORE_NAME` drives both the Solr container’s precreation step and your app’s `config.solr.coreName`.
-
-##### Docker Compose Setup
-
-In `docker-compose.yml`, define a Solr service that pre-creates your core from a custom configset:
-
-```yaml
-solr:
-    image: solr:8
-    container_name: bartoc-solr
-    ports:
-      - "8983:8983"
-    environment:
-      - SOLR_CORE_NAME=${SOLR_CORE_NAME}
-    volumes:
-      - solr_data:/var/solr
-      - ./solr-config/${SOLR_CORE_NAME}-configset:/configsets/${SOLR_CORE_NAME}-configset
-    command:
-      - solr-precreate
-      - ${SOLR_CORE_NAME}
-      - /configsets/${SOLR_CORE_NAME}-configset
-
-volumes:
-  solr_data:
-```
-
-- **`solr-precreate ${SOLR_CORE_NAME}`** automatically creates the core on startup.
-- Place your `managed-schema`, `solrconfig.xml` etc. under `solr-config/${SOLR_CORE_NAME}-configset/`.
-
-
-#### Localhost (without Docker)
-TBA
-
+See `docker-compose.yml` in directory `docker` for boilerplate.
 
 #### Bootstrapping at Startup
 
@@ -469,7 +425,6 @@ Read the documentation [here](solr_schema.md).
   - Inspect Solr logs under `/var/solr/logs` inside the container.
 
 - **Environment mismatch**
-  - Verify `.env` is loaded by both Solr and your app (`docker exec -it bartoc-solr echo $SOLR_CORE_NAME`).
   - Ensure `config.solr.url` points to `http://bartoc-solr:8983/solr` from within the app container.
 
 ### Redis
