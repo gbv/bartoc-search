@@ -68,12 +68,19 @@ button:focus-visible {
 
 #app {
   margin: 0 auto;
-  padding: 2rem;
   text-align: center;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
   width: 100%;
+}
+
+/* new: stretch main to fill vertical space */
+#app > main {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;   /* already in place, but shown here for clarity */
+  min-height: 0;  
 }
 
 a,

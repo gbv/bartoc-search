@@ -7,7 +7,7 @@ function onSearch(query) {
 </script>
 
 <template>
-  <main class="hero__wrapper">
+  <section class="hero__wrapper">
     <section class="hero">
       <h1 class="hero__title">
         BARTOC Search <small class="hero__subtitle">prototype for testing</small>
@@ -16,6 +16,6 @@ function onSearch(query) {
         <SearchBar @search="onSearch" />
       </div>
     </section>
-  </main>
+  </section>
 </template>
 
