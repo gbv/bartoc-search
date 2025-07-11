@@ -1,4 +1,4 @@
-import { SolrStatusResult } from "../types/solr";
+import { SolrStatusResult } from "../types/solr"
 export interface StatusResponse {
   ok: boolean;
   config: {

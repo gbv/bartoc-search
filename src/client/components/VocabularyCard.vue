@@ -3,92 +3,105 @@
     <h2 class="result-title">
       {{ title || fallbackTitle }}
     </h2>
-    <p class="result-description" v-if="shortDescription">
-      {{ shortDescription }} 
+    <p
+      v-if="shortDescription"
+      class="result-description">
+      {{ shortDescription }}
     </p>
     <ul class="result-details">
       <li v-if="doc.publisher_label">
         <strong>Publisher:</strong> {{ doc.publisher_label }}
       </li>
       <li v-if="doc.languages_ss?.length">
-        <strong>Languages:</strong> {{ doc.languages_ss.join(", ") }}
+        <strong>Languages:</strong> {{ doc.languages_ss.join(', ') }}
       </li>
       <li v-if="typeLabel.length">
         <strong>Type:</strong> {{ typeLabel.join(', ') }}
       </li>
       <li v-if="subjectList.length">
-        <strong>Subjects:</strong> {{ subjectList.join(", ") }}
+        <strong>Subjects:</strong> {{ subjectList.join(', ') }}
       </li>
     </ul>
 
     <div class="result-links">
-      <a        
+      <a
         :href="doc.id"
         target="_blank"
-        class="result-link"
-      >
-        {{doc.id}}
-      </a>      
+        class="result-link">
+        {{ doc.id }}
+      </a>
       <a
         :href="`https://bartoc.org/api/data?uri=${doc.id}`"
         target="_blank"
-        class="result-link"
-      >
+        class="result-link">
         JSKOS source
       </a>
       <a
         :href="getSolrRecord(doc.id)"
         target="_blank"
-        class="result-link"
-      >
-        Solr record
-      </a>
+        class="result-link"> Solr record </a>
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
-import type { SolrDocument } from "../../server/types/solr"
-import { SupportedLang } from "../../server/types/lang"
+<script setup lang="js">
+import { SupportedLang } from "../types/lang.js"
 import { computed } from "vue"
 
+/// <reference path="../types/solr.js" />
 
-const props = defineProps<{ doc: SolrDocument; lang?: SupportedLang }>()
+/**
+ * @type {{ doc: SolrDocument, lang?: string }}
+ */
+const props = defineProps({
+  doc: { type: Object, required: true },
+  lang: {
+    type: String,
+    default: SupportedLang.EN,
+    validator: (v) => Object.values(SupportedLang).includes(v),
+  },
+})
+
+// const props = defineProps<{ doc: SolrDocument; lang?: SupportedLang }>()
 
 // Helper to safely access dynamic fields on SolrDocument
-const rawDoc = props.doc as Record<string, any>;
+/** @type {Object.<string, any>} */
+const rawDoc = props.doc || {}
 
 // Computed values for display
-const title = computed<string>(() => rawDoc[`title_${props.lang ?? "en"}`] || rawDoc.id);
-const description = computed<string>(() => rawDoc[`description_${props.lang ?? "en"}`] || "No description available.");
-const typeLabel = computed<string[]>(() => {
-  const key = `type_label_${props.lang ?? "en"}`;
-  const val = rawDoc[key] as string[];
+const title = computed(() => rawDoc[`title_${props.lang ?? "en"}`] || rawDoc.id)
+const description = computed(
+  () => rawDoc[`description_${props.lang ?? "en"}`] || "No description available.",
+)
+const typeLabel = computed(() => {
+  const key = `type_label_${props.lang ?? "en"}`
+  const val = rawDoc[key]
   if (Array.isArray(val)) {
-    return val as string[];
-  } else if (typeof val === 'string') {
-    return [val];
+    return val
   }
-  return [];
-});
-const fallbackTitle = computed<string>(() => rawDoc.id);
+  if (typeof val === "string") {
+    return [val]
+  }
+  return []
+})
+const fallbackTitle = computed(() => rawDoc.id)
 
-// Extract subjects list safely using type assertion
-const subjectList = computed<string[]>(() => {
-  const key = `subject_${props.lang ?? "en"}`;
-  return (rawDoc[key] as string[]) || [];
-});
+// Extract subjects list safely
+const subjectList = computed(() => {
+  const key = `subject_${props.lang}`
+  const val = rawDoc[key]
+  return Array.isArray(val) ? val : []
+})
 
 // Abbreviate description to first 50 characters
-const shortDescription = computed<string>(() => {
-  const desc = description.value;
-  return desc.length > 150 ? desc.slice(0, 150) + '...' : desc;
-});
+const shortDescription = computed(() => {
+  const desc = description.value
+  return desc.length > 150 ? desc.slice(0, 150) + "..." : desc
+})
 
-function getSolrRecord(id: string): string {
-  return `${import.meta.env.BASE_URL}api/solr?id=${encodeURIComponent(id)}`;
+function getSolrRecord(id) {
+  return `${import.meta.env.BASE_URL}api/solr?id=${encodeURIComponent(id)}`
 }
-
 </script>
 
 <style scoped>

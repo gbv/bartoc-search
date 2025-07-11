@@ -1,5 +1,5 @@
 <script setup lang="js">
-import SearchBar from '../components/SearchBar.vue'
+import SearchBar from "../components/SearchBar.vue"
 
 function onSearch(query) {
   window.location = window.location + `search?${new URLSearchParams(query)}`
@@ -18,4 +18,3 @@ function onSearch(query) {
     </section>
   </section>
 </template>
-

@@ -22,8 +22,8 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  //"include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"],
-  "include": ["src/**/*", "tsconfig.node.json"],
+  "include": ["src/server/**/*", "src/tests/**/*", "src/**/*.d.ts", "tsconfig.node.json"],
+  "exclude": ["src/client/**/*"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
 

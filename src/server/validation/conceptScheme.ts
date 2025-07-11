@@ -1,5 +1,5 @@
 // Validating schema with zod
-import { z } from "zod";
+import { z } from "zod"
 
 export const conceptSchemeZodSchema = z.object({
   "@context": z.string(),
@@ -57,6 +57,6 @@ export const conceptSchemeZodSchema = z.object({
   type: z.array(z.string()),
   uri: z.string().url(),
   url: z.string().url().optional(),
-});
+})
 
 export type ConceptSchemeZodType = z.infer<typeof conceptSchemeZodSchema>;

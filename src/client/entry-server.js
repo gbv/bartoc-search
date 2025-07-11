@@ -1,7 +1,7 @@
-import { renderToWebStream } from 'vue/server-renderer'
-import { createApp } from './main'
+import { renderToWebStream } from "vue/server-renderer"
+import { createApp } from "./main"
 
-export async function render(url: string) {
+export async function render(url) {
   // Create a fresh app instance for each request
   // This is important for SSR to ensure that the app state is not shared across requests
   // and to avoid issues with stateful components.
@@ -18,10 +18,10 @@ export async function render(url: string) {
 
   const ctx = {}
   const stream = renderToWebStream(app, ctx)
-  console.log('✅ renderToWebStream called')
+  console.log("✅ renderToWebStream called")
 
   if (!stream) {
-    throw new Error('❌ renderToWebStream did not return a valid stream')
+    throw new Error("❌ renderToWebStream did not return a valid stream")
   }
 
   return { stream, ctx }

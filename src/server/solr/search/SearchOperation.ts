@@ -1,56 +1,56 @@
-import { SearchQuery } from "./SearchQuery";
-import { LuceneQuery } from "./LuceneQuery";
-import { SolrRequest } from "../SolrRequest";
-import { SearchFilter } from "./SearchFilter";
-import { Readable } from "stream";
+import { SearchQuery } from "./SearchQuery"
+import { LuceneQuery } from "./LuceneQuery"
+import { SolrRequest } from "../SolrRequest"
+import { SearchFilter } from "./SearchFilter"
+import { Readable } from "stream"
 
 export class SearchOperation extends SolrRequest {
-  private _sortField: string = "";
-  private _sortOrder: "asc" | "desc" = "asc";
-  private _start: number = 0;
-  private _rows: number = 0;
-  private _fq: SearchFilter[] = new Array<SearchFilter>();
-  private _facetOnField: string[] = new Array<string>();
-  private _fl: string[] = new Array<string>();
-  private readonly _wt = "json";
-  private _q: SearchQuery = new LuceneQuery();
-  private _collection = "";
-  private _requesthandler = "";
-  private _stats: boolean = false;
-  private _statsField: string | null = null;
+  private _sortField: string = ""
+  private _sortOrder: "asc" | "desc" = "asc"
+  private _start: number = 0
+  private _rows: number = 0
+  private _fq: SearchFilter[] = new Array<SearchFilter>()
+  private _facetOnField: string[] = new Array<string>()
+  private _fl: string[] = new Array<string>()
+  private readonly _wt = "json"
+  private _q: SearchQuery = new LuceneQuery()
+  private _collection = ""
+  private _requesthandler = ""
+  private _stats: boolean = false
+  private _statsField: string | null = null
 
   /**
    * @param {number} apiVersion : the version of the Solr server
    * @param {string} collection : the collection in Solr where to search in
    */
   constructor(private apiVersion: number) {
-    super();
+    super()
   }
 
   public stats(enable: boolean): SearchOperation {
-    this._stats = enable;
-    return this;
+    this._stats = enable
+    return this
   }
 
   public statsField(field: string): SearchOperation {
-    this._statsField = field;
-    return this;
+    this._statsField = field
+    return this
   }
 
   /**
    * @param {ISearchQuery} query : the query where to search for
    */
   public for(query: SearchQuery): SearchOperation {
-    this._q = query;
-    return this;
+    this._q = query
+    return this
   }
 
   /**
    * @param {number} from : offset from where the results should be returned
    */
   public offset(offset: number): SearchOperation {
-    this._start = offset;
-    return this;
+    this._start = offset
+    return this
   }
 
   /**
@@ -58,8 +58,8 @@ export class SearchOperation extends SolrRequest {
    * @example : search.field('field1').field('field2').field('*')
    */
   public field(field: string): SearchOperation {
-    this._fl.push(field);
-    return this;
+    this._fl.push(field)
+    return this
   }
 
   /**
@@ -67,16 +67,16 @@ export class SearchOperation extends SolrRequest {
    * @example : search.facetOnField('field1').facetOnField('field2');
    */
   public facetOnField(field: string): SearchOperation {
-    this._facetOnField.push(field);
-    return this;
+    this._facetOnField.push(field)
+    return this
   }
 
   /**
    * @param {string} collection : in which collection do we want to search
    */
   public in(collection: string): SearchOperation {
-    this._collection = collection;
-    return this;
+    this._collection = collection
+    return this
   }
 
   /**
@@ -85,8 +85,8 @@ export class SearchOperation extends SolrRequest {
    * @param toValue : optional 'to' value to define range (toValue's type should equal value's type)
    */
   public filter(filter: SearchFilter): SearchOperation {
-    this._fq.push(filter);
-    return this;
+    this._fq.push(filter)
+    return this
   }
 
   /**
@@ -94,17 +94,17 @@ export class SearchOperation extends SolrRequest {
    * @param order : order to sort the values in the field on
    */
   public sort(on: string, order: "asc" | "desc"): SearchOperation {
-    this._sortField = on;
-    this._sortOrder = order;
-    return this;
+    this._sortField = on
+    this._sortOrder = order
+    return this
   }
 
   /**
    * @param {number} limit : the maximum amount of results that should be returned
    */
   public limit(limit: number): SearchOperation {
-    this._rows = limit;
-    return this;
+    this._rows = limit
+    return this
   }
 
   /**
@@ -115,87 +115,87 @@ export class SearchOperation extends SolrRequest {
    * @memberof SearchOperation
    */
   public handler(handler: string): SearchOperation {
-    this._requesthandler = handler;
-    return this;
+    this._requesthandler = handler
+    return this
   }
 
   protected httpQueryParams(): Record<string, string | number | boolean> {
     const params: Record<string, string | number | boolean> = {
       wt: this._wt,
-    };
+    }
 
     if (this._q) {
-      params.q = this._q.toString();
-      params.defType = this._q.getDefType();
+      params.q = this._q.toString()
+      params.defType = this._q.getDefType()
     }
 
     if (this._sortField) {
-      params.sort = `${this._sortField} ${this._sortOrder}`;
+      params.sort = `${this._sortField} ${this._sortOrder}`
     }
 
     if (this._start !== undefined) {
-      params.start = this._start;
+      params.start = this._start
     }
 
     if (this._stats) {
-      params.stats = true;
+      params.stats = true
     }
     if (this._statsField) {
-      params["stats.field"] = this._statsField;
+      params["stats.field"] = this._statsField
     }
 
     // Multiple fq
     if (this._fq.length) {
       this._fq.forEach((fq, index) => {
-        params[`fq${index}`] = fq.toHttpQueryStringParameter();
-      });
+        params[`fq${index}`] = fq.toHttpQueryStringParameter()
+      })
     }
 
     // Multiple facet.field
     if (this._facetOnField.length) {
-      params.facet = true;
+      params.facet = true
       this._facetOnField.forEach((field, index) => {
-        params[`facet.field${index}`] = field;
-      });
+        params[`facet.field${index}`] = field
+      })
     }
 
     if (this._fl.length) {
-      params.fl = this._fl.join(",");
+      params.fl = this._fl.join(",")
     }
 
     if (this._rows !== undefined) {
-      params.rows = this._rows;
+      params.rows = this._rows
     }
 
-    return params;
+    return params
   }
 
   protected httpBodyStream(): Readable {
-    return new Readable();
+    return new Readable()
   }
 
   protected absolutePath(): string {
     if (!this._collection) {
-      throw new Error("Collection must be specified first");
+      throw new Error("Collection must be specified first")
     }
-    return `/${this._collection}/${this._requesthandler || "select"}`;
+    return `/${this._collection}/${this._requesthandler || "select"}`
   }
 
   protected httpMethod(): "GET" | "POST" {
-    return "GET";
+    return "GET"
   }
 
   protected httpHeaders(): { "content-type"?: string } {
-    return {};
+    return {}
   }
 
   protected httpBody(): Readable {
     // Not used with GET method
-    return null as unknown as Readable;
+    return null as unknown as Readable
   }
 
   public prepareSelect(collectionName: string): this {
-    this._collection = collectionName;
-    return this;
+    this._collection = collectionName
+    return this
   }
 }

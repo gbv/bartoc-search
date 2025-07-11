@@ -6,5 +6,5 @@ declare module "jskos-tools" {
   }
 
   /** The exported lookup table */
-  export const objectTypes: Record<string, ObjectTypeDef>;
+  export const objectTypes: Record<string, ObjectTypeDef>
 }

@@ -1,6 +1,6 @@
 /** Convert bytes → megabytes with one decimal place */
 export function formatBytes(bytes: number): string {
-  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`
 }
 
 /**
@@ -10,7 +10,7 @@ export function formatBytes(bytes: number): string {
  */
 export function formatTimestamp(iso: string | number | undefined): string {
   if (iso) {
-    const date = new Date(iso);
+    const date = new Date(iso)
     return new Intl.DateTimeFormat("en-US", {
       year: "numeric",
       month: "short",
@@ -20,13 +20,13 @@ export function formatTimestamp(iso: string | number | undefined): string {
       second: "2-digit",
       timeZoneName: "short",
       hour12: true,
-    }).format(date);
+    }).format(date)
   }
-  return "";
+  return ""
 }
 /**
  * Resolves after the given number of milliseconds.
  */
 export function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }

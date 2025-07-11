@@ -1,7 +1,7 @@
-import * as fs from "fs";
-import * as readline from "readline";
-import { ZodSchema } from "zod";
-import config from "../conf/conf";
+import * as fs from "fs"
+import * as readline from "readline"
+import { ZodSchema } from "zod"
+import config from "../conf/conf"
 
 /**
  * Reads an NDJSON file, validates each line using the provided Zod schema,
@@ -15,37 +15,39 @@ export default async function readAndValidateNdjson<T>(
   filePath: string,
   schema: ZodSchema<T>,
 ): Promise<T[]> {
-  const fileStream = fs.createReadStream(filePath, { encoding: "utf8" });
+  const fileStream = fs.createReadStream(filePath, { encoding: "utf8" })
 
   const rl = readline.createInterface({
     input: fileStream,
     crlfDelay: Infinity,
-  });
+  })
 
-  const results: T[] = [];
-  let lineNumber: number = 0;
-  let errorCount: number = 0;
+  const results: T[] = []
+  let lineNumber: number = 0
+  let errorCount: number = 0
 
   for await (const line of rl) {
-    lineNumber++;
-    const trimmed = line.trim();
-    if (!trimmed) continue; // Skip empty lines
+    lineNumber++
+    const trimmed = line.trim()
+    if (!trimmed) {
+      continue
+    } // Skip empty lines
 
     try {
-      const json = JSON.parse(trimmed);
-      const validated = schema.parse(json); // Throws if invalid
-      results.push(validated);
+      const json = JSON.parse(trimmed)
+      const validated = schema.parse(json) // Throws if invalid
+      results.push(validated)
     } catch (error) {
-      errorCount++;
+      errorCount++
       config.error?.(
         `Line ${lineNumber}: Skipped invalid record. Error: ${error instanceof Error ? error.message : error}`,
-      );
+      )
     }
   }
 
-  config.log?.(`Finished reading ${filePath}.`);
-  config.log?.(`Valid items: ${results.length}`);
-  config.error?.(`[ERROR] Invalid lines skipped: ${errorCount}`);
+  config.log?.(`Finished reading ${filePath}.`)
+  config.log?.(`Valid items: ${results.length}`)
+  config.error?.(`[ERROR] Invalid lines skipped: ${errorCount}`)
 
-  return results;
+  return results
 }

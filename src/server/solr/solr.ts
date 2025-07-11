@@ -1,141 +1,143 @@
 // solr.ts - Handles Solr initialization and connection state
-import axios from "axios";
-import config from "../conf/conf";
-import { SolrClient } from "./SolrClient";
-import { PingResponse, SolrDocument } from "../types/solr";
-import { SupportedLang } from "../types/lang";
-import { ConceptZodType } from "../validation/concept";
+import axios from "axios"
+import config from "../conf/conf"
+import { SolrClient } from "./SolrClient"
+import { PingResponse, SolrDocument } from "../types/solr"
+import { SupportedLang } from "../types/lang"
+import { ConceptZodType } from "../validation/concept"
 import {
   SolrResponse,
   SolrSearchResponse,
   SolrErrorResponse,
-} from "../types/solr";
-import { AxiosError } from "axios";
-import { writeFileSync } from "fs";
-import { dirname, join } from "path";
-import { fileURLToPath } from "url";
-import { ConceptSchemeDocument } from "../types/jskos";
-import { sleep } from "../utils/utils";
-import readline from "readline";
+} from "../types/solr"
+import { AxiosError } from "axios"
+import { writeFileSync } from "fs"
+import { dirname, join } from "path"
+import { fileURLToPath } from "url"
+import { ConceptSchemeDocument } from "../types/jskos"
+import { sleep } from "../utils/utils"
+import readline from "readline"
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const LAST_INDEX_FILE = join(__dirname, "../../../data/lastIndexedAt.txt");
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+const LAST_INDEX_FILE = join(__dirname, "../../../data/lastIndexedAt.txt")
 
-const solr = new SolrClient(config.solr.version);
+const solr = new SolrClient(config.solr.version)
 
 export async function connectToSolr(): Promise<void> {
-  let pingOk = false;
+  let pingOk = false
   // 1) Ping Solr to check if it is reachable and healthy
 
-  const MAX_RETRIES = config.solr.pingRetries ?? 5;
-  const RETRY_INTERVAL = config.solr.pingRetryDelay ?? 2000;
+  const MAX_RETRIES = config.solr.pingRetries ?? 5
+  const RETRY_INTERVAL = config.solr.pingRetryDelay ?? 2000
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
       const resp = await solr.collectionOperation
         .preparePing(config.solr.coreName)
-        .execute<PingResponse>();
+        .execute<PingResponse>()
 
       if (resp) {
-        pingOk = true;
-        config.log?.(`✅ Solr is up (attempt ${attempt}/${MAX_RETRIES})`);
-        break;
+        pingOk = true
+        config.log?.(`✅ Solr is up (attempt ${attempt}/${MAX_RETRIES})`)
+        break
       }
     } catch (err) {
       // If SolrCore is loading (503), swallow and retry
-      const message = err instanceof AxiosError ? err.message : String(err);
-      const code = err instanceof AxiosError ? err.code : String(err);
+      const message = err instanceof AxiosError ? err.message : String(err)
+      const code = err instanceof AxiosError ? err.code : String(err)
 
       if (code === "503" && message.includes("SolrCore is loading")) {
         config.warn?.(
           `⏳ Core "${config.solr.coreName}" is still loading (attempt ${attempt}/${MAX_RETRIES})`,
-        );
+        )
       } else {
         // Some other error: break out and treat as fatal
         config.error?.(
           `❌ Unexpected error pinging Solr (attempt ${attempt}): ${message}`,
-        );
+        )
       }
     }
 
-    await sleep(RETRY_INTERVAL);
+    await sleep(RETRY_INTERVAL)
   }
 
   if (config.indexDataAtBoot && pingOk) {
     try {
-      bootstrapIndexSolr();
+      bootstrapIndexSolr()
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      config.error?.("❌ Failed to index data in Solr at startup:", message);
+      const message = error instanceof Error ? error.message : String(error)
+      config.error?.("❌ Failed to index data in Solr at startup:", message)
     }
   }
 }
 
 // Initializes the Solr core with daily dump data from Database even if that is not empty
 export async function bootstrapIndexSolr() {
-  config.log?.("📦 Proceeding with initial indexing...");
+  config.log?.("📦 Proceeding with initial indexing...")
 
-  const url = "https://bartoc.org/data/dumps/latest.ndjson";
+  const url = "https://bartoc.org/data/dumps/latest.ndjson"
 
   // 1) Fetch the NDJSON as a stream
-  const response = await axios.get(url, { responseType: "stream" });
-  const stream = response.data as NodeJS.ReadableStream;
+  const response = await axios.get(url, { responseType: "stream" })
+  const stream = response.data as NodeJS.ReadableStream
 
   // 2) Read it line-by-line
-  const rl = readline.createInterface({ input: stream, crlfDelay: Infinity });
+  const rl = readline.createInterface({ input: stream, crlfDelay: Infinity })
 
-  const docs: SolrDocument[] = [];
+  const docs: SolrDocument[] = []
 
   for await (const line of rl) {
-    if (!line.trim()) continue;
-    let obj: ConceptSchemeDocument;
+    if (!line.trim()) {
+      continue
+    }
+    let obj: ConceptSchemeDocument
     try {
-      obj = JSON.parse(line);
+      obj = JSON.parse(line)
     } catch (e) {
-      console.warn("Skipping invalid JSON line:", e);
-      continue;
+      console.warn("Skipping invalid JSON line:", e)
+      continue
     }
     // 3) Transform into Solr shape
-    const solrDoc = transformConceptSchemeToSolr(obj, []);
-    docs.push(solrDoc);
+    const solrDoc = transformConceptSchemeToSolr(obj, [])
+    docs.push(solrDoc)
   }
 
-  config.log?.(`📦 Read ${docs.length} documents from the stream.`);
+  config.log?.(`📦 Read ${docs.length} documents from the stream.`)
 
   // 4) Add to Solr
-  const BATCH_SIZE = config.solr.batchSize ?? 500;
+  const BATCH_SIZE = config.solr.batchSize ?? 500
   if (docs.length > 0) {
     for (let i = 0; i < docs.length; i += BATCH_SIZE) {
-      const batch = docs.slice(i, i + BATCH_SIZE);
-      await addDocuments(config.solr.coreName, batch);
+      const batch = docs.slice(i, i + BATCH_SIZE)
+      await addDocuments(config.solr.coreName, batch)
     }
   }
 
-  config.log?.(`✅ Bootstrapped ${docs.length} documents from ${url}`);
+  config.log?.(`✅ Bootstrapped ${docs.length} documents from ${url}`)
 }
 
 export async function solrStatus(): Promise<SolrResponse> {
   try {
-    const solrClient = new SolrClient(config.solr.version);
+    const solrClient = new SolrClient(config.solr.version)
 
     const solrQuery = solrClient.searchOperation
       .prepareSelect(config.solr.coreName)
       .limit(0)
       .stats(true)
       .statsField("modified_dt")
-      .for({ toString: () => "*:*", getDefType: () => "lucene" });
+      .for({ toString: () => "*:*", getDefType: () => "lucene" })
 
-    const result = await solrQuery.execute<SolrSearchResponse>();
-    return result;
+    const result = await solrQuery.execute<SolrSearchResponse>()
+    return result
   } catch (error: unknown) {
     // If it's an AxiosError with a SolrErrorResponse payload, return it
     if (error instanceof AxiosError && error.response?.data) {
-      return error.response.data as SolrErrorResponse;
+      return error.response.data as SolrErrorResponse
     }
 
     // Otherwise wrap any other failure in a minimal SolrErrorResponse
-    const msg = error instanceof Error ? error.message : String(error);
+    const msg = error instanceof Error ? error.message : String(error)
     const fallback: SolrErrorResponse = {
       responseHeader: {
         status: 500,
@@ -147,8 +149,8 @@ export async function solrStatus(): Promise<SolrResponse> {
         msg,
         code: 500,
       },
-    };
-    return fallback;
+    }
+    return fallback
   }
 }
 
@@ -172,67 +174,67 @@ export function transformConceptSchemeToSolr(
       doc.subject?.flatMap((s) => s.inScheme?.map((i) => i.uri) || []) || [],
     type_uri: doc.type,
     url_s: doc.url,
-  };
+  }
 
   // type solr fields for labels are to be addressed separately as currently the soruce is a ndJson file
 
   const nKosConceptsDoc = nKosConceptsDocs.find(
     (nKos) => nKos.uri === solrDoc.type_uri?.[1],
-  );
+  )
 
   // Dynamic fields for title, description, type_label
   for (const lang of Object.values(SupportedLang)) {
     // title
-    const title = doc.prefLabel?.[lang];
+    const title = doc.prefLabel?.[lang]
     if (title) {
-      solrDoc[`title_${lang}` as `title_${SupportedLang}`] = title;
+      solrDoc[`title_${lang}` as `title_${SupportedLang}`] = title
     }
 
     // description
-    const description = doc.definition?.[lang];
+    const description = doc.definition?.[lang]
     if (description) {
       solrDoc[`description_${lang}` as `description_${SupportedLang}`] =
-        description[0];
+        description[0]
     }
 
     // type_label
-    const type_label = nKosConceptsDoc && nKosConceptsDoc.prefLabel?.[lang];
+    const type_label = nKosConceptsDoc && nKosConceptsDoc.prefLabel?.[lang]
     if (type_label) {
       solrDoc[`type_label_${lang}` as `type_label_${SupportedLang}`] =
-        type_label;
+        type_label
     }
   }
 
-  return solrDoc as SolrDocument;
+  return solrDoc as SolrDocument
 }
 
 // TODO better this with OOP approach in SolrClient.ts, this is minimal and not well done
 export async function addDocuments(coreName: string, docs: SolrDocument[]) {
-  const url = `${config.solr.url}/${coreName}/update?commit=true`;
+  const url = `${config.solr.url}/${coreName}/update?commit=true`
 
   try {
     const response = await axios.post(url, docs, {
       headers: {
         "Content-Type": "application/json",
       },
-    });
+    })
 
-    config.log?.(`✅ Indexed ${docs.length} documents to Solr.`);
+    config.log?.(`✅ Indexed ${docs.length} documents to Solr.`)
     if (response.data?.error) {
-      config.warn?.("⚠️ Solr responded with error:", response.data.error);
+      config.warn?.("⚠️ Solr responded with error:", response.data.error)
     }
   } catch (error) {
     config.error?.(
       "❌ Error while adding documents to Solr:",
       (error as Error).message,
-    );
-    throw error;
+    )
+    throw error
   }
 
   // After everything is committed:
-  const now = new Date().toISOString();
-  writeFileSync(LAST_INDEX_FILE, now, "utf-8");
-  config.log?.(`✅ Wrote lastIndexedAt = ${now}`);
+  const now = new Date().toISOString()
+  writeFileSync(LAST_INDEX_FILE, now, "utf-8")
+  config.log?.(`✅ Wrote lastIndexedAt = ${now}`)
 }
 
 /**
@@ -242,26 +244,26 @@ export async function deleteDocuments(
   coreName: string,
   ids: string[],
 ): Promise<void> {
-  const url = `${config.solr.url}/${coreName}/update?commit=true`;
+  const url = `${config.solr.url}/${coreName}/update?commit=true`
 
   // Solr’s JSON delete format:
-  const payload = { delete: ids.map((id) => ({ id })) };
+  const payload = { delete: ids.map((id) => ({ id })) }
 
   try {
     const response = await axios.post(url, payload, {
       headers: { "Content-Type": "application/json" },
-    });
+    })
 
-    config.log?.(`✅ Deleted ${ids.length} documents from Solr.`);
+    config.log?.(`✅ Deleted ${ids.length} documents from Solr.`)
     if (response.data?.error) {
       config.warn?.(
         "⚠️ Solr responded with error on delete:",
         response.data.error,
-      );
+      )
     }
   } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err);
-    config.error?.("❌ Error while deleting documents in Solr:", msg);
-    throw err;
+    const msg = err instanceof Error ? err.message : String(err)
+    config.error?.("❌ Error while deleting documents in Solr:", msg)
+    throw err
   }
 }
