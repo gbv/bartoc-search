@@ -16,7 +16,7 @@
   </footer>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { reactive, onMounted } from 'vue'
 import axios from 'axios'
 
