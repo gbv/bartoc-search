@@ -1,5 +1,6 @@
-@import './header.css';
+@import './colors.css';
 @import './footer.css';
+@import './header.css';
 @import './home.css';
 @import './search.css';
 
@@ -67,12 +68,19 @@ button:focus-visible {
 
 #app {
   margin: 0 auto;
-  padding: 2rem;
   text-align: center;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
   width: 100%;
+}
+
+/* new: stretch main to fill vertical space */
+#app > main {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;   /* already in place, but shown here for clarity */
+  min-height: 0;  
 }
 
 a,
@@ -83,9 +91,20 @@ a,
   padding: 3px;
 }
 
+.no-hover a,
+.no-hover a:hover,
+.no-hover a:focus,
+.no-hover a:active {
+  color: inherit;
+  background: none;
+  text-decoration: none;
+  outline: none;
+  box-shadow: none;
+}
+
 @media (prefers-color-scheme: light) {
   :root {
-    color: #213547;
+    color: var(-color-text);
     background-color: #ffffff;
   }
   a:hover {

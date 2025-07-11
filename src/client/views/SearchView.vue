@@ -19,7 +19,7 @@ async function fetchResults(query) {
     if (res.ok) {
        results.value = (await res.json()).response.docs || []
     } else {
-      throw new Error(`Response status: ${response.status}`) 
+      throw new Error(`Response status: ${res.status}`) 
     }
   } catch (error) {
     errorMessage.value = `Search failed: ${error.message}`
@@ -35,7 +35,7 @@ function onSearch(query) {
 </script>
 
 <template>
-  <div>
+  <section class="search-view__wrapper">
     <SearchBar @search="onSearch" search-on-mounted="true"/>
     <div v-if="errorMessage" class="search-view__error">{{ errorMessage }}</div>
     <div v-else-if="loading" class="search-view__loading">Loading...</div>
@@ -43,5 +43,5 @@ function onSearch(query) {
       <div v-if="results.length === 0" class="search-view__no-results">No results.</div>
       <VocabularyCard v-for="doc in results" :key="doc.id" :doc="doc" />
     </section>
-  </div>
+  </section>
 </template>
