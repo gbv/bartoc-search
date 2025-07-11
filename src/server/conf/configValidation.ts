@@ -70,7 +70,7 @@ export const defaultConfigSchema = z.object({
   title: z.string().optional(),
   verbosity: verbositySchema.optional(),
   version: z.string().nullable().optional(),
-  webSocket: WebSocketConfigSchema.optional(),
+  webSocket: WebSocketConfigSchema,
 })
 
 // Partial user schema for validation
