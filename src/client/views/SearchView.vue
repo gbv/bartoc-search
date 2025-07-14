@@ -5,7 +5,7 @@ import VocabularyCard from "../components/VocabularyCard.vue"
 import SearchBar from "../components/SearchBar.vue"
 
 const router = useRouter()
-const results = ref([])
+const results = ref({docs: [], numFound: 0})
 const loading = ref(true)
 const errorMessage = ref(null)
 
@@ -17,7 +17,14 @@ async function fetchResults(query) {
     const params = new URLSearchParams(query)
     const res = await fetch(`${import.meta.env.BASE_URL}api/search?${params}`)
     if (res.ok) {
-      results.value = (await res.json()).response.docs || []
+      const resp = (await res.json()).response || {}
+      // Ensure docs is always an array of objects
+      const docs = Array.isArray(resp?.docs)
+        ? resp.docs.filter(doc => doc && typeof doc === "object")
+        : []
+
+      const numFound = resp?.numFound || 0
+      results.value = { docs, numFound}
     } else {
       throw new Error(`Response status: ${res.status}`)
     }
@@ -53,12 +60,12 @@ function onSearch(query) {
       v-else
       class="search-view">
       <div
-        v-if="results.length === 0"
+        v-if="results.docs.length === 0"
         class="search-view__no-results">
         No results.
       </div>
       <VocabularyCard
-        v-for="doc in results"
+        v-for="doc in results.docs"
         :key="doc.id"
         :doc="doc" />
     </section>
