@@ -102,6 +102,27 @@ a,
   box-shadow: none;
 }
 
+/* Breadcrumb styles */
+.breadcrumb {
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  background-color: #f5f5f5;
+  justify-content: center;
+  padding: 10px;
+}
+.breadcrumb-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+}
+.breadcrumb-item {
+  font-weight: 500;
+  color: #333;
+  white-space: nowrap;
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: var(-color-text);

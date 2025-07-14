@@ -1,13 +1,24 @@
 <script setup>
-import { ref } from "vue"
-import { useRouter } from "vue-router"
+import { ref, computed } from "vue"
+import { useRouter, useRoute } from "vue-router"
 import VocabularyCard from "../components/VocabularyCard.vue"
 import SearchBar from "../components/SearchBar.vue"
+import NavBreadcrumb from "../components/NavBreadcrumb.vue"
 
 const router = useRouter()
+const route = useRoute()
 const results = ref({docs: [], numFound: 0})
 const loading = ref(true)
 const errorMessage = ref(null)
+
+
+// Computed summary for breadcrumb data
+const summary = computed(() => ({
+  from: 1,
+  to: results.value.docs.length,
+  total: results.value.numFound,
+  query: route.query.search || "",
+}))
 
 async function fetchResults(query) {
   loading.value = true
@@ -42,6 +53,10 @@ function onSearch(query) {
 </script>
 
 <template>
+  <NavBreadcrumb
+    v-if="summary.total > 0"
+    :summary="summary" />
+
   <section class="search-view__wrapper">
     <SearchBar
       :search-on-mounted="true"
