@@ -1,12 +1,11 @@
 <script setup>
 import { ref, computed } from "vue"
-import { useRouter, useRoute } from "vue-router"
+import { useRouter } from "vue-router"
 import VocabularyCard from "../components/VocabularyCard.vue"
 import SearchBar from "../components/SearchBar.vue"
 import NavBreadcrumb from "../components/NavBreadcrumb.vue"
 
 const router = useRouter()
-const route = useRoute()
 const results = ref({docs: [], numFound: 0})
 const loading = ref(true)
 const errorMessage = ref(null)
@@ -17,7 +16,6 @@ const summary = computed(() => ({
   from: 1,
   to: results.value.docs.length,
   total: results.value.numFound,
-  query: route.query.search || "",
 }))
 
 async function fetchResults(query) {

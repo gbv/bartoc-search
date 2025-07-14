@@ -20,7 +20,6 @@ export default {
      * - from: number (start index)
      * - to: number (end index)
      * - total: number (total results)
-     * - query: string (search term)
      */
     summary: {
       type: Object,
@@ -29,17 +28,16 @@ export default {
         return (
           Number.isInteger(summary.from) &&
           Number.isInteger(summary.to) &&
-          Number.isInteger(summary.total) &&
-          typeof summary.query === "string"
+          Number.isInteger(summary.total)
         )
       },
     },
   },
   computed: {
     formattedSummary() {
-      const { from, to, total, query } = this.summary
+      const { from, to, total } = this.summary
       const formatNumber = num => new Intl.NumberFormat().format(num)
-      return `Showing ${formatNumber(from)} - ${formatNumber(to)} of ${formatNumber(total)} results for "${query}"`
+      return `Showing ${formatNumber(from)} - ${formatNumber(to)} of ${formatNumber(total)} results"`
     },
   },
 }
