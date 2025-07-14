@@ -13,7 +13,7 @@ export class CollectionOperation extends SolrRequest {
   private _collectionConfigName?: string
   private readonly _wt = "json"
 
-  constructor(private apiVersion: number) {
+  constructor() {
     super()
   }
 
@@ -24,7 +24,7 @@ export class CollectionOperation extends SolrRequest {
   public prepareCreate(collectionName: string, config: string): this {
     this._action = CollectionAction.CREATE
     this._name = collectionName
-    this._collectionConfigName = config
+    this._collectionConfigName = config    
     return this
   }
 

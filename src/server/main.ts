@@ -79,7 +79,7 @@ app.get("/api/search", async (req: Request, res: Response): Promise<void> => {
   const query = LuceneQuery.fromText(search, field, 3, 2).operator("OR")
 
   try {
-    const solrQueryBuilder = new SolrClient(config.solr.version)
+    const solrQueryBuilder = new SolrClient()
       .searchOperation
 
     const results = await solrQueryBuilder
@@ -111,7 +111,7 @@ app.get("/api/solr", async (req: Request, res: Response): Promise<void> => {
     .operator("AND")
 
   try {
-    const solrQueryBuilder = new SolrClient(config.solr.version)
+    const solrQueryBuilder = new SolrClient()
       .searchOperation
 
     const results = await solrQueryBuilder

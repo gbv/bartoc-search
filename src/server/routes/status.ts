@@ -22,7 +22,7 @@ const { version: serverVersion } = JSON.parse(
 )
 
 export const getStatus = async (
-  req: Request,
+  _req: Request,
   res: Response<StatusResponse>,
 ) => {
   // services checks

@@ -20,10 +20,9 @@ export class SearchOperation extends SolrRequest {
   private _statsField: string | null = null
 
   /**
-   * @param {number} apiVersion : the version of the Solr server
-   * @param {string} collection : the collection in Solr where to search in
+   * Creates a new SearchOperation instance.
    */
-  constructor(private apiVersion: number) {
+  constructor() {
     super()
   }
 

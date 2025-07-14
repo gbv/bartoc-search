@@ -22,7 +22,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 const LAST_INDEX_FILE = join(__dirname, "../../../data/lastIndexedAt.txt")
 
-const solr = new SolrClient(config.solr.version)
+const solr = new SolrClient()
 
 export async function connectToSolr(): Promise<void> {
   let pingOk = false
@@ -119,7 +119,7 @@ export async function bootstrapIndexSolr() {
 
 export async function solrStatus(): Promise<SolrResponse> {
   try {
-    const solrClient = new SolrClient(config.solr.version)
+    const solrClient = new SolrClient()
 
     const solrQuery = solrClient.searchOperation
       .prepareSelect(config.solr.coreName)

@@ -20,7 +20,8 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
+    "strictPropertyInitialization": true,
   },
   "include": ["src/server/**/*", "src/tests/**/*", "src/**/*.d.ts", "tsconfig.node.json"],
   "exclude": ["src/client/**/*"],

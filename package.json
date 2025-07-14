@@ -8,9 +8,9 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "lint": "eslint",
+    "lint": "npm run fix && npm run lint:server",
     "fix": "eslint --fix",
-    "lint:server": "eslint \"src/server/**/*.{js,ts}\" --config src/server/eslint.config.mjs",
+    "lint:server": "tsc --noEmit --project tsconfig.json && eslint \"src/server/**/*.{js,ts}\" --config src/server/eslint.config.mjs",
     "live:seed": "npx ts-node ./src/data/seedTerminologies.ts",
     "prepare": "husky || true"
   },
