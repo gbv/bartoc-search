@@ -16,7 +16,9 @@
         Publisher
       </option>
     </select>
-    <button @click="onSearch">
+    <button
+      class="button" 
+      @click="onSearch">
       Search
     </button>
   </div>

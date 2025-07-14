@@ -14,6 +14,9 @@
 
   --red: #961300;
 
+  /* Buttons */
+  --blue: #007BFF;
+  --blue-dark: #2779bd;
 
   --divider-light-1: rgba(60, 60, 60, 0.29);
   --divider-light-2: rgba(60, 60, 60, 0.12);
@@ -36,5 +39,11 @@
   --color-border-hover: var(--divider-light-1);
   --color-heading: var(--color-text-light-1);
   --color-text: var(--color-text-light-1);
+
+  --color-button-background: var(--blue);
+  --color-button-text: var(--color-text-dark-1);
+  --color-button-hover: var(--blue-dark);
+  --color-button-light: var(--color-text-light-2);
+  --color-button-soft: var(--color-text-light-1); 
 
 }
