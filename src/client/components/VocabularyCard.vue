@@ -34,12 +34,12 @@
         :href="`https://bartoc.org/api/data?uri=${doc.id}`"
         target="_blank"
         class="result-link">
-        JSKOS source
+        JSKOS
       </a>
       <a
         :href="getSolrRecord(doc.id)"
         target="_blank"
-        class="result-link"> Solr record </a>
+        class="result-link">Solr</a>
     </div>
   </div>
 </template>
@@ -137,7 +137,7 @@ function getSolrRecord(id) {
 .result-details {
   list-style: none;
   padding: 0;
-  margin: 0 0 12px 0;
+  margin: 0;
 }
 .result-details li {
   font-size: 0.85rem;
@@ -153,9 +153,10 @@ function getSolrRecord(id) {
 .result-link {
   font-size: 0.85rem;
   color: #2b6cb0;
-  text-decoration: underline;
+  text-decoration: none;
 }
 .result-link:hover {
   color: #2c5282;
+  text-decoration: underline;
 }
 </style>
