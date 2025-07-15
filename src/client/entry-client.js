@@ -1,4 +1,4 @@
-import "./styles/main.css"
+//import "./styles/main.css"
 import { createApp } from "./main"
 
 const pathname = typeof window !== "undefined" ? window.location.pathname : "/"
