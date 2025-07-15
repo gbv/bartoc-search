@@ -4,56 +4,7 @@
 
 > Experimental BARTOC Search engine with indexing pipeline and discovery interface
 
-This application extracts JSKOS data with metadata about terminologies from [BARTOC] knowledge organization systems registry (managed in [jskos-server]), transforms and enriches the data and loads in into a [Solr] search index. The index is then made available via a search API and a discovery interface.
-
-
-### System Architecture Overview
-
-~~~mermaid
-graph TD
-  Solr[(🔎 Solr Index)]
-  DB[(BARTOC database Jskos-Server)]
-  Redis[(🧩 Redis)]
-  BullMQ[(📦 BullMQ Queue)]
-  subgraph search service [ ]
-    direction TB
-    Server[⚙️ Search service]
-    BullMQ[(📦 BullMQ Queue)]
-    Client[🖥️ Vue Client]
-  end
-  Client[🖥️ Vue Client]
-
-  User[👤 User]
-
-  Applications
-
-  %% FLOWS %%
-  DB <-- "Watching Streams" --> Server
-  DB <-- "full dump" --> Server
-  Server -->|update| Solr
-  Solr -->|search| Server
-
-  Server -- "Queue Jobs" --> BullMQ
-  BullMQ -- "Backed by" --> Redis
-
-  Client -- "Browser" --> User
-  Server -- "API" --> Applications
-  Server -- "API" --> Client
-~~~
-
-
-The diagram above illustrates the architecture of the BARTOC Search application and its supporting services:
-
-- **Jskos-Server** provides a real-time stream of vocabulary changes, which the Search service consumes via a WebSocket connection ("Watching Streams").
-- **Search service** is the core backend, responsible for transforming and loading data into the **Solr Index** for search and discovery. It also manages background jobs using a **BullMQ Queue**.
-- **BullMQ Queue** is used for job scheduling and processing, and is backed by a **Redis** instance for fast, reliable message handling.
-- The **Vue Client** communicates with the Search service for user-facing search and discovery features.
-- Users interact with the system through the browser, while external applications can access the API directly.
-- Data flows are bi-directional where appropriate (e.g., between Server and Client, and for API access), and the system is designed for modularity and resilience.
-
-This architecture ensures robust, scalable, and real-time search capabilities, with clear separation of concerns between data ingestion, indexing, background processing, and user interaction.
-
----
+This application extracts JSKOS data with metadata about terminologies from [BARTOC] knowledge organization systems registry (managed in [jskos-server]), transforms and enriches the data and loads it in into a [Solr] search index. The index is then made available via a search API and a discovery interface.
 
 ## Table of Contents
 
@@ -72,32 +23,33 @@ This architecture ensures robust, scalable, and real-time search capabilities, w
 
 ## Installation
 
-### Prerequisites
+### Requirements
 
-- Node.js >= 18
-- jskos-server instance (local or remote)
-- Solr instance with configured schema
-- Docker & Docker Compose (optional but recommended)
+- an URL to download database dumps with JSKOS concept schemes (by default <https://bartoc.org/data/dumps/latest.ndjson>)
+- a Solr search server instance with configured scheme as expected by BARTOC search
+- a jskos-server instance with `/voc/changes` API endpoint (by default the BARTOC instance available at <https://bartoc.org/api>) for live updates 
+- either Docker to run from a Docker image or Node.js >= 18 and Redis to run from sources
 
-### Quick Start (Recommended: Docker)
+### With Docker (all)
 
-The fastest way to get BARTOC Search running locally is with Docker and Docker Compose. This will start all required services (Solr, Redis, and the app) with a single command.
+The repository contains a docker-compose.yml to start the application, Solr, and Redis with one command:
 
 ```bash
 cd docker
 docker-compose up --build
 ```
 
-- The search app will be available at [http://localhost:3883](http://localhost:3000).
-- Solr Admin UI will be at [http://localhost:8983](http://localhost:8983).
-- Redis run in the background; no manual setup needed.
+- The search app is available at [http://localhost:3883](http://localhost:3883).
+- Solr Admin UI is at [http://localhost:8983](http://localhost:8983).
+- Redis runs in the background at port 6379.
 
-#### Fetch Repository or Docker image
+Ports are hard-coded, so no service must run at these ports.
 
-A docker image [is published](https://github.com/orgs/gbv/packages/container/package/bartoc-search) on every push on branches `main` and `dev` and  when pushing a git tag starting with `v` (e.g., `v1.0.0`). Commits are ignored if they only modify documentation, GitHub workflows, config, or meta files.
+#### With Docker (individual)
+
+A docker image of the application [is published](https://github.com/orgs/gbv/packages/container/package/bartoc-search) on every push on branches `main` and `dev` and  when pushing a git tag starting with `v` (e.g., `v1.0.0`). Commits are ignored if they only modify documentation, GitHub workflows, config, or meta files.
 
 See `docker-compose.yml` in the `docker` directory for usage.
-
 
 **Tip:** For Docker and most local development, configuration is handled automatically in the `config/` directory. The default setup works out of the box.
 
@@ -158,8 +110,6 @@ npm run dev
 
 ### Manual Setup (Advanced)
 
-If you prefer to run services manually (not recommended for most users):
-
 1. **Install prerequisites:**
    - Node.js >= 18
    - jskos-server instance (local or remote)
@@ -201,18 +151,12 @@ Uncomment and adjust values as needed for your environment. If you are running s
    - If Redis or Solr are not running, background jobs and search will be disabled, but the app will still start.
 
 
-
-
-
 ### Troubleshooting
 
 - **Docker issues:** Make sure Docker Desktop or the Docker daemon is running.
 - **Port conflicts:** Stop any other services using ports 3883, 3000, 8983, 6379, or 27017.
 - **Service not available:** The app will log warnings if Solr or Redis are unavailable, but will keep running for development convenience.
 - **Configuration:** See the `config/` directory and comments in `config.default.json` for all options.
-
----
-
 
 
 ### Configuration
@@ -371,6 +315,47 @@ The response may temporarily include additional fields for debugging.
 
 ## Architecture
 
+~~~mermaid
+graph TD
+  Solr[(🔎 Solr Index)]
+  DB[(BARTOC database<br>jskos-server)]
+  Redis[(🧩 Redis)]
+  BullMQ[(📦 BullMQ Queue)]
+  subgraph search service [ ]
+    direction TB
+    Server[⚙️ Search service]
+    BullMQ[(📦 BullMQ Queue)]
+    Client[🖥️ Vue Client]
+  end
+  Client[🖥️ Vue Client]
+
+  User[👤 User]
+
+  Applications
+
+  %% FLOWS %%
+  DB -- "changes" --> Server
+  DB -- "full dump" --> Server
+  Server -->|update| Solr
+  Solr -->|search| Server
+
+  Server -- "Queue Jobs" --> BullMQ
+  BullMQ -- "Backed by" --> Redis
+
+  Client -- "Browser" --> User
+  Server -- "API" --> Applications
+  Server -- "API" --> Client
+~~~
+
+The application consists of the following components:
+
+- **jskos-Server** provides a real-time stream of vocabulary changes, which the Search service consumes via a WebSocket connection ("Watching Streams").
+- **Search service** is the core backend, responsible for transforming and loading data into the **Solr Index** for search and discovery. It also manages background jobs using a **BullMQ Queue**.
+- **BullMQ Queue** is used for job scheduling and processing, and is backed by a **Redis** instance for fast, reliable message handling.
+- The **Vue Client** communicates with the Search service for user-facing search and discovery features.
+- Users interact with the system through the browser, while external applications can directly access the **API**.
+
+
 [jskos-server]: https://github.com/gbv/jskos-server
 
 The application requires a [jskos-server] with Changes API to get live updates. The API endpoint can be configured in configuration key `webSocket` or with `WS_HOST` environment variable (e.g. `wss://coli-conc.gbv.de/dev-api/voc/changes` for BARTOC production).
@@ -433,34 +418,31 @@ Redis is used for fast, in-memory job queues and background processing (via Bull
 
 ### BullMQ Monitoring Board
 
-You can monitor and manage background jobs (queues, workers, job status) using the [bull-board](https://github.com/felixmosh/bull-board) UI. This is highly recommended for development and debugging.
+You can monitor and manage background jobs (queues, workers, job status) using the [bull-board](https://github.com/felixmosh/bull-board) UI. This is recommended for development and debugging.
 
 Replace `myQueue` with your actual BullMQ queue instance(s) and the board will be available at [http://localhost:3883/admin/queues](http://localhost:3883/admin/queues) (or your app port).
 
-
 **Features:**
-  - View, retry, or remove jobs
-  - Inspect job data and logs
-  - Monitor queue and worker status in real time
+- View, retry, or remove jobs
+- Inspect job data and logs
+- Monitor queue and worker status in real time
 
 For more details, see the [bull-board documentation](https://github.com/felixmosh/bull-board).
-
----
 
 ## Development
 
 ### Project Goals
 
-* Provide a reliable pipeline to synchronize BARTOC database with a Solr index
-* Enrich data before to improve search
-* Experiment with relevance ranking and facetted search
+- Provide a reliable pipeline to synchronize BARTOC database with a Solr index
+- Enrich data before to improve search
+- Experiment with relevance ranking and facetted search
 
 ###  Technologies
 
-* Node.js + TypeScript
-* Vite for build tooling
-* Docker & Docker Compose for containerization
-* Jest for unit and integration tests (?) -- no tests at the moment
+- Node.js + TypeScript
+- Vite for build tooling
+- Docker & Docker Compose for containerization
+- Jest for unit and integration tests (?) -- no tests at the moment
 
 ### Bootstrapping the Architecture
 
@@ -474,9 +456,9 @@ The search application architecture has been initialized using a combination of 
   
 ### Code Style
 
-* TypeScript strict mode enabled
-* Use ESLint and Prettier (`npm run lint`)
-* Tests must be provided for new features
+- TypeScript strict mode enabled
+- Use ESLint and Prettier (`npm run lint`)
+- Tests must be provided for new features
 
 ## Maintainers
 
