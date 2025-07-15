@@ -37,7 +37,7 @@ export default {
     formattedSummary() {
       const { from, to, total } = this.summary
       const formatNumber = num => new Intl.NumberFormat().format(num)
-      return `Showing ${formatNumber(from)} - ${formatNumber(to)} of ${formatNumber(total)} results"`
+      return `Showing ${formatNumber(from)} - ${formatNumber(to)} of ${formatNumber(total)} results`
     },
   },
 }
