@@ -42,13 +42,17 @@ const emit = defineEmits(["search"])
 
 const route = useRoute()
 const search = ref(route.query.search?.toString() || "")
-const field = ref(route.query.field?.toString())
+const field = ref(route.query.field?.toString() || "")
+const maxShownItems = ref(route.query.maxShownItems?.toString() || "10")
 
 async function onSearch() {
   const query = { search: search.value.trim() }
   if (field.value) {
     query.field = field.value
   }
+  if (maxShownItems.value) {
+    query.maxShownItems = maxShownItems.value
+  } 
   emit("search", query)
 }
 

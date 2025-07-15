@@ -43,7 +43,7 @@
 
 <script setup>
 import { ref, computed } from "vue"
-import { useRouter } from "vue-router"
+import { useRouter, useRoute } from "vue-router"
 import VocabularyCard from "../components/VocabularyCard.vue"
 import SearchBar from "../components/SearchBar.vue"
 import NavBreadcrumb from "../components/NavBreadcrumb.vue"
@@ -51,6 +51,7 @@ import NavBreadcrumb from "../components/NavBreadcrumb.vue"
 
 // Router hooks
 const router = useRouter()
+const route = useRoute()
 
 // Pagination settings
 const pageSize = 10
@@ -59,7 +60,7 @@ const pageSize = 10
 const maxLimit = 10000
 
 // Controls how many to show
-const visibleCount = ref(pageSize)
+const visibleCount = ref(Number(route.query.maxShownItems) || pageSize)
 // Derived visible slice
 const visibleResults = computed(() =>
   results.value.docs.slice(0, visibleCount.value),
@@ -94,8 +95,8 @@ async function fetchResults(query) {
 
       const numFound = resp?.numFound || 0
       results.value = { docs, numFound}
-      // Reset visible count to page size
-      visibleCount.value = pageSize
+      // reset visibleCount if needed
+      visibleCount.value = Number(route.query.maxShownItems) || pageSize
     } else {
       throw new Error(`Response status: ${res.status}`)
     }
@@ -107,6 +108,15 @@ async function fetchResults(query) {
 }
 
 function onSearch(query) {
+  // Reset to default page size
+  visibleCount.value = pageSize
+  // Build query params: always include search
+  const queryParams = new URLSearchParams(route.query)
+  // Only include maxShownItems if different from default
+  if (visibleCount.value !== pageSize) {
+    queryParams.maxShownItems = visibleCount.value
+  }
+
   router.push({ name: "search", query })
   fetchResults(query)
 }
@@ -117,6 +127,7 @@ function loadMore() {
     visibleCount.value + pageSize,
     results.value.numFound,
   )
+  router.push({ name: "search", query: { ...route.query, maxShownItems: visibleCount.value } })
 }
 
 </script>
