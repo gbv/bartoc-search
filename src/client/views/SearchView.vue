@@ -33,7 +33,7 @@
 
     <!-- Load more button -->
     <button
-      v-if="visibleCount < results.numFound"
+      v-if="visibleCount < results.numFound && loading === false"
       class="button"
       @click="loadMore">
       More results
