@@ -75,7 +75,7 @@ const errorMessage = ref(null)
 // Computed summary for breadcrumb data
 const summary = computed(() => ({
   from: 1,
-  to: visibleCount.value,
+  to: visibleCount.value > results.value.numFound ? results.value.numFound : visibleCount.value,
   total: results.value.numFound,
 }))
 
