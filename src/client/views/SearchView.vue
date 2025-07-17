@@ -64,7 +64,7 @@ const pageSize = 10
 const maxLimit = 10000
 
 // Controls how many to show
-const visibleCount = ref(Number(route.query.maxShownItems) || pageSize)
+const visibleCount = ref(Number(route.query.limit) || pageSize)
 // Derived visible slice
 const visibleResults = computed(() =>
   results.value.docs.slice(0, visibleCount.value),
@@ -111,7 +111,7 @@ async function fetchResults(query) {
       const numFound = resp?.numFound || 0
       results.value = { docs, numFound}
       // reset visibleCount if needed
-      visibleCount.value = Number(route.query.maxShownItems) || pageSize
+      visibleCount.value = Number(route.query.limit) || pageSize
     } else {
       throw new Error(`Response status: ${res.status}`)
     }
@@ -127,9 +127,9 @@ function onSearch(query) {
   visibleCount.value = pageSize
   // Build query params: always include search
   const queryParams = new URLSearchParams(route.query)
-  // Only include maxShownItems if different from default
+  // Only include limit if different from default
   if (visibleCount.value !== pageSize) {
-    queryParams.maxShownItems = visibleCount.value
+    queryParams.limit = visibleCount.value
   }
 
   router.push({ name: "search", query })
@@ -159,7 +159,7 @@ function loadMore() {
     visibleCount.value + pageSize,
     results.value.numFound,
   )
-  router.push({ name: "search", query: { ...route.query, maxShownItems: visibleCount.value } })
+  router.push({ name: "search", query: { ...route.query, limit: visibleCount.value } })
 }
 
 </script>
