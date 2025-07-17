@@ -31,7 +31,8 @@
       <VocabularyCard
         v-for="doc in visibleResults"
         :key="doc.id"
-        :doc="doc" />
+        :doc="doc" 
+        :sort="sortBy" />
     </section>
 
     <!-- Load more button -->
@@ -73,6 +74,7 @@ const visibleResults = computed(() =>
 const results = ref({docs: [], numFound: 0})
 
 const loading = ref(true)
+const sortBy = ref()
 const errorMessage = ref(null)
 
 
@@ -144,6 +146,7 @@ function onSort({ sort, order }) {
     sort,
     order,
   }
+  sortBy.value = sort
 
   // reset pagination
   visibleCount.value = pageSize

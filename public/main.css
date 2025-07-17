@@ -22,11 +22,13 @@
 
 a {
   font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
+  color: #2b6cb0;
+  text-decoration: none;
 }
+
 a:hover {
   color: #535bf2;
+  text-decoration: underline;
 }
 
 body {
@@ -82,14 +84,6 @@ button:focus-visible {
   flex-direction: column;
   flex: 1 1 auto;   /* already in place, but shown here for clarity */
   min-height: 0;  
-}
-
-a,
-.green {
-  text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
-  padding: 3px;
 }
 
 .no-hover a,

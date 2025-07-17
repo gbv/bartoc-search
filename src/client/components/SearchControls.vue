@@ -27,10 +27,10 @@ import { ref, watch } from "vue"
 // Sort options 
 const options = [
   { key: "relevance",    label: "Relevance" },
-  { key: "created desc", label: "Creation date, descending" },
-  { key: "created asc",  label: "Creation date, ascending" },
-  { key: "modified desc",label: "Modification date, descending" },
-  { key: "modified asc", label: "Modification date, ascending" },
+  { key: "created desc", label: "Created least" },
+  { key: "created asc",  label: "Created first" },
+  { key: "modified desc",label: "Modified least" },
+  { key: "modified asc", label: "Modified first" },
   { key: "title asc",    label: "Title (A–Z)" },
   { key: "title desc",   label: "Title (Z–A)" },
 ]

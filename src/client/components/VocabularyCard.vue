@@ -12,12 +12,6 @@
       <li v-if="doc.publisher_label">
         <strong>Publisher:</strong> {{ doc.publisher_label }}
       </li>
-      <li v-if="doc.created_dt">
-        <strong>Created on:</strong> {{ doc.created_dt }}
-      </li>
-      <li v-if="doc.modified_dt">
-        <strong>Modified on:</strong> {{ doc.modified_dt }}
-      </li>
       <li v-if="doc.languages_ss?.length">
         <strong>Languages:</strong> {{ doc.languages_ss.join(', ') }}
       </li>
@@ -28,24 +22,28 @@
         <strong>Subjects:</strong> {{ subjectList.join(', ') }}
       </li>
     </ul>
-
-    <div class="result-links">
+    <div class="result-metadata">
       <a
         :href="doc.id"
-        target="_blank"
-        class="result-link">
+        target="_blank">
         {{ doc.id }}
       </a>
+      <span
+        v-if="doc.created_dt"
+        :class="{ highlighted: sort == 'created' }">        
+        created {{ doc.created_dt.replace(/:..Z.*/,"").replace("T","&nbsp;") }}
+      </span>
+      <span
+        v-if="doc.modified_dt"
+        :class="{ highlighted: sort == 'modified' }">
+        modified {{ doc.modified_dt.replace(/:..Z.*/,"").replace("T","&nbsp;") }}
+      </span>
       <a
         :href="`https://bartoc.org/api/data?uri=${doc.id}`"
-        target="_blank"
-        class="result-link">
-        JSKOS
-      </a>
+        target="_blank">JSKOS</a>
       <a
         :href="getSolrRecord(doc.id)"
-        target="_blank"
-        class="result-link">Solr</a>
+        target="_blank">Solr</a>
     </div>
   </div>
 </template>
@@ -66,6 +64,7 @@ const props = defineProps({
     default: SupportedLang.EN,
     validator: (v) => Object.values(SupportedLang).includes(v),
   },
+  sort: { type: String },
 })
 
 // const props = defineProps<{ doc: SolrDocument; lang?: SupportedLang }>()
@@ -120,6 +119,7 @@ function getSolrRecord(id) {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   transition: box-shadow 0.2s ease;
   text-align: left;
+  color: #4a5568;
 }
 .result-card:hover {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
@@ -134,7 +134,6 @@ function getSolrRecord(id) {
 
 .result-description {
   font-size: 0.9rem;
-  color: #4a5568;
   margin: 4px 0px;
   display: -webkit-box;
   overflow: hidden;
@@ -147,22 +146,24 @@ function getSolrRecord(id) {
 }
 .result-details li {
   font-size: 0.85rem;
-  color: #4a5568;
   margin-bottom: 4px;
 }
 
-.result-links {
+.result-metadata {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-}
-.result-link {
   font-size: 0.85rem;
-  color: #2b6cb0;
-  text-decoration: none;
 }
-.result-link:hover {
-  color: #2c5282;
-  text-decoration: underline;
+.result-metadata * {
+  padding: 0.2rem 0.5rem 0.2rem 0;
+}
+.result-metadata span {
+  padding: 0.2rem 0.5rem;
+  margin-right: 0.2rem;
+}
+
+.highlighted {
+  background: #ff9;
+  color: #000;
 }
 </style>
