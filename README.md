@@ -205,21 +205,25 @@ All query parameters are optional.
 | `search` | string | Search string |
 | `field` | string | specific field to search in |
 | `limit` | integer | Number of results to return (default: `10`) |
+| `sort` | string | Field to sort by (e.g. `relevance`, `created`, `modified`, `title`) (default: relevance) |
+| `order` | string | Sort direction: asc or desc (default: `desc`) |
+
 
 #### Response
 
-JSON object like the following example:
+JSON object like the following example `/api/search?search=Film&sort=modified&order=desc`:
 
   
 ```json
 {
   "responseHeader": {
     "status": 0,
-    "QTime": 3,
+    "QTime": 0,
     "params": {
-      "q": "*:*",
+      "q": "allfields:(\"Film\"^3)",
       "defType": "lucene",
       "start": "0",
+      "sort": "modified_dt desc",
       "rows": "10",
       "wt": "json"
     }
@@ -230,42 +234,90 @@ JSON object like the following example:
     "numFoundExact": true,
     "docs": [
       {
-        "id": "http://bartoc.org/en/node/10",
-        "title_en": "Australian Public Affairs Information Service Thesaurus",
-        "description_en": "The APAIS thesaurus lists the subject terms used to index articles for APAIS...",
-        "publisher_label": "National Library of Australia",
-        "created_dt": "2013-08-14T10:23:00Z",
-        "modified_dt": "2021-02-10T10:31:55.487Z"
+        "alt_labels_ss": [
+          "Klassifikation för litteraturvetenskap",
+          "estetik",
+          "teatervetenskap",
+          "film- och televisionsforskning",
+          "Classification for comparative literature",
+          "aesthetics",
+          "theatre research",
+          "film and television studies"
+        ],
+        "created_dt": "2015-04-17T14:19:00Z",
+        "ddc_ss": [
+          "7",
+          "790",
+          "80"
+        ],
+        "id": "http://bartoc.org/en/node/1297",
+        "languages_ss": [
+          "en",
+          "fi",
+          "sv"
+        ],
+        "modified_dt": "2025-07-14T14:00:00.900Z",
+        "publisher_id": "http://viaf.org/viaf/126520961",
+        "publisher_label": "Helsingin yliopisto, Kirjasto",
+        "subject_uri": [
+          "http://dewey.info/class/7/e23/",
+          "http://dewey.info/class/790/e23/",
+          "http://dewey.info/class/80/e23/"
+        ],
+        "subject_notation": [
+          "7",
+          "790",
+          "80"
+        ],
+        "subject_scheme": [
+          "http://bartoc.org/en/node/241",
+          "http://bartoc.org/en/node/241",
+          "http://bartoc.org/en/node/241"
+        ],
+        "type_uri": [
+          "http://www.w3.org/2004/02/skos/core#ConceptScheme",
+          "http://w3id.org/nkos/nkostype#classification_schema"
+        ],
+        "title_en": "Shelf Rating of Literary Research, Aesthetics, Theater Science, Film and Television Research",
+        "title_sort": "Shelf Rating of Literary Research, Aesthetics, Theater Science, Film and Television Research",
+        "description_en": "Subject-specific classification scheme used by the University of Helsinki Library for literary studies, aesthetics, theatre research, film and television studies.",
+        "title_und": "Kirjallisuudentutkimuksen, estetiikan, teatteritieteen, elokuva- ja televisiotutkimuksen hyllyluokitus",
+        "_version_": 1837876396177752000
       },
-      {
-        "id": "http://bartoc.org/en/node/100",
-        "title_en": "The Institute of Electrical and Electronics Engineers Thesaurus",
-        "description_en": "The IEEE Thesaurus is a controlled vocabulary of over 9,000 descriptive terms...",
-        "publisher_label": "Institute of Electrical and Electronics Engineers",
-        "created_dt": "2013-09-02T14:17:00Z",
-        "modified_dt": "2019-04-23T15:50:00Z"
-      }
       // …more documents…
     ]
   }
 }
 ```
 
-| Field | Type | Description |
-| --- | --- | --- |
-| `responseHeader.status` | integer | Solr execution status (0 = success). |
-| `responseHeader.QTime` | integer | Query execution time in milliseconds. |
-| `responseHeader.params` | object | Echoes back the parameters used for the query. |
-| `response.numFound` | integer | Total number of matching documents. |
-| `response.start` | integer | Offset into the result set. |
-| `response.numFoundExact` | boolean | Indicates if `numFound` is an exact count. |
-| `response.docs` | array | Array of document objects matching the query. |
-| └─ `id` | string | Unique document identifier (URI). |
-| └─ `title_en` | string | English title of the thesaurus or concept scheme. |
-| └─ `description_en` | string | Short English description or abstract. |
-| └─ `publisher_label` | string | Label of the publishing organization. |
-| └─ `created_dt` | string | Creation timestamp (ISO-8601). |
-| └─ `modified_dt` | string | Last modification timestamp (ISO-8601). |
+| Field                    | Type    | Description                                              |
+| ------------------------ | ------- | -------------------------------------------------------- |
+| `responseHeader.status`  | integer | Solr execution status (0 = success).                     |
+| `responseHeader.QTime`   | integer | Query execution time in milliseconds.                    |
+| `responseHeader.params`  | object  | Echoes back the parameters used for the query.           |
+| `response.numFound`      | integer | Total number of matching documents.                      |
+| `response.start`         | integer | Offset into the result set.                              |
+| `response.numFoundExact` | boolean | Indicates if `numFound` is an exact count.               |
+| `response.docs`          | array   | Array of document objects matching the query.            |
+| └─ `id`                  | string  | Unique document identifier (URI).                        |
+| └─ `title_en`            | string  | English title of the thesaurus or concept scheme.        |
+| └─ `title_sort`          | string  | Title normalized for sorting.                            |
+| └─ `title_und`           | string  | Title in the “undefined” (und) language.                 |
+| └─ `description_en`      | string  | Short English description or abstract.                   |
+| └─ `alt_labels_ss`       | array   | Alternative labels (multilingual).                       |
+| └─ `languages_ss`        | array   | Languages available (ISO codes).                         |
+| └─ `ddc_ss`              | array   | Dewey Decimal Classification notations.                  |
+| └─ `publisher_id`        | string  | Identifier URI of the publishing organization.           |
+| └─ `publisher_label`     | string  | Human‐readable label of the publishing organization.     |
+| └─ `subject_uri`         | array   | URIs of subject classifications.                         |
+| └─ `subject_notation`    | array   | Notation codes for subjects.                             |
+| └─ `subject_scheme`      | array   | URIs of subject schemes.                                 |
+| └─ `type_uri`            | array   | URIs indicating the resource’s SKOS/NKOS type(s).        |
+| └─ `created_dt`          | string  | Creation timestamp (ISO-8601).                           |
+| └─ `modified_dt`         | string  | Last modification timestamp (ISO-8601).                  |
+| └─ `_version_`           | integer | Solr internal version number for optimistic concurrency. |
+
+
 
 #### Error Responses
 
