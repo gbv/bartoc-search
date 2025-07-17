@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="search-bar">
     <input
       v-model="search"
       type="text"
@@ -67,3 +67,11 @@ if (props.searchOnMounted) {
   onMounted(onSearch)
 }
 </script>
+
+<style>
+.search-bar input {
+  font-size: 1.2rem;
+  width: 28rem;
+  margin-right: 0.5rem;
+}
+</style>
