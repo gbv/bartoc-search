@@ -176,15 +176,8 @@ export function transformConceptSchemeToSolr(
     url_s: doc.url,
   };
 
-  // Compute title_sort from English language label (fallback to first available)
-  const DEFAULT_LANG = SupportedLang.EN;
-  const fallbackLabel =
-    doc.prefLabel?.[DEFAULT_LANG] ??
-    Object.values(doc.prefLabel || {})[0] ??
-    "";
-  solrDoc.title_sort = fallbackLabel;
 
-// type solr fields for labels are to be addressed separately as currently the soruce is a ndJson file
+  // type solr fields for labels are to be addressed separately as currently the soruce is a ndJson file
   const nKosConceptsDoc = nKosConceptsDocs.find(
     (nKos) => nKos.uri === solrDoc.type_uri?.[1],
   );
@@ -196,6 +189,11 @@ export function transformConceptSchemeToSolr(
     if (title) {
       solrDoc[`title_${lang}` as `title_${SupportedLang}`] = title;
     }
+
+    // title_sort,
+    // TODO Find a better approach, order might be affected if there is no
+    // title_en and it could return a bad UX
+    solrDoc.title_sort = solrDoc.title_en ?? "";
 
     // description
     const description = doc.definition?.[lang];
