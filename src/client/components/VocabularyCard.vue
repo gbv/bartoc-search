@@ -12,6 +12,12 @@
       <li v-if="doc.publisher_label">
         <strong>Publisher:</strong> {{ doc.publisher_label }}
       </li>
+      <li v-if="doc.created_dt">
+        <strong>Created on:</strong> {{ doc.created_dt }}
+      </li>
+      <li v-if="doc.modified_dt">
+        <strong>Modified on:</strong> {{ doc.modified_dt }}
+      </li>
       <li v-if="doc.languages_ss?.length">
         <strong>Languages:</strong> {{ doc.languages_ss.join(', ') }}
       </li>

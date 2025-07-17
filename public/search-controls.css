@@ -1,0 +1,10 @@
+.search-controls {
+  display: flex;
+  justify-content: center;
+  padding-bottom: 10px;
+}
+.search-sort label {
+  color: var(--color-text-light-1);
+  padding-right: 5px;
+  font-size: 15px;
+}

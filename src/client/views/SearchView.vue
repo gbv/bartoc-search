@@ -7,6 +7,9 @@
     <SearchBar
       :search-on-mounted="true"
       @search="onSearch" />
+    <SearchControls
+      :model-value="sortKey"
+      @sort="onSort" />
     <div
       v-if="errorMessage"
       class="search-view__error">
@@ -47,6 +50,7 @@ import { useRouter, useRoute } from "vue-router"
 import VocabularyCard from "../components/VocabularyCard.vue"
 import SearchBar from "../components/SearchBar.vue"
 import NavBreadcrumb from "../components/NavBreadcrumb.vue"
+import SearchControls from "../components/SearchControls.vue"
 
 
 // Router hooks
@@ -78,6 +82,17 @@ const summary = computed(() => ({
   to: visibleCount.value > results.value.numFound ? results.value.numFound : visibleCount.value,
   total: results.value.numFound,
 }))
+
+// derive the select-option key from the route
+const sortKey = computed(() => {
+  const s = route.query.sort || "relevance"
+  // relevance is a special one–word case
+  if (s === "relevance") {
+    return "relevance"
+  }
+  const o = (route.query.order || "asc").toLowerCase()
+  return `${s} ${o}`
+})
 
 async function fetchResults(query) {
   loading.value = true
@@ -120,6 +135,23 @@ function onSearch(query) {
   router.push({ name: "search", query })
   fetchResults(query)
 }
+
+function onSort({ sort, order }) {
+  // merge sort/order into whatever the user is currently searching for
+  const baseQuery = { ...route.query }
+  const newQuery = {
+    ...baseQuery,
+    sort,
+    order,
+  }
+
+  // reset pagination
+  visibleCount.value = pageSize
+  router.push({ name: "search", query: newQuery })
+  fetchResults(newQuery)
+}
+
+
 
 // Load more results by increasing visible results
 function loadMore() {

@@ -3,6 +3,7 @@
 @import './header.css';
 @import './home.css';
 @import './search.css';
+@import './search-controls.css';
 
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;

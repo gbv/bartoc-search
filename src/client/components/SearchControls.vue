@@ -1,0 +1,81 @@
+<template>
+  <div class="search-controls">
+    <!-- Sort dropdown -->
+    <form
+      class="search-sort"
+      @submit.prevent>
+      <label for="sort">Sort by</label>
+      <select
+        id="sort"
+        v-model="selectedSort"
+        class="form-control form-select"
+        @change="onChange">
+        <option
+          v-for="opt in options"
+          :key="opt.key"
+          :value="opt.key">
+          {{ opt.label }}
+        </option>
+      </select>
+    </form>
+  </div>
+</template>
+
+<script setup lang="js">
+import { ref, watch } from "vue"
+
+// Sort options 
+const options = [
+  { key: "relevance",    label: "Relevance" },
+  { key: "created desc", label: "Creation date, descending" },
+  { key: "created asc",  label: "Creation date, ascending" },
+  { key: "modified desc",label: "Modification date, descending" },
+  { key: "modified asc", label: "Modification date, ascending" },
+  { key: "title asc",    label: "Title (A–Z)" },
+  { key: "title desc",   label: "Title (Z–A)" },
+]
+
+const sortObj = {
+  relevance: {sort: "relevance", order: "desc"},
+  "created desc": {sort: "created", order: "desc"},
+  "created asc": {sort: "created", order: "asc"},
+  "modified desc": {sort: "modified", order: "desc"},
+  "modified asc": {sort: "modified", order: "asc"},
+  "title asc": {sort: "title", order: "asc"},
+  "title desc": {sort: "title", order: "desc"},
+}
+
+
+// Single v-model binding: the selected option key (e.g. "created desc")
+const props = defineProps({
+  modelValue: {
+    type: String,
+    default: "relevance",
+  },
+})
+
+const emit = defineEmits(["sort"])
+
+// Internal ref to track selection
+const selectedSort = ref(props.modelValue)
+
+// whenever the parent changes modelValue, update the local state
+watch(
+  () => props.modelValue,
+  newVal => {
+    selectedSort.value = newVal
+  },
+)
+
+function onChange() {
+  if (!selectedSort.value) {
+    selectedSort.value = "relevance"
+  }
+
+  const sortValue = { sort: sortObj[selectedSort.value].sort, 
+    order: sortObj[selectedSort.value].order || "asc" }
+    
+  emit("sort", sortValue)
+}
+
+</script>
