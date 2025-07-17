@@ -1,7 +1,7 @@
 // types/solr.ts
-import { ConceptSchemeDocument } from "./jskos"
-import { SupportedLang } from "./lang"
-import { OperationType } from "./ws"
+import { ConceptSchemeDocument } from "./jskos";
+import { SupportedLang } from "./lang";
+import { OperationType } from "./ws";
 
 type TitleFields = {
   [K in SupportedLang as `title_${K}`]?: string;
@@ -96,6 +96,49 @@ export interface SolrSearchResponse {
   };
   // Optionally facets, spellcheck etc.
 }
+
+/**
+ * Fields by which search results can be sorted.
+ */
+export enum SortField {
+  RELEVANCE = "relevance",
+  CREATED   = "created",
+  MODIFIED  = "modified",
+  TITLE = "title",
+}
+
+
+/**
+ * Direction to apply when sorting.
+ */
+export enum SortOrder {
+  ASC  = "asc",
+  DESC = "desc",
+}
+
+
+/**
+ * Parameters accepted by our search endpoint.
+ * - `search`, `field`, and `limit` go to Solr.
+ * - `sort`/`order` control the sort criteria.
+ */
+export interface SearchParams {
+  search?: string; 
+  field?: string; // e.g. "title", etc.
+  limit?: number; // rows= sent to Solr
+  sort?: SortField;
+  order?: SortOrder;
+}
+
+/**
+ * Map  SortField values to real Solr schema fields.
+ */
+export const SortFieldMap: Record<SortField, string> = {
+  [SortField.RELEVANCE]: "score",
+  [SortField.CREATED]:   "created_dt",
+  [SortField.MODIFIED]:  "modified_dt",
+  [SortField.TITLE]:     "title_sort", // This is a custom field for sorting titles
+};
 
 /**
  * Details provided when Solr returns an error.

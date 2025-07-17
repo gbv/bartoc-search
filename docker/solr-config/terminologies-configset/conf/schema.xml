@@ -90,6 +90,9 @@
     <!-- URL field -->
     <field name="url_s" type="string" indexed="false" stored="true"/>
 
+    <!-- Title sorting -->
+    <field name="title_sort" type="string" indexed="true" stored="true"/>
+
     <!-- Multivalued type field -->
     <field name="type_uri" type="string" indexed="true" stored="true" multiValued="true"/>
 
@@ -122,6 +125,7 @@
   <copyField source="publisher_label" dest="allfields"/>
   <copyField source="subject_*" dest="allfields"/>
   <copyField source="alt_labels_ss" dest="allfields"/>
+  <copyField source="title_en" dest="title_sort"/>
 
   <!-- ================================================
        Schema Configuration
