@@ -1,6 +1,6 @@
-import { Queue as BullQueue } from "bullmq"
-import config from "../conf/conf"
-import { redisConnection, connectToRedis } from "../redis/redis"
+import { Queue as BullQueue } from "bullmq";
+import config from "../conf/conf";
+import { redisConnection, connectToRedis } from "../redis/redis";
 
 //Generics per for every kind of Job payload
 type RegisteredQueue<T> = {
@@ -13,16 +13,16 @@ declare global {
   // A registry mapping queue names to their instances (queue + worker)
 
   // eslint-disable-next-line no-var
-  var __registeredQueues: Record<string, RegisteredQueue<unknown>> | undefined
+  var __registeredQueues: Record<string, RegisteredQueue<unknown>> | undefined;
 }
 
 // On first import, initialize the global registry if it doesn't exist
 if (!global.__registeredQueues) {
-  global.__registeredQueues = {}
+  global.__registeredQueues = {};
 }
 
 // Create a local reference to the global registry for convenience
-const registeredQueues = global.__registeredQueues
+const registeredQueues = global.__registeredQueues;
 
 /**
  * Creates (or returns) a singleton BullMQ queue.
@@ -35,17 +35,17 @@ export async function Queue<Payload>(
 ): Promise<BullQueue<Payload> | null> {
   // If the queue already exists, return the existing instance
   if (registeredQueues[name]) {
-    config.log?.(`Queue "${name}" already initialized`)
-    return (registeredQueues[name] as RegisteredQueue<Payload>).queue
+    config.log?.(`Queue "${name}" already initialized`);
+    return (registeredQueues[name] as RegisteredQueue<Payload>).queue;
   }
 
   // Try to connect to Redis first
   try {
-    await connectToRedis()
+    await connectToRedis();
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err)
-    config.log?.(`Queue "${name}" not started: Redis unreachable (${message})`)
-    return null
+    const message = err instanceof Error ? err.message : String(err);
+    config.log?.(`Queue "${name}" not started: Redis unreachable (${message})`);
+    return null;
   }
 
   // Create the queue with default retry/backoff options
@@ -57,12 +57,12 @@ export async function Queue<Payload>(
       removeOnComplete: true,
       removeOnFail: { count: 1000 },
     },
-  })
+  });
 
   // Register in the global map as unknown, to be cast upon retrieval
-  registeredQueues[name] = { queue } as RegisteredQueue<unknown>
+  registeredQueues[name] = { queue } as RegisteredQueue<unknown>;
 
-  config.log?.(`Queue "${name}" initialized`)
+  config.log?.(`Queue "${name}" initialized`);
 
-  return queue
+  return queue;
 }

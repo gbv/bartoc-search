@@ -1,4 +1,4 @@
-import { z } from "zod"
+import { z } from "zod";
 
 export const conceptZodSchema = z.object({
   "@context": z.string(),
@@ -38,6 +38,6 @@ export const conceptZodSchema = z.object({
       type: z.array(z.string()),
     }),
   ),
-})
+});
 
 export type ConceptZodType = z.infer<typeof conceptZodSchema>;

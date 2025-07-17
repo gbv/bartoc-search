@@ -1,5 +1,5 @@
-import { ConceptSchemeDocument, ConceptDocument } from "./jskos"
-import { objectTypes } from "jskos-tools"
+import { ConceptSchemeDocument, ConceptDocument } from "./jskos";
+import { objectTypes } from "jskos-tools";
 
 export enum OperationType {
   Create = "create",

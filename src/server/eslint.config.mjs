@@ -23,6 +23,8 @@ export default [
   {
     rules: {
       "@typescript-eslint/no-unused-vars": "warn",
+      semi: ["error", "always"],
+      quotes: ["error", "double", { avoidEscape: true }],
     },
   },
 ]

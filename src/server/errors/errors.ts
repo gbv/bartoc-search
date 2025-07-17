@@ -19,12 +19,12 @@ export interface IHttpError {
 }
 
 export abstract class HttpError extends Error implements IHttpError {
-  public statusCode: HttpStatusCode
+  public statusCode: HttpStatusCode;
 
   constructor(message: string, statusCode: HttpStatusCode) {
-    super(message)
-    this.statusCode = statusCode
-    Error.captureStackTrace(this, this.constructor)
+    super(message);
+    this.statusCode = statusCode;
+    Error.captureStackTrace(this, this.constructor);
   }
 }
 
@@ -34,7 +34,7 @@ export class EntityNotFoundError extends HttpError {
     super(
       message || `The requested entity ${id ?? "unknown"} could not be found.`,
       HttpStatusCode.NOT_FOUND,
-    )
+    );
   }
 }
 
@@ -44,7 +44,7 @@ export class MalformedBodyError extends HttpError {
     super(
       message || "The body of the request is malformed.",
       HttpStatusCode.BAD_REQUEST,
-    )
+    );
   }
 }
 
@@ -53,7 +53,7 @@ export class MalformedRequestError extends HttpError {
     super(
       message || "The request is malformed (missing parameter etc.).",
       HttpStatusCode.BAD_REQUEST,
-    )
+    );
   }
 }
 
@@ -64,7 +64,7 @@ export class DuplicateEntityError extends HttpError {
       message ||
         `The entity ${id ?? "unknown"} already exists in the database.`,
       HttpStatusCode.UNPROCESSABLE_ENTITY,
-    )
+    );
   }
 }
 
@@ -74,7 +74,7 @@ export class InvalidBodyError extends HttpError {
       message ||
         "The body of the request is well formed, but could not be validated.",
       HttpStatusCode.UNPROCESSABLE_ENTITY,
-    )
+    );
   }
 }
 
@@ -85,13 +85,13 @@ export class CreatorDoesNotMatchError extends HttpError {
       message ||
         "Access to this resource is not allowed for you (but might be for other users).",
       HttpStatusCode.FORBIDDEN,
-    )
+    );
   }
 }
 
 export class ForbiddenAccessError extends HttpError {
   constructor(message?: string) {
-    super(message || "Access is forbidden.", HttpStatusCode.FORBIDDEN)
+    super(message || "Access is forbidden.", HttpStatusCode.FORBIDDEN);
   }
 }
 
@@ -101,7 +101,7 @@ export class BackendError extends HttpError {
     super(
       message || "There was an error with the backend. Please try again later.",
       HttpStatusCode.INTERNAL_SERVER_ERROR,
-    )
+    );
   }
 }
 
@@ -110,7 +110,7 @@ export class DatabaseAccessError extends BackendError {
     super(
       message ||
         "There was an error accessing the database. Please try again later.",
-    )
+    );
   }
 }
 
@@ -120,7 +120,7 @@ export class DatabaseInconsistencyError extends BackendError {
       message
         ? `${message} Please contact us at coli-conc@gbv.de or open an issue on GitHub. Thanks!`
         : "There was an inconsistency error with the database. Please try again later.",
-    )
+    );
   }
 }
 
@@ -129,7 +129,7 @@ export class ConfigurationError extends BackendError {
     super(
       message ||
         "There was an error with the server configuration. Please contact the server administrator and try again later.",
-    )
+    );
   }
 }
 
@@ -139,7 +139,7 @@ export class SolrPingError extends HttpError {
     super(
       message || "Failed to reach Solr instance (ping failed).",
       HttpStatusCode.SERVICE_UNAVAILABLE,
-    )
+    );
   }
 }
 
@@ -152,6 +152,6 @@ export class NkosNotInitializedError extends HttpError {
     super(
       "NKOS concepts have not been initialized. Please call loadNkosConcepts() before using getNkosConcepts().",
       HttpStatusCode.SERVICE_UNAVAILABLE,
-    )
+    );
   }
 }

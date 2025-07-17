@@ -1,4 +1,4 @@
-import { z } from "zod"
+import { z } from "zod";
 
 // Verbosity type
 const verbositySchema = z.union([
@@ -6,7 +6,7 @@ const verbositySchema = z.union([
   z.literal("warn"),
   z.literal("error"),
   z.boolean(),
-])
+]);
 
 // SolrConfig schema
 export const solrSchema = z.object({
@@ -19,7 +19,7 @@ export const solrSchema = z.object({
   port: z.number(),
   url: z.string().optional(),
   version: z.number(),
-})
+});
 
 export const redisSchema = z.object({
   host: z.string(),
@@ -28,7 +28,7 @@ export const redisSchema = z.object({
   pingRetryDelay: z.number().optional(),
   port: z.number(),
   url: z.string().optional(),
-})
+});
 
 // A schema for the rate‐limiter settings
 const LimiterSchema = z.object({
@@ -36,14 +36,14 @@ const LimiterSchema = z.object({
   max: z.number().int().nonnegative(),
   // window duration in milliseconds
   duration: z.number().int().nonnegative(),
-})
+});
 
 export const QueueConfigSchema = z.object({
   // concurrency must be a positive integer if provided
   concurrency: z.number().int().positive().optional(),
   // optional rate limiter
   limiter: LimiterSchema.optional(),
-})
+});
 
 export const WebSocketConfigSchema = z.object({
   host: z.string(),
@@ -52,7 +52,7 @@ export const WebSocketConfigSchema = z.object({
   pingTimeout: z.number().optional(),
   pingRetries: z.number().optional(),
   pingRetryDelay: z.number().optional(),
-})
+});
 
 // Full config schema
 export const defaultConfigSchema = z.object({
@@ -71,10 +71,10 @@ export const defaultConfigSchema = z.object({
   verbosity: verbositySchema.optional(),
   version: z.string().nullable().optional(),
   webSocket: WebSocketConfigSchema,
-})
+});
 
 // Partial user schema for validation
-export const userConfigSchema = defaultConfigSchema.partial()
+export const userConfigSchema = defaultConfigSchema.partial();
 
 // App config
 export type AppConfig = z.infer<typeof defaultConfigSchema>;

@@ -1,20 +1,20 @@
-import { startServer } from "./main"
-import * as solr from "./solr/solr"
-import config from "./conf/conf"
+import { startServer } from "./main";
+import * as solr from "./solr/solr";
+import config from "./conf/conf";
 
 // Solr Connection
 const startSolr = async () => {
   try {
-    await solr.connectToSolr()
+    await solr.connectToSolr();
   } catch (error) {
-    config.error?.("Error connecting to Solr" + error)
+    config.error?.("Error connecting to Solr" + error);
   }
-}
+};
 
 // Starting Solr
-startSolr()
+startSolr();
 
 // Starting the server
-const app = startServer()
+const app = startServer();
 
-export { app }
+export { app };
