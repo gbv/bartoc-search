@@ -67,8 +67,6 @@ A multi-valued text field that aggregates most human-readable content for global
 - title_search
 A dedicated text field optimized for title-only searches.
 
-- title_sort
-Also receives values from title_en to ensure consistent sort ordering.
 
 ### Example Document Structure
 

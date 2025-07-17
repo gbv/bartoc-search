@@ -176,8 +176,15 @@ export function transformConceptSchemeToSolr(
     url_s: doc.url,
   };
 
-  // type solr fields for labels are to be addressed separately as currently the soruce is a ndJson file
+  // Compute title_sort from English language label (fallback to first available)
+  const DEFAULT_LANG = SupportedLang.EN;
+  const fallbackLabel =
+    doc.prefLabel?.[DEFAULT_LANG] ??
+    Object.values(doc.prefLabel || {})[0] ??
+    "";
+  solrDoc.title_sort = fallbackLabel;
 
+// type solr fields for labels are to be addressed separately as currently the soruce is a ndJson file
   const nKosConceptsDoc = nKosConceptsDocs.find(
     (nKos) => nKos.uri === solrDoc.type_uri?.[1],
   );
