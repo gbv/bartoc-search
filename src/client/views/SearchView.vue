@@ -29,7 +29,7 @@
         No results.
       </div>
       <VocabularyCard
-        v-for="doc in visibleResults"
+        v-for="doc in results.docs"
         :key="doc.id"
         :doc="doc" 
         :sort="sortBy" />
@@ -37,7 +37,7 @@
 
     <!-- Load more button -->
     <button
-      v-if="visibleCount < results.numFound && loading === false"
+      v-if="results.docs.length < results.numFound && !loading"
       class="button"
       @click="loadMore">
       More results
@@ -60,28 +60,20 @@ const route = useRoute()
 
 // Pagination settings
 const pageSize = 10
+// drive everything off this `limit`
+const limit = ref(Number(route.query.limit) || pageSize)
 
-// Single request: fetch all matching docs up to Solr limit (max 10000)
-const maxLimit = 10000
-
-// Controls how many to show
-const visibleCount = ref(Number(route.query.limit) || pageSize)
-// Derived visible slice
-const visibleResults = computed(() =>
-  results.value.docs.slice(0, visibleCount.value),
-)
-
-const results = ref({docs: [], numFound: 0})
-
+// results & state
+const results = ref({ docs: [], numFound: 0 })
 const loading = ref(true)
-const sortBy = ref()
 const errorMessage = ref(null)
+const sortBy = ref()
 
 
 // Computed summary for breadcrumb data
 const summary = computed(() => ({
   from: 1,
-  to: visibleCount.value > results.value.numFound ? results.value.numFound : visibleCount.value,
+  to: results.value.docs.length,
   total: results.value.numFound,
 }))
 
@@ -101,22 +93,36 @@ async function fetchResults(query) {
   errorMessage.value = null
 
   try {
-    const params = new URLSearchParams(query)
-    const res = await fetch(`${import.meta.env.BASE_URL}api/search?${params}&limit=${maxLimit}`)
-    if (res.ok) {
-      const resp = (await res.json()).response || {}
-      // Ensure docs is always an array of objects
-      const docs = Array.isArray(resp?.docs)
-        ? resp.docs.filter(doc => doc && typeof doc === "object")
-        : []
+    const params = new URLSearchParams({
+      ...query,
+      start: 0,
+      rows: String(limit.value),
+    })
+    
+    const res = await fetch(`${import.meta.env.BASE_URL}api/search?${params}`)
 
-      const numFound = resp?.numFound || 0
-      results.value = { docs, numFound}
-      // reset visibleCount if needed
-      visibleCount.value = Number(route.query.limit) || pageSize
-    } else {
-      throw new Error(`Response status: ${res.status}`)
+    if (!res.ok) {
+      throw new Error(`Status ${res.status}`)
     }
+
+    const resp = (await res.json()).response || {}
+    // Ensure docs is always an array of objects
+    const docs = Array.isArray(resp?.docs)
+      ? resp.docs.filter(doc => doc && typeof doc === "object")
+      : []
+
+    const numFound = resp?.numFound || 0
+    results.value = { docs, numFound}
+
+    // sync the URL
+    router.replace({
+      name: route.name,
+      query: { 
+        ...query,
+        limit: String(limit.value),
+      },
+    })
+
   } catch (error) {
     errorMessage.value = `Search failed: ${error.message}`
   } finally {
@@ -125,20 +131,14 @@ async function fetchResults(query) {
 }
 
 function onSearch(query) {
-  // Reset to default page size
-  visibleCount.value = pageSize
-  // Build query params: always include search
-  const queryParams = new URLSearchParams(route.query)
-  // Only include limit if different from default
-  if (visibleCount.value !== pageSize) {
-    queryParams.limit = visibleCount.value
-  }
+  limit.value = pageSize
 
-  router.push({ name: "search", query })
-  fetchResults(query)
+  fetchResults(query, { append: false })
 }
 
 function onSort({ sort, order }) {
+  sortBy.value = sort
+  
   // merge sort/order into whatever the user is currently searching for
   const baseQuery = { ...route.query }
   const newQuery = {
@@ -146,23 +146,27 @@ function onSort({ sort, order }) {
     sort,
     order,
   }
-  sortBy.value = sort
 
-  // reset pagination
-  visibleCount.value = pageSize
   router.push({ name: "search", query: newQuery })
   fetchResults(newQuery)
 }
 
-
-
 // Load more results by increasing visible results
 function loadMore() {
-  visibleCount.value = Math.min(
-    visibleCount.value + pageSize,
-    results.value.numFound,
-  )
-  router.push({ name: "search", query: { ...route.query, limit: visibleCount.value } })
+
+  let newLimit = limit.value += pageSize
+
+  if (results.value.numFound < newLimit) {
+    newLimit = results.value.numFound
+  }
+
+  const baseQuery = { ...route.query }
+  const newQuery = {
+    ...baseQuery,
+    limit: newLimit,
+  }
+  router.push({ name: "search", query: newQuery })
+  fetchResults(newQuery)
 }
 
 </script>
