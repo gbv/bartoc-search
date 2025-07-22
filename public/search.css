@@ -1,5 +1,5 @@
 
-.search-view {
+.search-view-results {
   flex: 1 0 auto;
   display: flex;
   flex-direction: column;
@@ -12,12 +12,12 @@
   min-height: 0;
   height: 100%;
 }
-.search-view__loading {
+.search-view-results__loading {
   color: #003366;
   font-weight: 500;
   margin-bottom: 1.5rem;
 }
-.search-view__error {
+.search-view-results__error {
   color: #d32f2f;
   background: #ffeaea;
   border: 1px solid #f5c2c7;
@@ -25,12 +25,12 @@
   border-radius: 6px;
   margin-bottom: 1.5rem;
 }
-.search-view__no-results {
+.search-view-results__no-results {
   color: #888;
   font-style: italic;
   margin-bottom: 1.5rem;
 }
-.search-view__results {
+.search-view-results__results {
   display: flex;
   flex-direction: column;
   gap: 1.25rem; 

@@ -10,49 +10,22 @@
     <SearchControls
       :model-value="sortKey"
       @sort="onSort" />
-    <div
-      v-if="errorMessage"
-      class="search-view__error">
-      {{ errorMessage }}
-    </div>
-    <div
-      v-else-if="loading"
-      class="search-view__loading">
-      Loading...
-    </div>
-    <section
-      v-else
-      class="search-view">
-      <div
-        v-if="results.docs.length === 0"
-        class="search-view__no-results">
-        No results.
-      </div>
-      <VocabularyCard
-        v-for="doc in results.docs"
-        :key="doc.id"
-        :doc="doc" 
-        :sort="sortBy" />
-    </section>
-
-    <!-- Load more button -->
-    <button
-      v-if="results.docs.length < results.numFound && !loading"
-      class="button"
-      @click="loadMore">
-      More results
-    </button>
+    <SearchResults
+      :results="results"
+      :loading="loading"
+      :error-message="errorMessage"
+      :sort="sortBy"
+      @load-more="loadMore" />
   </section>
 </template>
 
 <script setup>
 import { ref, computed } from "vue"
 import { useRouter, useRoute } from "vue-router"
-import VocabularyCard from "../components/VocabularyCard.vue"
 import SearchBar from "../components/SearchBar.vue"
 import NavBreadcrumb from "../components/NavBreadcrumb.vue"
 import SearchControls from "../components/SearchControls.vue"
-
+import SearchResults from "../components/SearchResults.vue"
 
 // Router hooks
 const router = useRouter()
