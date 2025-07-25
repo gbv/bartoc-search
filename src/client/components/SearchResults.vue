@@ -7,7 +7,7 @@
   <div
     v-else-if="loading"
     class="search-view-results__loading">
-    Loading...
+    <loading-indicator size="xl" />
   </div>
   <section
     v-else
