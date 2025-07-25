@@ -11,7 +11,7 @@
   </div>
   <section
     v-else
-    class="search-view-results">
+    class="search-view-results__wrapper">
     <div
       v-if="results.docs.length === 0"
       class="search-view-results__no-results">
@@ -22,15 +22,14 @@
       :key="doc.id"
       :doc="doc" 
       :sort="sortBy" />
+    <!-- Load more button -->
+    <button
+      v-if="results.docs.length < results.numFound && !loading" 
+      class="button"
+      @click="$emit('load-more')">
+      More results
+    </button>
   </section>
-
-  <!-- Load more button -->
-  <button
-    v-if="results.docs.length < results.numFound && !loading" 
-    class="button"
-    @click="$emit('load-more')">
-    More results
-  </button>
 </template>
 
 

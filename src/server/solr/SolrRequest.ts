@@ -21,7 +21,7 @@ export abstract class SolrRequest {
 
   protected abstract httpQueryParams(): Record<
     string,
-    string | number | boolean
+    string | number | boolean | string[]
   >;
 
   protected abstract httpBody(): unknown;

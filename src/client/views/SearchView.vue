@@ -5,17 +5,26 @@
 
   <section class="search-view__wrapper">
     <SearchBar
+      class="search-bar__area"
       :search-on-mounted="true"
       @search="onSearch" />
     <SearchControls
+      class="search-controls__area"
       :model-value="sortKey"
       @sort="onSort" />
     <SearchResults
+      class="search-results__area"
       :results="results"
       :loading="loading"
       :error-message="errorMessage"
       :sort="sortBy"
       @load-more="loadMore" />
+    <aside class="search-sidebar__area">
+      <SearchSidebar
+        :facets="results.facets || {}"
+        :active-filters="activeFilters"
+        @update-filters="onFilterChange" />
+    </aside>
   </section>
 </template>
 
@@ -26,6 +35,7 @@ import SearchBar from "../components/SearchBar.vue"
 import NavBreadcrumb from "../components/NavBreadcrumb.vue"
 import SearchControls from "../components/SearchControls.vue"
 import SearchResults from "../components/SearchResults.vue"
+import SearchSidebar from "../components/SearchSidebar.vue"
 
 // Router hooks
 const router = useRouter()
@@ -35,13 +45,13 @@ const route = useRoute()
 const pageSize = 10
 // drive everything off this `limit`
 const limit = ref(Number(route.query.limit) || pageSize)
+const activeFilters = ref({})
 
 // results & state
 const results = ref({ docs: [], numFound: 0 })
 const loading = ref(true)
 const errorMessage = ref(null)
 const sortBy = ref()
-
 
 // Computed summary for breadcrumb data
 const summary = computed(() => ({
@@ -78,14 +88,20 @@ async function fetchResults(query) {
       throw new Error(`Status ${res.status}`)
     }
 
-    const resp = (await res.json()).response || {}
+    const data = (await res.json()) || {}
+
+    const response = data.response 
     // Ensure docs is always an array of objects
-    const docs = Array.isArray(resp?.docs)
-      ? resp.docs.filter(doc => doc && typeof doc === "object")
+    const docs = Array.isArray(response?.docs)
+      ? response.docs.filter(doc => doc && typeof doc === "object")
       : []
 
-    const numFound = resp?.numFound || 0
-    results.value = { docs, numFound}
+
+    const numFound = response?.numFound || 0
+    const facets = data?.facets || {}
+    
+    results.value = { docs, numFound, facets}
+    
 
     // sync the URL
     router.replace({
@@ -142,6 +158,32 @@ function loadMore() {
   fetchResults(newQuery)
 }
 
+function onFilterChange(filters) {
+  activeFilters.value = filters
+  limit.value = pageSize
+  const newQuery = { ...route.query, filters: JSON.stringify(filters) }
+  router.push({ name: "search", query: newQuery })
+  fetchResults(newQuery)
+}
+
 </script>
+
+<style scoped>
+.search-view__wrapper  {
+  display: grid;
+  grid-column-gap: 30px;
+  grid-template-areas: "search-bar search-bar" 
+  "search-controls search-controls"
+  "results sidebar";
+  margin: 0 auto;
+}
+
+.search-bar__area { grid-area: search-bar; }
+.search-results__area    { grid-area: results; }
+.search-controls__area   { grid-area: search-controls; }
+.search-sidebar__area    { grid-area: sidebar; }
+
+</style>
+
 
 

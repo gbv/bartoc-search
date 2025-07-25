@@ -3,7 +3,7 @@ import morgan from "morgan";
 import portfinder from "portfinder";
 import config from "./conf/conf";
 import { SolrClient } from "./solr/SolrClient";
-import { SolrSearchResponse,  SortField, SortOrder, SearchParams  } from "./types/solr";
+import { SolrSearchResponse,  SortField, SortOrder, SearchParams, SolrDocument  } from "./types/solr";
 import { LuceneQuery } from "./solr/search/LuceneQuery";
 import type { ViteDevServer } from "vite";
 import fs from "node:fs/promises";
@@ -15,6 +15,9 @@ import { getTerminologiesQueue } from "./queue/worker.js";
 import { createBullBoard } from "@bull-board/api";
 import { ExpressAdapter } from "@bull-board/express";
 import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
+import { parseFacetFields } from "./utils/utils.js";
+import { SearchFilter } from "./solr/search/SearchFilter.js";
+// import { KOS_GROUP_QUERIES, KOSGroup } from "./types/kos";
 
 const isProduction = process.env.NODE_ENV === "production";
 const base = process.env.VIRTUAL_PATH || "/";
@@ -71,22 +74,76 @@ app.get("/api/status", getStatus);
 // ==========================
 app.get("/api/search", async (req: Request, res: Response): Promise<void> => {
   // Read params
-  const { search = "", field = "allfields", limit = 10, sort = SortField.RELEVANCE , order = SortOrder.ASC } = req.query as SearchParams;
+  const { search = "", 
+    field = "allfields", 
+    limit = 10, 
+    sort = SortField.RELEVANCE, 
+    order = SortOrder.ASC , 
+    filters = "{}" } = req.query as SearchParams;
+
+    // filters = "{\"languages_ss\":[\"en\"]}" } 
 
   // Building the query
   const query = LuceneQuery.fromText(search, field, 3, 2).operator("OR");
+
+  console.log("filters => ", filters);
+
+  // 3) Parse it into an object
+    let parsedFilters: Record<string,string[]> = {};
+    try {
+      parsedFilters = JSON.parse(filters);
+      console.log("parsed filters object:", parsedFilters);
+      //    e.g. parsed filters object: { languages_ss: ["en"] }
+    } catch (e) {
+      console.error("Failed to parse filters JSON:", filters);
+      // you may want to return a 400 here
+    }
+
+  console.log("parsedFilters =>", parsedFilters);
+
 
   try {
     const solrQueryBuilder = new SolrClient()
       .searchOperation;
 
-    const results = await solrQueryBuilder
+    const op = await solrQueryBuilder
       .prepareSelect(config.solr.coreName)
       .for(query)
       .sort(sort, order)
-      .limit(limit)
-      .execute<SolrSearchResponse>();
-    res.json(results);
+      .limit(limit);
+      
+    
+    // 1) Dynamically register each facet field
+    Object.keys(parsedFilters).forEach((uiKey) => {
+
+      // ask Solr to compute facets on that field
+      op.facetOnField(uiKey);
+
+      // 2) Apply your OR-filter for all selected values
+      const values = parsedFilters[uiKey];
+      if (values.length) {
+        op.filter(
+          new SearchFilter(uiKey)
+            .ors(values)    // OR together ["en","de",…]
+        );
+      }
+    });
+
+    console.log("op =>", op);
+
+    // Execute query
+    const solrRes = await op.execute<SolrSearchResponse>();
+    const rawFacetFields = solrRes.facet_counts?.facet_fields;
+    console.log("rawFacetFields =>", rawFacetFields);
+    const facets = parseFacetFields(rawFacetFields);
+    
+    // Serialize answer for the client
+    res.json({
+      response: solrRes.response,
+      facets
+    });
+
+    // res.json(solrRes); */
   } catch (error) {
     console.error("Solr query failed:", error);
     res.status(500).json({

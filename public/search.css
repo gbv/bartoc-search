@@ -1,5 +1,5 @@
 
-.search-view-results {
+.search-view-results__wrapper {
   flex: 1 0 auto;
   display: flex;
   flex-direction: column;

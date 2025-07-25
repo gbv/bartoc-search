@@ -96,6 +96,10 @@ export interface SolrSearchResponse {
     numFoundExact?: boolean;
   };
   // Optionally facets, spellcheck etc.
+  facet_counts?: {
+    facet_fields:  Record<string, Array<string|number>>;
+    facet_queries: Record<string, number>;
+  };
 }
 
 /**
@@ -129,6 +133,7 @@ export interface SearchParams {
   limit?: number; // rows= sent to Solr
   sort?: SortField;
   order?: SortOrder;
+  filters?: string;
 }
 
 /**
