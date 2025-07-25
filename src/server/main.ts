@@ -3,7 +3,7 @@ import morgan from "morgan";
 import portfinder from "portfinder";
 import config from "./conf/conf";
 import { SolrClient } from "./solr/SolrClient";
-import { SolrSearchResponse,  SortField, SortOrder, SearchParams, SolrDocument  } from "./types/solr";
+import { SolrSearchResponse,  SortField, SortOrder, SearchParams } from "./types/solr";
 import { LuceneQuery } from "./solr/search/LuceneQuery";
 import type { ViteDevServer } from "vite";
 import fs from "node:fs/promises";
@@ -95,7 +95,7 @@ app.get("/api/search", async (req: Request, res: Response): Promise<void> => {
       console.log("parsed filters object:", parsedFilters);
       //    e.g. parsed filters object: { languages_ss: ["en"] }
     } catch (e) {
-      console.error("Failed to parse filters JSON:", filters);
+      console.error("Failed to parse filters JSON:", filters, "with error ", e);
       // you may want to return a 400 here
     }
 
