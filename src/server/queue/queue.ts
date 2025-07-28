@@ -12,7 +12,7 @@ type RegisteredQueue<T> = {
 declare global {
   // A registry mapping queue names to their instances (queue + worker)
 
-  // eslint-disable-next-line no-var
+   
   var __registeredQueues: Record<string, RegisteredQueue<unknown>> | undefined;
 }
 

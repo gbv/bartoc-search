@@ -12,7 +12,6 @@ export class SearchOperation extends SolrRequest {
   private _rows: number = 0;
   private _fq: SearchFilter[] = new Array<SearchFilter>();
   private _facetOnField: string[] = new Array<string>();
-  private _facetQueries: string[] = [];
   private _fl: string[] = new Array<string>();
   private readonly _wt = "json";
   private _q: SearchQuery = new LuceneQuery();
@@ -72,18 +71,6 @@ export class SearchOperation extends SolrRequest {
     return this;
   }
 
-   /**
-   * @param {string} query A raw Solr facet.query expression (e.g. grouping multiple values).
-   * @example
-   * // count all Thesauri OR Classification Schemas as one bucket:
-   * search
-   *   .facetQuery('type_uri:"...#thesaurus" OR type_uri:"...#classification_schema"');
-   */
-  public facetQuery(query: string): SearchOperation {
-    this._facetQueries.push(query);
-    return this;
-  }
-
   /**
    * @param {string} collection : in which collection do we want to search
    */
@@ -132,8 +119,15 @@ export class SearchOperation extends SolrRequest {
     return this;
   }
 
-  protected httpQueryParams(): Record<string, string | number | boolean | string[]> {
-    const params: Record<string, string | number | boolean | string[]> = {
+  /** 
+   * Expose the internal Solr query params for logging/debugging 
+   */
+  public getQueryParams(): Record<string,string|number|boolean|string[]> {
+    return this.httpQueryParams();
+  }
+
+  protected httpQueryParams(): Record<string, string | number | boolean> {
+    const params: Record<string, string | number | boolean> = {
       wt: this._wt,
     };
 
@@ -159,8 +153,8 @@ export class SearchOperation extends SolrRequest {
 
     // Multiple fq
     if (this._fq.length) {
-      this._fq.forEach((fq, index) => {
-        params[`fq${index}`] = fq.toHttpQueryStringParameter();
+      this._fq.forEach((fq) => {
+        params["fq"] = fq.toHttpQueryStringParameter();
       });
     }
 
@@ -170,14 +164,6 @@ export class SearchOperation extends SolrRequest {
       this._facetOnField.forEach((field => {
         params["facet.field"] = field;
       }));
-    }
-
-    // —— NEW: Multiple facet.query ——
-    // If you’ve collected raw query‐strings in _facetQueries[],
-    // assign them as an array under the same key so Axios emits:
-    // &facet.query=Q1&facet.query=Q2&…
-    if (this._facetQueries?.length) {
-      params["facet.query"] = this._facetQueries;
     }
 
     if (this._fl.length) {

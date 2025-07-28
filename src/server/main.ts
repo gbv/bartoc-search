@@ -86,8 +86,6 @@ app.get("/api/search", async (req: Request, res: Response): Promise<void> => {
   // Building the query
   const query = LuceneQuery.fromText(search, field, 3, 2).operator("OR");
 
-  console.log("filters => ", filters);
-
   // 3) Parse it into an object
     let parsedFilters: Record<string,string[]> = {};
     try {
@@ -98,9 +96,6 @@ app.get("/api/search", async (req: Request, res: Response): Promise<void> => {
       console.error("Failed to parse filters JSON:", filters, "with error ", e);
       // you may want to return a 400 here
     }
-
-  console.log("parsedFilters =>", parsedFilters);
-
 
   try {
     const solrQueryBuilder = new SolrClient()
@@ -121,20 +116,22 @@ app.get("/api/search", async (req: Request, res: Response): Promise<void> => {
 
       // 2) Apply your OR-filter for all selected values
       const values = parsedFilters[uiKey];
-      if (values.length) {
+      if (values.length == 1) {
         op.filter(
           new SearchFilter(uiKey)
-            .ors(values)    // OR together ["en","de",…]
+            .equals(values[0])    
+        );
+      } else {
+        op.filter(
+          new SearchFilter(uiKey)
+            .ors(values) 
         );
       }
     });
 
-    console.log("op =>", op);
-
     // Execute query
     const solrRes = await op.execute<SolrSearchResponse>();
     const rawFacetFields = solrRes.facet_counts?.facet_fields;
-    console.log("rawFacetFields =>", rawFacetFields);
     const facets = parseFacetFields(rawFacetFields);
     
     // Serialize answer for the client
