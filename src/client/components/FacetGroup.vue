@@ -7,9 +7,6 @@
       @click="toggleOpen">
       <span class="facet-item__title">{{ facetItemTitle }}</span>
       <span
-        v-if="selected.length"
-        class="facet-badge">{{ selected.length }}</span>
-      <span
         class="arrow"
         :class="{ open }"
         aria-hidden="true" />
@@ -18,13 +15,6 @@
       <div
         v-if="open"
         class="options-container">
-        <button
-          v-if="selected.length"
-          class="clear-facet"
-          @click="clear()">
-          Clear
-        </button>
-
         <ul
           v-if="open"
           key="list"
@@ -72,10 +62,6 @@ function toggleOpen() {
     emit("change", all)
   }
   open.value = !open.value
-}
-
-function clear() {
-  emit("change", [])
 }
 
 function onCheck(e) {
