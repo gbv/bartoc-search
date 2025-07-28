@@ -56,11 +56,7 @@ const emit = defineEmits(["change"])
 const selected = toRef(props, "selected")
 
 function toggleOpen() {
-  // Default select all on first open if none selected
-  if (!open.value && selected.value.length === 0) {
-    const all = props.values.map(v => v.value)
-    emit("change", all)
-  }
+  emit("change", [])
   open.value = !open.value
 }
 

@@ -36,6 +36,7 @@ import NavBreadcrumb from "../components/NavBreadcrumb.vue"
 import SearchControls from "../components/SearchControls.vue"
 import SearchResults from "../components/SearchResults.vue"
 import SearchSidebar from "../components/SearchSidebar.vue"
+import _ from "lodash"
 
 // Router hooks
 const router = useRouter()
@@ -71,6 +72,18 @@ const sortKey = computed(() => {
   return `${s} ${o}`
 })
 
+function cleanQuery(query) {
+  const { filters, ...newQuery } = query
+
+  const parsed = filters ? JSON.parse(filters) : {}
+
+  const kept = _.pickBy(parsed, v => _.isArray(v) && v.length > 0)
+
+  return _.isEmpty(kept)
+    ? newQuery
+    : { ...newQuery, filters: JSON.stringify(kept) }
+}
+
 async function fetchResults(query) {
   loading.value = true
   errorMessage.value = null
@@ -101,13 +114,15 @@ async function fetchResults(query) {
     const facets = data?.facets || {}
     
     results.value = { docs, numFound, facets}
-    
+
+    // Clean up query filters
+    const cleanedQuery = cleanQuery(query)
 
     // sync the URL
     router.replace({
       name: route.name,
       query: { 
-        ...query,
+        ...cleanedQuery,
         limit: String(limit.value),
       },
     })
@@ -161,8 +176,7 @@ function loadMore() {
 function onFilterChange(filters) {
   activeFilters.value = filters
   limit.value = pageSize
-  const newQuery = { ...route.query, filters: JSON.stringify(filters) }
-  router.push({ name: "search", query: newQuery })
+  const newQuery = { ...route.query, filters: JSON.stringify(filters)}
   fetchResults(newQuery)
 }
 

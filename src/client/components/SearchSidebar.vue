@@ -30,6 +30,7 @@ const emit = defineEmits(["update-filters"])
 const { facets, activeFilters } = toRefs(props)
 
 function updateFilter(field, values) {
+  console.log(values)
   const newFilters = { ...activeFilters.value, [field]: values }
   emit("update-filters", newFilters)
 }
