@@ -1,3 +1,16 @@
+import { promises as fsPromises } from "fs";
+import * as path from "path";
+
+export type JSONObject =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: JSONObject }
+  | JSONObject[];
+
+
+
 /** Convert bytes → megabytes with one decimal place */
 export function formatBytes(bytes: number): string {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
@@ -54,3 +67,19 @@ export function parseFacetFields(
   }
   return out;
 }
+
+/**
+ * Asynchronously read & parse any JSON file.
+ * @param filePath Relative or absolute path to a .json file
+ * @returns The parsed JSON object of type T (default unknown)
+ */
+export async function loadJSONFile<T = unknown>(
+  filePath: string
+): Promise<T> {
+  const fullPath = path.resolve(process.cwd(), filePath);
+  const data = await fsPromises.readFile(fullPath, "utf8");
+  // JSON.parse returns unknown, which we then assert to T
+  return JSON.parse(data) as T;
+  
+}
+

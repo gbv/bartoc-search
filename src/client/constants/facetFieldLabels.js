@@ -1,7 +1,8 @@
 // src/constants/facetFieldLabels.js
 
-import { LANGUAGE_NAMES } from "./languageMapping"
+// import { SUPPORTED_LANGUAGES } from "../../server/types/lang"
 import { KOS_TYPE_LABELS} from "./kosTypeMapping"
+import SUPPORTED_LANGUAGES from "../../../data/supported_languages.json"
 
 /**
  * Human-friendly labels for facet field keys.
@@ -10,7 +11,7 @@ import { KOS_TYPE_LABELS} from "./kosTypeMapping"
 export const FACET_FIELD_LABELS = {
   languages_ss:  {
     label: "Language",
-    values: LANGUAGE_NAMES,
+    values: SUPPORTED_LANGUAGES,
   },
   // add more facet fields here as needed
   type_uri: {
