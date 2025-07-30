@@ -175,6 +175,7 @@ function loadMore() {
   const newQuery = {
     ...baseQuery,
     limit: newLimit,
+    filters: JSON.stringify(activeFilters),
   }
   router.push({ name: "search", query: newQuery })
   fetchResults(newQuery)
