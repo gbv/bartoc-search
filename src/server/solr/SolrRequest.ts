@@ -1,4 +1,5 @@
 import axios from "axios";
+import qs from "qs";
 import config from "../conf/conf";
 
 const SOLR_BASE_URL = config.solr.url || "http://localhost:8983/solr";
@@ -21,7 +22,7 @@ export abstract class SolrRequest {
 
   protected abstract httpQueryParams(): Record<
     string,
-    string | number | boolean
+    string | number | boolean | string[]
   >;
 
   protected abstract httpBody(): unknown;
@@ -41,6 +42,8 @@ export abstract class SolrRequest {
         method,
         headers,
         params,
+        paramsSerializer: (p) =>
+          qs.stringify(p, { arrayFormat: "repeat", encode: true }),
         data,
       });
 

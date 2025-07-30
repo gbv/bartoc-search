@@ -73,7 +73,6 @@ app.get("/api/status", getStatus);
 // Search endpoint
 // ==========================
 app.get("/api/search", async (req: Request, res: Response): Promise<void> => {
-  // Read params
   const { search = "", 
     field = "allfields", 
     limit = 10, 
@@ -81,21 +80,18 @@ app.get("/api/search", async (req: Request, res: Response): Promise<void> => {
     order = SortOrder.ASC , 
     filters = "{}" } = req.query as SearchParams;
 
-    // filters = "{\"languages_ss\":[\"en\"]}" } 
-
   // Building the query
   const query = LuceneQuery.fromText(search, field, 3, 2).operator("OR");
 
-  // 3) Parse it into an object
-    let parsedFilters: Record<string,string[]> = {};
-    try {
-      parsedFilters = JSON.parse(filters);
-      console.log("parsed filters object:", parsedFilters);
-      //    e.g. parsed filters object: { languages_ss: ["en"] }
-    } catch (e) {
-      console.error("Failed to parse filters JSON:", filters, "with error ", e);
-      // you may want to return a 400 here
-    }
+  // Parse the filters field into an object
+  let parsedFilters: Record<string,string[]> = {};
+  try {
+    parsedFilters = JSON.parse(filters);
+    // e.g. parsed filters object: { languages_ss: ["en"] }
+  } catch (e) {
+    // TODO return a proper error here
+    config.error?.("Failed to parse filters JSON:", filters, "with error " + e);
+  }
 
   try {
     const solrQueryBuilder = new SolrClient()
@@ -106,15 +102,12 @@ app.get("/api/search", async (req: Request, res: Response): Promise<void> => {
       .for(query)
       .sort(sort, order)
       .limit(limit);
-      
+   
     
-    // 1) Dynamically register each facet field
+    // Dynamically register each facet field
     Object.keys(parsedFilters).forEach((uiKey) => {
-
-      // ask Solr to compute facets on that field
       op.facetOnField(uiKey);
 
-      // 2) Apply your OR-filter for all selected values
       const values = parsedFilters[uiKey];
       if (values.length == 1) {
         op.filter(
@@ -133,14 +126,13 @@ app.get("/api/search", async (req: Request, res: Response): Promise<void> => {
     const solrRes = await op.execute<SolrSearchResponse>();
     const rawFacetFields = solrRes.facet_counts?.facet_fields;
     const facets = parseFacetFields(rawFacetFields);
-    
+
     // Serialize answer for the client
     res.json({
       response: solrRes.response,
       facets
     });
 
-    // res.json(solrRes); */
   } catch (error) {
     console.error("Solr query failed:", error);
     res.status(500).json({
