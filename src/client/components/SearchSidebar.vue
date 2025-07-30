@@ -1,6 +1,7 @@
-// SearchSidebar.vue
 <template>
-  <div class="sidebar">
+  <div 
+    v-if="!loading && !errorMessage"
+    class="sidebar">
     <div class="facets__wrapper">
       <div
         v-for="field in Object.keys(FACET_FIELD_LABELS)"
@@ -9,8 +10,10 @@
         <FacetGroup
           :field="field"
           :values="facets[field] || []"
-          :selected="activeFilters[field] || []"
-          @change="val => updateFilter(field, val)" />
+          :selected="state.activeFilters[field] || []"
+          :open="state.openGroups[field] || false"
+          @toggle="toggleGroup(field)"
+          @change="val => updateFilters(field, val)" />
       </div>
     </div>
   </div>
@@ -20,20 +23,23 @@
 import { toRefs } from "vue"
 import FacetGroup from "./FacetGroup.vue"
 import { FACET_FIELD_LABELS } from "../constants/facetFieldLabels.js"
+import { state, updateFilter, toggleGroup } from "../stores/filters.js"
+
 
 const props = defineProps({
   facets: { type: Object, required: true },
-  activeFilters: { type: Object, default: () => ({}) },
+  loading:{ type: Boolean, default: false },
+  errorMessage: { type: String,  default: "" },
 })
 
 const emit = defineEmits(["update-filters"])
-const { facets, activeFilters } = toRefs(props)
+const { facets, loading, errorMessage } = toRefs(props)
 
-function updateFilter(field, values) {
-  console.log(values)
-  const newFilters = { ...activeFilters.value, [field]: values }
-  emit("update-filters", newFilters)
+function updateFilters(field, values) {
+  updateFilter(field, values)
+  emit("update-filters", { [field]: values })
 }
+
 </script>
 
 <style scoped>

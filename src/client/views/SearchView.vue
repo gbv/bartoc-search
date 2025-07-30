@@ -22,7 +22,7 @@
     <aside class="search-sidebar__area">
       <SearchSidebar
         :facets="results.facets || {}"
-        :active-filters="activeFilters"
+        :loading="loading"
         @update-filters="onFilterChange" />
     </aside>
   </section>
@@ -37,6 +37,7 @@ import SearchControls from "../components/SearchControls.vue"
 import SearchResults from "../components/SearchResults.vue"
 import SearchSidebar from "../components/SearchSidebar.vue"
 import _ from "lodash"
+import { state, setFilters, resetFiltersRequested, clearFilters, resetOpenGroups } from "../stores/filters.js"
 
 // Router hooks
 const router = useRouter()
@@ -46,7 +47,7 @@ const route = useRoute()
 const pageSize = 10
 // drive everything off this `limit`
 const limit = ref(Number(route.query.limit) || pageSize)
-const activeFilters = ref({})
+const activeFilters = state.activeFilters
 
 // results & state
 const results = ref({ docs: [], numFound: 0 })
@@ -94,7 +95,7 @@ async function fetchResults(query) {
       start: 0,
       rows: String(limit.value),
     })
-    
+
     const res = await fetch(`${import.meta.env.BASE_URL}api/search?${params}`)
 
     if (!res.ok) {
@@ -113,7 +114,10 @@ async function fetchResults(query) {
     const numFound = response?.numFound || 0
     const facets = data?.facets || {}
     
-    results.value = { docs, numFound, facets}
+    // After (only update docs & numFound, and merge facets):
+    results.value.docs      = docs
+    results.value.numFound  = numFound
+    results.value.facets = facets
 
     // Clean up query filters
     const cleanedQuery = cleanQuery(query)
@@ -136,7 +140,9 @@ async function fetchResults(query) {
 
 function onSearch(query) {
   limit.value = pageSize
-
+  resetFiltersRequested()
+  clearFilters()
+  resetOpenGroups()
   fetchResults(query, { append: false })
 }
 
@@ -149,6 +155,7 @@ function onSort({ sort, order }) {
     ...baseQuery,
     sort,
     order,
+    filters: JSON.stringify(activeFilters),
   }
 
   router.push({ name: "search", query: newQuery })
@@ -174,9 +181,9 @@ function loadMore() {
 }
 
 function onFilterChange(filters) {
-  activeFilters.value = filters
   limit.value = pageSize
-  const newQuery = { ...route.query, filters: JSON.stringify(filters)}
+  setFilters({ ...activeFilters, ...filters })
+  const newQuery = { ...route.query, filters: JSON.stringify(activeFilters)}
   fetchResults(newQuery)
 }
 

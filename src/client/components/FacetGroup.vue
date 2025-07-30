@@ -17,7 +17,6 @@
         class="options-container">
         <ul
           v-if="open"
-          key="list"
           class="options-list">
           <li
             v-for="facet in values"
@@ -37,27 +36,32 @@
 </template>
 
 <script setup>
-import { ref, toRef } from "vue"
+import { toRef } from "vue"
 import { FACET_FIELD_LABELS } from "../constants/facetFieldLabels.js"
+import { state, markFilterRequested } from "../stores/filters.js"
 
 const props = defineProps({
   field: { type: String, required: true },
   values: { type: Array, required: true },
   selected: { type: Array, default: () => [] },
+  open: {type: Boolean},
 })
 
 const facetItemTitle = FACET_FIELD_LABELS[props.field].label
 const facetValues = FACET_FIELD_LABELS[props.field].values || {}
 
-// local open/closed state
-const open = ref(false)
 
-const emit = defineEmits(["change"])
+const emit = defineEmits(["change", "toggle"])
 const selected = toRef(props, "selected")
 
 function toggleOpen() {
-  emit("change", [])
-  open.value = !open.value
+  emit("toggle", !props.open)
+  if (!state.filtersRequested[props.field]) {
+    // mark it so we won’t do this again for the same field
+    markFilterRequested(props.field)
+    // trigger a “change” with an empty array to fetch its buckets
+    emit("change", [])
+  }
 }
 
 function onCheck(e) {
