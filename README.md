@@ -250,6 +250,10 @@ JSON object like the following example `/api/search?search=Film&sort=modified&or
           "790",
           "80"
         ],
+        "ddc_root_ss": [
+          "7",
+          "8",
+        ],
         "id": "http://bartoc.org/en/node/1297",
         "languages_ss": [
           "en",
@@ -307,6 +311,7 @@ JSON object like the following example `/api/search?search=Film&sort=modified&or
 | └─ `alt_labels_ss`       | array   | Alternative labels (multilingual).                       |
 | └─ `languages_ss`        | array   | Languages available (ISO codes).                         |
 | └─ `ddc_ss`              | array   | Dewey Decimal Classification notations.                  |
+| └─ `ddc_root_ss`         | array   | Dewey Decimal Classification notations at root level.    |
 | └─ `publisher_id`        | string  | Identifier URI of the publishing organization.           |
 | └─ `publisher_label`     | string  | Human‐readable label of the publishing organization.     |
 | └─ `subject_uri`         | array   | URIs of subject classifications.                         |

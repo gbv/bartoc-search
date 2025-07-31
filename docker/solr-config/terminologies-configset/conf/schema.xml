@@ -79,6 +79,8 @@
 
     <!-- Multivalued Dewey Decimal Classifications -->
     <field name="ddc_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="ddc_root_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+
 
     <!-- Date fields -->
     <field name="created_dt" type="pdate" indexed="true" stored="true"/>
