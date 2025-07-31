@@ -109,6 +109,9 @@ app.get("/api/search", async (req: Request, res: Response): Promise<void> => {
       op.facetOnField(uiKey);
 
       const values = parsedFilters[uiKey];
+
+      if (!values || values.length === 0) return;
+
       if (values.length == 1) {
         op.filter(
           new SearchFilter(uiKey)
