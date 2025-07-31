@@ -158,10 +158,13 @@ export function transformConceptSchemeToSolr(
   doc: ConceptSchemeDocument,
   nKosConceptsDocs: ConceptZodType[],
 ): SolrDocument {
+
+  const DDC_SCHEME = "http://dewey.info/class/";
+
   const solrDoc: Partial<SolrDocument> = {
     alt_labels_ss: doc.altLabel?.und || [],
     created_dt: doc.created,
-    ddc_ss: doc.subject?.flatMap((s) => s.notation || []) || [],
+    ddc_ss: doc.subject?.filter(s => s.uri.startsWith(DDC_SCHEME)).flatMap((s) => s.notation || []) || [],
     id: doc.uri,
     languages_ss: doc.languages || [],
     modified_dt: doc.modified,
