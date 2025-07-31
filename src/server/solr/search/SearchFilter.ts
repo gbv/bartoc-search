@@ -67,13 +67,15 @@ export class SearchFilter {
     let param = "";
     if (this._field) {
       if (this._equalsValue) {
-        param = `${this._field}:${this.genericValueToString(this._equalsValue)}`;
+        // single‐value exact match
+        const raw = this.genericValueToString(this._equalsValue);
+        const v = this.escapeAndQuote(raw);
+        param = `${this._field}:${v}`;
       } else if (this._orsValue.length) {
-        param = `${this._field}:(${this._orsValue
-          .map((value: string | number | Date) =>
-            this.genericValueToString(value),
-          )
-          .join(" OR ")})`;
+        const terms = this._orsValue
+        .map(v => this.escapeAndQuote(this.genericValueToString(v)))
+        .join(" OR ");
+        param =`${this._field}:(${terms})`;
       } else {
         const fromValue: string =
           this.genericValueToString(this._fromValue) || "*";
@@ -83,4 +85,19 @@ export class SearchFilter {
     }
     return param;
   }
+
+  /**
+ * Escape any Solr special characters in a term,
+ * then wrap in quotes if the original contains whitespace.
+ */
+  public escapeAndQuote(term: string): string {
+    // 1) First, escape all special characters with a backslash
+    const escaped = term.replace(
+      /([+\-!(){}[\]^"~*?:\\/])/g,
+      "\\$1"
+    );
+    // 2) If it contains whitespace, wrap in quotes
+    return /\s/.test(escaped) ? `"${escaped}"` : escaped;
+  }
+
 }

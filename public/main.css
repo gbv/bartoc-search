@@ -1,3 +1,5 @@
+
+/* Imports of component-specific styles */
 @import './colors.css';
 @import './footer.css';
 @import './header.css';
@@ -5,6 +7,14 @@
 @import './search.css';
 @import './search-controls.css';
 
+
+/* Global resets at top, outside any selector */
+*, *::before, *::after {
+  box-sizing: border-box;
+} 
+
+
+/* Root custom properties and base rules */
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -18,8 +28,12 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
 }
 
+
+
+/* Global element rules */
 a {
   font-weight: 500;
   color: #2b6cb0;

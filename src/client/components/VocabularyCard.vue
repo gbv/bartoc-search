@@ -67,7 +67,6 @@ const props = defineProps({
   sort: { type: String },
 })
 
-// const props = defineProps<{ doc: SolrDocument; lang?: SupportedLang }>()
 
 // Helper to safely access dynamic fields on SolrDocument
 /** @type {Object.<string, any>} */

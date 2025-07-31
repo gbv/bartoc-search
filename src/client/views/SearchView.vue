@@ -5,54 +5,39 @@
 
   <section class="search-view__wrapper">
     <SearchBar
+      class="search-bar__area"
       :search-on-mounted="true"
       @search="onSearch" />
     <SearchControls
+      class="search-controls__area"
       :model-value="sortKey"
       @sort="onSort" />
-    <div
-      v-if="errorMessage"
-      class="search-view__error">
-      {{ errorMessage }}
-    </div>
-    <div
-      v-else-if="loading"
-      class="search-view__loading">
-      Loading...
-    </div>
-    <section
-      v-else
-      class="search-view">
-      <div
-        v-if="results.docs.length === 0"
-        class="search-view__no-results">
-        No results.
-      </div>
-      <VocabularyCard
-        v-for="doc in results.docs"
-        :key="doc.id"
-        :doc="doc" 
-        :sort="sortBy" />
-    </section>
-
-    <!-- Load more button -->
-    <button
-      v-if="results.docs.length < results.numFound && !loading"
-      class="button"
-      @click="loadMore">
-      More results
-    </button>
+    <SearchResults
+      class="search-results__area"
+      :results="results"
+      :loading="loading"
+      :error-message="errorMessage"
+      :sort="sortBy"
+      @load-more="loadMore" />
+    <aside class="search-sidebar__area">
+      <SearchSidebar
+        :facets="results.facets || {}"
+        :loading="loading"
+        @update-filters="onFilterChange" />
+    </aside>
   </section>
 </template>
 
 <script setup>
 import { ref, computed } from "vue"
 import { useRouter, useRoute } from "vue-router"
-import VocabularyCard from "../components/VocabularyCard.vue"
 import SearchBar from "../components/SearchBar.vue"
 import NavBreadcrumb from "../components/NavBreadcrumb.vue"
 import SearchControls from "../components/SearchControls.vue"
-
+import SearchResults from "../components/SearchResults.vue"
+import SearchSidebar from "../components/SearchSidebar.vue"
+import _ from "lodash"
+import { state, setFilters, resetFiltersRequested, clearFilters, resetOpenGroups } from "../stores/filters.js"
 
 // Router hooks
 const router = useRouter()
@@ -62,13 +47,13 @@ const route = useRoute()
 const pageSize = 10
 // drive everything off this `limit`
 const limit = ref(Number(route.query.limit) || pageSize)
+const activeFilters = state.activeFilters
 
 // results & state
 const results = ref({ docs: [], numFound: 0 })
 const loading = ref(true)
 const errorMessage = ref(null)
 const sortBy = ref()
-
 
 // Computed summary for breadcrumb data
 const summary = computed(() => ({
@@ -88,6 +73,18 @@ const sortKey = computed(() => {
   return `${s} ${o}`
 })
 
+function cleanQuery(query) {
+  const { filters, ...newQuery } = query
+
+  const parsed = filters ? JSON.parse(filters) : {}
+
+  const kept = _.pickBy(parsed, v => _.isArray(v) && v.length > 0)
+
+  return _.isEmpty(kept)
+    ? newQuery
+    : { ...newQuery, filters: JSON.stringify(kept) }
+}
+
 async function fetchResults(query) {
   loading.value = true
   errorMessage.value = null
@@ -98,27 +95,38 @@ async function fetchResults(query) {
       start: 0,
       rows: String(limit.value),
     })
-    
+
     const res = await fetch(`${import.meta.env.BASE_URL}api/search?${params}`)
 
     if (!res.ok) {
       throw new Error(`Status ${res.status}`)
     }
 
-    const resp = (await res.json()).response || {}
+    const data = (await res.json()) || {}
+
+    const response = data.response 
     // Ensure docs is always an array of objects
-    const docs = Array.isArray(resp?.docs)
-      ? resp.docs.filter(doc => doc && typeof doc === "object")
+    const docs = Array.isArray(response?.docs)
+      ? response.docs.filter(doc => doc && typeof doc === "object")
       : []
 
-    const numFound = resp?.numFound || 0
-    results.value = { docs, numFound}
+
+    const numFound = response?.numFound || 0
+    const facets = data?.facets || {}
+    
+    // After (only update docs & numFound, and merge facets):
+    results.value.docs      = docs
+    results.value.numFound  = numFound
+    results.value.facets = facets
+
+    // Clean up query filters
+    const cleanedQuery = cleanQuery(query)
 
     // sync the URL
     router.replace({
       name: route.name,
       query: { 
-        ...query,
+        ...cleanedQuery,
         limit: String(limit.value),
       },
     })
@@ -132,7 +140,9 @@ async function fetchResults(query) {
 
 function onSearch(query) {
   limit.value = pageSize
-
+  resetFiltersRequested()
+  clearFilters()
+  resetOpenGroups()
   fetchResults(query, { append: false })
 }
 
@@ -145,6 +155,7 @@ function onSort({ sort, order }) {
     ...baseQuery,
     sort,
     order,
+    filters: JSON.stringify(activeFilters),
   }
 
   router.push({ name: "search", query: newQuery })
@@ -164,11 +175,37 @@ function loadMore() {
   const newQuery = {
     ...baseQuery,
     limit: newLimit,
+    filters: JSON.stringify(activeFilters),
   }
   router.push({ name: "search", query: newQuery })
   fetchResults(newQuery)
 }
 
+function onFilterChange(filters) {
+  limit.value = pageSize
+  setFilters({ ...activeFilters, ...filters })
+  const newQuery = { ...route.query, filters: JSON.stringify(activeFilters)}
+  fetchResults(newQuery)
+}
+
 </script>
+
+<style scoped>
+.search-view__wrapper  {
+  display: grid;
+  grid-column-gap: 30px;
+  grid-template-areas: "search-bar search-bar" 
+  "search-controls search-controls"
+  "results sidebar";
+  margin: 0 auto;
+}
+
+.search-bar__area { grid-area: search-bar; }
+.search-results__area    { grid-area: results; }
+.search-controls__area   { grid-area: search-controls; }
+.search-sidebar__area    { grid-area: sidebar; }
+
+</style>
+
 
 

@@ -9,9 +9,9 @@ function onSearch(query) {
 <template>
   <section class="hero__wrapper">
     <section class="hero">
-      <h1 class="hero__title">
+      <h2 class="hero__title">
         BARTOC Search <small class="hero__subtitle">prototype for testing</small>
-      </h1>
+      </h2>
       <div class="hero__search">
         <SearchBar @search="onSearch" />
       </div>

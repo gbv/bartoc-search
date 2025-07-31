@@ -1,5 +1,5 @@
 <template>
-  <div class="search-controls">
+  <div class="search-controls__wrapper">
     <!-- Sort dropdown -->
     <form
       class="search-sort"

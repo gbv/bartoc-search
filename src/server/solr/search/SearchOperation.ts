@@ -119,8 +119,15 @@ export class SearchOperation extends SolrRequest {
     return this;
   }
 
-  protected httpQueryParams(): Record<string, string | number | boolean> {
-    const params: Record<string, string | number | boolean> = {
+  /** 
+   * Expose the internal Solr query params for logging/debugging 
+   */
+  public getQueryParams(): Record<string,string|number|boolean|string[]> {
+    return this.httpQueryParams();
+  }
+
+  protected httpQueryParams(): Record<string, string | number | boolean | string[]> {
+    const params: Record<string, string | number | boolean | string[] > = {
       wt: this._wt,
     };
 
@@ -146,17 +153,17 @@ export class SearchOperation extends SolrRequest {
 
     // Multiple fq
     if (this._fq.length) {
-      this._fq.forEach((fq, index) => {
-        params[`fq${index}`] = fq.toHttpQueryStringParameter();
+      const fqArr: string[] = [];
+      this._fq.forEach((fq) => {
+        fqArr.push(fq.toHttpQueryStringParameter());
       });
+      params["fq"] = fqArr;
     }
 
     // Multiple facet.field
     if (this._facetOnField.length) {
       params.facet = true;
-      this._facetOnField.forEach((field, index) => {
-        params[`facet.field${index}`] = field;
-      });
+      params["facet.field"] = [...this._facetOnField];
     }
 
     if (this._fl.length) {
