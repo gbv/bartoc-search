@@ -1,3 +1,16 @@
+import fs from "fs";
+import readline from "readline";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
+import path from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const NDJSON_FILE_PATH = join(__dirname, "../../../data/ddc100.concepts.ndjson");
+const JSON_FILE_PATH = join(__dirname, "../../../data/ddc-labels.json");
+
+
+
 /**
  * Represents a JSKOS subject entry.
  */
@@ -74,3 +87,54 @@ export function extractDdc(
 
   return notations;
 }
+
+/** The shape of code→labels map */
+export interface DdcLabelsMap {
+  [code: string]: string
+}
+
+let cache: DdcLabelsMap | null = null;
+
+
+/**
+ * Load (and cache) DDC labels from an NDJSON dump.
+ * @param ndjsonPath - Path to NDJSON file.
+ */
+export async function getDdcLabels(
+  ndjsonPath: string = path.resolve(NDJSON_FILE_PATH)
+): Promise<DdcLabelsMap> {
+  if (cache) return cache;
+
+  const map: DdcLabelsMap = {};
+  const fileStream = fs.createReadStream(ndjsonPath, { encoding: "utf8" });
+
+  const rl = readline.createInterface({
+    input: fileStream,
+    crlfDelay: Infinity,
+  });
+
+  for await (const line of rl) {
+    if (!line.trim()) continue;
+    try {
+      const rec = JSON.parse(line);
+      // pick the primary notation code
+      const code = Array.isArray(rec.notation) ? rec.notation[0] : undefined;
+      const labels = rec.prefLabel["en"];
+      if (typeof code === "string" && labels && typeof labels === "string") {
+        map[code] = labels;
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  cache = map;
+
+
+  fs.writeFileSync(JSON_FILE_PATH, JSON.stringify(map, null, 2), "utf8");
+  console.log(`✅ Wrote ${Object.keys(map).length} DDC labels to ${JSON_FILE_PATH}`);
+
+  return map;
+}
+
+

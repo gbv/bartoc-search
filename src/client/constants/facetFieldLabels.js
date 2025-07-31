@@ -3,6 +3,7 @@
 // import { SUPPORTED_LANGUAGES } from "../../server/types/lang"
 import { KOS_TYPE_LABELS} from "./kosTypeMapping"
 import SUPPORTED_LANGUAGES from "../../../data/supported_languages.json"
+import DDC_LABELS from "../../../data/ddc-labels.json"
 
 /**
  * Human-friendly labels for facet field keys.
@@ -13,10 +14,10 @@ export const FACET_FIELD_LABELS = {
     label: "Knowledge Organization System Type",
     values: KOS_TYPE_LABELS,
   },
-  /* ddc_ss: {
+  ddc_root_ss: {
     label: "Dewey Decimal Classification",
-    values: {},
-  }, */
+    values: DDC_LABELS,
+  },
   languages_ss:  {
     label: "Language",
     values: SUPPORTED_LANGUAGES,

@@ -3,6 +3,7 @@
  * @property {string} id
  * @property {string[]} alt_labels_ss
  * @property {string[]} ddc_ss
+ * @property {string[]} ddc_root_ss
  * @property {string[]} languages_ss
  * @property {string} publisher_id
  * @property {string} publisher_label
