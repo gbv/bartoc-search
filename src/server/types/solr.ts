@@ -22,6 +22,7 @@ export interface SolrDocument
   alt_labels_ss: string[];
   created_dt?: string;
   ddc_ss: string[];
+  ddc_root_ss: string[]
   id: string;
   languages_ss: string[];
   modified_dt?: string;

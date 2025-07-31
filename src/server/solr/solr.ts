@@ -17,6 +17,7 @@ import { fileURLToPath } from "url";
 import { ConceptSchemeDocument } from "../types/jskos";
 import { sleep } from "../utils/utils";
 import readline from "readline";
+import { extractDdc } from "../utils/ddc";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -158,13 +159,11 @@ export function transformConceptSchemeToSolr(
   doc: ConceptSchemeDocument,
   nKosConceptsDocs: ConceptZodType[],
 ): SolrDocument {
-
-  const DDC_SCHEME = "http://dewey.info/class/";
-
   const solrDoc: Partial<SolrDocument> = {
     alt_labels_ss: doc.altLabel?.und || [],
     created_dt: doc.created,
-    ddc_ss: doc.subject?.filter(s => s.uri.startsWith(DDC_SCHEME)).flatMap((s) => s.notation || []) || [],
+    ddc_ss: extractDdc(doc.subject, { rootLevel: false }),
+    ddc_root_ss: extractDdc(doc.subject, { rootLevel: true }),
     id: doc.uri,
     languages_ss: doc.languages || [],
     modified_dt: doc.modified,
@@ -215,6 +214,8 @@ export function transformConceptSchemeToSolr(
 
   return solrDoc as SolrDocument;
 }
+
+
 
 // TODO better this with OOP approach in SolrClient.ts, this is minimal and not well done
 export async function addDocuments(coreName: string, docs: SolrDocument[]) {
