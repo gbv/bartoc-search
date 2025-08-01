@@ -24,7 +24,7 @@ export const FACET_FIELD_LABELS = {
     label: "Language",
     values: SUPPORTED_LANGUAGES,
   },
-  listedIn_ss: {
+  listed_in_ss: {
     label: "Listed in",
     values: LISTED_IN_LABELS,
   },

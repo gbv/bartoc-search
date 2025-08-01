@@ -101,7 +101,7 @@
     <field name="title_search" type="text" indexed="true" stored="false" multiValued="true"/>
 
     <!-- Multivalued Listed in field -->
-    <field name="listedIn_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="listed_in_ss" type="string" indexed="true" stored="true" multiValued="true"/>
 
     <!-- Multivalued Api types  -->
     <field name="api_type_ss" type="string" indexed="true" stored="true" multiValued="true"/>

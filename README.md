@@ -260,7 +260,7 @@ JSON object like the following example `/api/search?search=Film&sort=modified&or
           "fi",
           "sv"
         ],
-        "listedIn_ss": [
+        "listed_in_ss": [
           "http://bartoc.org/en/node/241",
           "http://bartoc.org/en/node/241",
           "http://bartoc.org/en/node/241",
@@ -317,7 +317,7 @@ JSON object like the following example `/api/search?search=Film&sort=modified&or
 | └─ `languages_ss`        | array   | Languages available (ISO codes).                         |
 | └─ `api_type_ss`         | array   | One or more API-type identifiers (e.g. jskos, skosmos, sparql) denoting the service/interface protocols supported by the record.|
 | └─ `api_url_ss`          | array   | One or more fully qualified endpoint URLs corresponding to each api_type_ss entry.|
-| └─ `listedIn_ss`         | array   | Registry URIs of the scheme(s) in which the concept is listed (SKOS inScheme).|
+| └─ `listed_in_ss`        | array   | Registry URIs of the scheme(s) that include this vocabulary.|
 | └─ `ddc_ss`              | array   | Dewey Decimal Classification notations.                  |
 | └─ `ddc_root_ss`         | array   | Dewey Decimal Classification notations at root level.    |
 | └─ `publisher_id`        | string  | Identifier URI of the publishing organization.           |

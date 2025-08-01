@@ -21,10 +21,10 @@ Each field is configured with `indexed`, `stored`, and `multiValued` attributes 
 | ----------------- | -------- | :-----: | :----: | :---------: | ----------------------------------------------------------- |
 | `_version_`       | `long`   |    ✓    |    ✓   |      No     | Solr internal version for optimistic concurrency.           |
 | `id`              | `string` |    ✓    |    ✓   |      No     | Unique document identifier (URI).                           |
-| `api_type_ss`     | `string` |    ✓    |    ✓   |     Yes     | One or more API-type identifiers (e.g. jskos, skosmos, sparql) denoting the service/interface protocols supported by the record.                                                  |
-| `api_url_ss`      | `string` |    x    |    ✓   |     Yes     | One or more fully qualified endpoint URLs corresponding to each api_type_ss entry.                                                    |
+| `api_type_ss`     | `string` |    ✓    |    ✓   |     Yes     | One or more API-type identifiers (e.g. jskos, skosmos, sparql) denoting the service/interface protocols supported by the record.|
+| `api_url_ss`      | `string` |    x    |    ✓   |     Yes     | One or more fully qualified endpoint URLs corresponding to each api_type_ss entry.|
 | `languages_ss`    | `string` |    ✓    |    ✓   |     Yes     | ISO language codes of the document.                         |
-| `listedIn_ss`     | `string` |    ✓    |    ✓   |     Yes     | Registry URIs of the scheme(s) in which the concept is listed (SKOS inScheme).|
+| `listed_in_ss`    | `string` |    ✓    |    ✓   |     Yes     | Registry URIs of the scheme(s) that include this vocabulary.|
 | `publisher_label` | `text`   |    ✓    |    ✓   |      No     | Name of the publishing organization (full-text).            |
 | `publisher_id`    | `string` |    ✓    |    ✓   |      No     | Identifier URI of the publisher.                            |
 | `alt_labels_ss`   | `string` |    ✓    |    ✓   |     Yes     | Alternative labels (multilingual).                          |

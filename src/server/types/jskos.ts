@@ -53,6 +53,10 @@ export interface ConceptSchemeDocument {
 
   modified: string;
 
+  partOf?: Array<{
+    uri: string;
+  }>;
+
   prefLabel: {
     [lang: string]: string;
   };
