@@ -13,6 +13,11 @@ export const conceptSchemeZodSchema = z.object({
       street: z.string().optional(),
     })
     .optional(),
+  API: z.array(z.object({ 
+    type: z.string().url(), 
+    url: z.string().url(),
+  }))
+    .optional(),
   FORMAT: z.array(z.object({ uri: z.string().url() })).optional(),
   altLabel: z.record(z.array(z.string())).optional(),
   contributor: z

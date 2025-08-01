@@ -13,6 +13,11 @@ export interface ConceptSchemeDocument {
     street?: string;
   };
 
+  API?: Array<{
+    type: string;
+    url: string;
+  }>;
+
   FORMAT?: Array<{
     uri: string;
   }>;

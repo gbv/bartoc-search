@@ -5,6 +5,7 @@ import { KOS_TYPE_LABELS} from "./kosTypeMapping"
 import SUPPORTED_LANGUAGES from "../../../data/supported_languages.json"
 import DDC_LABELS from "../../../data/ddc-labels.json"
 import LISTED_IN_LABELS from "../../../data/listedIn.json"
+import API_TYPES_LABELS from "../../../data/bartoc-api-types-labels.json"
 
 /**
  * Human-friendly labels for facet field keys.
@@ -26,6 +27,10 @@ export const FACET_FIELD_LABELS = {
   listedIn_ss: {
     label: "Listed in",
     values: LISTED_IN_LABELS,
+  },
+  api_type_ss: {
+    label: "Api Type", 
+    values: API_TYPES_LABELS,
   },
   publisher_label: {
     label: "Publisher",

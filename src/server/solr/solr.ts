@@ -161,7 +161,8 @@ export function transformConceptSchemeToSolr(
 ): SolrDocument {
   const solrDoc: Partial<SolrDocument> = {
     alt_labels_ss: doc.altLabel?.und || [],
-    created_dt: doc.created,
+    api_type_ss: doc.API?.map(a => a.type),
+    api_url_ss:  doc.API?.map(a => a.url),
     ddc_ss: extractDdc(doc.subject, { rootLevel: false }),
     ddc_root_ss: extractDdc(doc.subject, { rootLevel: true }),
     id: doc.uri,

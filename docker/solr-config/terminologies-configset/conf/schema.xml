@@ -103,6 +103,10 @@
     <!-- Multivalued Listed in field -->
     <field name="listedIn_ss" type="string" indexed="true" stored="true" multiValued="true"/>
 
+    <!-- Multivalued Api types  -->
+    <field name="api_type_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="api_url_ss"  type="string" indexed="false" stored="true" multiValued="true"/>
+
   </fields>
 
   <!-- ================================================
