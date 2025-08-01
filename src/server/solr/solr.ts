@@ -166,6 +166,7 @@ export function transformConceptSchemeToSolr(
     ddc_root_ss: extractDdc(doc.subject, { rootLevel: true }),
     id: doc.uri,
     languages_ss: doc.languages || [],
+    listedIn_ss: doc.subject?.flatMap(s => (s.inScheme ?? []).map(i => i.uri)) || [],          
     modified_dt: doc.modified,
     publisher_id: doc.publisher?.[0]?.uri,
     publisher_label: doc.publisher?.[0]?.prefLabel?.en || "",

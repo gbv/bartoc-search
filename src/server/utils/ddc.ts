@@ -3,22 +3,13 @@ import readline from "readline";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import path from "path";
+import { JskosSubject } from "../types/jskos";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const NDJSON_FILE_PATH = join(__dirname, "../../../data/ddc100.concepts.ndjson");
 const JSON_FILE_PATH = join(__dirname, "../../../data/ddc-labels.json");
 
-
-
-/**
- * Represents a JSKOS subject entry.
- */
-export interface JskosSubject {
-  uri:      string;
-  notation?: string[];
-  inScheme?: { uri: string }[];
-}
 
 /**
  * Options to control how DDC notations are extracted.

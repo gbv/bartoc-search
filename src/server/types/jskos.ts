@@ -120,3 +120,14 @@ export interface ConceptDocument {
     type: string[];
   }>;
 }
+
+/**
+ * Represents a JSKOS subject entry.
+ */
+export interface JskosSubject {
+  inScheme?: Array<{
+      uri: string;
+    }>;
+  notation?: string[];
+  uri: string;
+}

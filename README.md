@@ -260,6 +260,11 @@ JSON object like the following example `/api/search?search=Film&sort=modified&or
           "fi",
           "sv"
         ],
+        "listedIn_ss": [
+          "http://bartoc.org/en/node/241",
+          "http://bartoc.org/en/node/241",
+          "http://bartoc.org/en/node/241",
+        ],
         "modified_dt": "2025-07-14T14:00:00.900Z",
         "publisher_id": "http://viaf.org/viaf/126520961",
         "publisher_label": "Helsingin yliopisto, Kirjasto",
@@ -310,6 +315,7 @@ JSON object like the following example `/api/search?search=Film&sort=modified&or
 | └─ `description_en`      | string  | Short English description or abstract.                   |
 | └─ `alt_labels_ss`       | array   | Alternative labels (multilingual).                       |
 | └─ `languages_ss`        | array   | Languages available (ISO codes).                         |
+| └─ `listedIn_ss`         | array   | Registry URIs of the scheme(s) in which the concept is listed (SKOS inScheme).   |
 | └─ `ddc_ss`              | array   | Dewey Decimal Classification notations.                  |
 | └─ `ddc_root_ss`         | array   | Dewey Decimal Classification notations at root level.    |
 | └─ `publisher_id`        | string  | Identifier URI of the publishing organization.           |
