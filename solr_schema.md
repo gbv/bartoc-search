@@ -26,6 +26,8 @@ Each field is configured with `indexed`, `stored`, and `multiValued` attributes 
 | `api_url_ss`      | `string` |    x    |    ✓   |     Yes     | One or more fully qualified endpoint URLs corresponding to each api_type_ss entry.|
 | `languages_ss`    | `string` |    ✓    |    ✓   |     Yes     | ISO language codes of the document.                         |
 | `listed_in_ss`    | `string` |    ✓    |    ✓   |     Yes     | Registry URIs of the scheme(s) that include this vocabulary.|
+| `license_type_ss` | `string` |    ✓    |    ✓   |     Yes     | A multivalued list of machine-readable license identifiers (URIs) under which the resource is released. |
+| `license_group_ss`| `string` |    ✓    |    ✓   |     Yes     | Canonical license category labels (e.g. “CC BY”, “CC BY-SA”, “Public Domain”, “WTFPL”) derived by mapping individual license URIs to a standardized group.|
 | `publisher_label` | `text`   |    ✓    |    ✓   |      No     | Name of the publishing organization (full-text).            |
 | `publisher_id`    | `string` |    ✓    |    ✓   |      No     | Identifier URI of the publisher.                            |
 | `alt_labels_ss`   | `string` |    ✓    |    ✓   |     Yes     | Alternative labels (multilingual).                          |

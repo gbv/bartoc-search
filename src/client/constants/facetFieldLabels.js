@@ -37,6 +37,10 @@ export const FACET_FIELD_LABELS = {
     label: "Access Type",
     values: ACCESS_TYPE_LABELS,
   },
+  license_group_ss: {
+    label: "License Group",
+    values: {},
+  },
   publisher_label: {
     label: "Publisher",
     values: {},

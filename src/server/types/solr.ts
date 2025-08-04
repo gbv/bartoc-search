@@ -28,6 +28,8 @@ export interface SolrDocument
   ddc_root_ss: string[]
   id: string;
   languages_ss: string[];
+  license_type_ss?: string[];
+  license_group_ss?: string[];
   listed_in_ss?: string[];
   modified_dt?: string;
   publisher_id: string;

@@ -14,14 +14,16 @@ import { AxiosError } from "axios";
 import { writeFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
-import { ConceptSchemeDocument } from "../types/jskos";
-import { sleep } from "../utils/utils";
+import { ConceptSchemeDocument, LicenseEntry, LicenseResult } from "../types/jskos";
+import { sleep, loadJSONFile } from "../utils/utils";
 import readline from "readline";
 import { extractDdc } from "../utils/ddc";
+import _ from "lodash";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const LAST_INDEX_FILE = join(__dirname, "../../../data/lastIndexedAt.txt");
+const LICENSE_GROUPS: LicenseEntry[] = await loadJSONFile<LicenseEntry[]>("/data/license-groups.json");
 
 const solr = new SolrClient();
 
@@ -168,6 +170,7 @@ export function transformConceptSchemeToSolr(
     ddc_root_ss: extractDdc(doc.subject, { rootLevel: true }),
     id: doc.uri,
     languages_ss: doc.languages || [],
+    license_type_ss: doc.license?.map(lt => lt.uri) || [],
     listed_in_ss: doc.partOf?.map(l => l.uri) || [],        
     modified_dt: doc.modified,
     publisher_id: doc.publisher?.[0]?.uri,
@@ -181,6 +184,18 @@ export function transformConceptSchemeToSolr(
     url_s: doc.url,
   };
 
+  // Extracting License groups
+  if (solrDoc.license_type_ss?.length) {
+    const grouped = solrDoc.license_type_ss.map((u) => ({
+      uri: u,
+      ...mapLicenseUri(u)
+    }));
+
+    solrDoc.license_group_ss = grouped.map((g) => g.label);
+
+  } else {
+    solrDoc.license_group_ss = [];
+  } 
 
   // type solr fields for labels are to be addressed separately as currently the soruce is a ndJson file
   const nKosConceptsDoc = nKosConceptsDocs.find(
@@ -213,11 +228,25 @@ export function transformConceptSchemeToSolr(
       solrDoc[`type_label_${lang}` as `type_label_${SupportedLang}`] =
         type_label;
     }
+
   }
 
   return solrDoc as SolrDocument;
 }
 
+
+/**
+ * Find the license group for a given URI.
+ * @param uri The license URI to map
+ * @returns An object with `key` and `label`
+ */
+function mapLicenseUri(uri: string): LicenseResult {
+  const entry = _.find(LICENSE_GROUPS, (item) => _.includes(item.uris, uri));
+  if (entry) {
+    return { key: entry.key, label: entry.label };
+  }
+  return { key: "unknown", label: "Other / Unspecified" };
+}
 
 
 // TODO better this with OOP approach in SolrClient.ts, this is minimal and not well done

@@ -76,7 +76,7 @@ export function parseFacetFields(
 export async function loadJSONFile<T = unknown>(
   filePath: string
 ): Promise<T> {
-  const fullPath = path.resolve(process.cwd(), filePath);
+  const fullPath = path.join(process.cwd(), filePath);
   const data = await fsPromises.readFile(fullPath, "utf8");
   // JSON.parse returns unknown, which we then assert to T
   return JSON.parse(data) as T;

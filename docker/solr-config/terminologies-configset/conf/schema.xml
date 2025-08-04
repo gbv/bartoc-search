@@ -110,6 +110,9 @@
     <!-- Access type  -->
     <field name="access_type_ss" type="string" indexed="true" stored="true" multiValued="true"/>
 
+    <!-- License type  -->
+    <field name="license_type_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="license_group_ss" type="string" indexed="true" stored="true" multiValued="true"/>
 
   </fields>
 

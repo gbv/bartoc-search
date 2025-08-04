@@ -51,6 +51,10 @@ export interface ConceptSchemeDocument {
   // Made optional
   languages?: string[];
 
+  license?: Array<{
+    uri: string;
+  }>;
+
   modified: string;
 
   partOf?: Array<{
@@ -139,4 +143,16 @@ export interface JskosSubject {
     }>;
   notation?: string[];
   uri: string;
+}
+
+
+export interface LicenseEntry {
+  key: string
+  label: string
+  uris: string[]
+}
+
+export interface LicenseResult {
+  key: string
+  label: string
 }

@@ -315,6 +315,8 @@ JSON object like the following example `/api/search?search=Film&sort=modified&or
 | └─ `description_en`      | string  | Short English description or abstract.                   |
 | └─ `alt_labels_ss`       | array   | Alternative labels (multilingual).                       |
 | └─ `languages_ss`        | array   | Languages available (ISO codes).                         |
+| └─ `license_type_ss`     | array   | A multivalued list of machine-readable license identifiers (URIs) under which the resource is released. |
+| └─ `license_group_ss`    | array   | Canonical license category labels (e.g. “CC BY”, “CC BY-SA”, “Public Domain”, “WTFPL”) derived by mapping individual license URIs to a standardized group.|
 | └─ `access_type_ss`      | string  | URIs denoting the resource’s access policy (e.g. Freely available, Registration required, License required )|
 | └─ `api_type_ss`         | array   | One or more API-type identifiers (e.g. jskos, skosmos, sparql) denoting the service/interface protocols supported by the record.|
 | └─ `api_url_ss`          | array   | One or more fully qualified endpoint URLs corresponding to each api_type_ss entry.|
