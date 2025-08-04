@@ -162,7 +162,8 @@ export function transformConceptSchemeToSolr(
   nKosConceptsDocs: ConceptZodType[],
 ): SolrDocument {
   const solrDoc: Partial<SolrDocument> = {
-    access_type_ss: doc.ACCESS?.map(a => a.uri) || [],   
+    access_type_ss: doc.ACCESS?.map(a => a.uri) || [],
+    address_country_s: doc.ADDRESS?.country, 
     alt_labels_ss: doc.altLabel?.und || [],
     api_type_ss: doc.API?.map(a => a.type),
     api_url_ss:  doc.API?.map(a => a.url),

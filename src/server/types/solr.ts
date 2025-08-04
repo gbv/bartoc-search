@@ -20,6 +20,7 @@ export interface SolrDocument
     DescriptionFields,
     TypeLabelFields {
   access_type_ss?: string[];
+  address_country_s?: string;
   alt_labels_ss: string[];
   api_type_ss: string[];
   api_url_ss: string[];

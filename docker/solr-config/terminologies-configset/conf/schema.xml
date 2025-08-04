@@ -114,6 +114,10 @@
     <field name="license_type_ss" type="string" indexed="true" stored="true" multiValued="true"/>
     <field name="license_group_ss" type="string" indexed="true" stored="true" multiValued="true"/>
 
+    <!-- ADDRESS fields  -->
+    <field name="address_country_s" type="string" indexed="true" stored="true"/>
+
+
   </fields>
 
   <!-- ================================================
