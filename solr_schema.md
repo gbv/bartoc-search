@@ -21,7 +21,7 @@ Each field is configured with `indexed`, `stored`, and `multiValued` attributes 
 | ----------------- | -------- | :-----: | :----: | :---------: | ----------------------------------------------------------- |
 | `_version_`       | `long`   |    ✓    |    ✓   |      No     | Solr internal version for optimistic concurrency.           |
 | `id`              | `string` |    ✓    |    ✓   |      No     | Unique document identifier (URI).                           |
-| `access_type_s`   | `string` |    ✓    |    ✓   |      No     | URI denoting the resource’s access policy (e.g. Freely available, Registration required, License required )|
+| `access_type_ss`  | `string` |    ✓    |    ✓   |      Yes    | URIs denoting the resource’s access policy (e.g. Freely available, Registration required, License required )|
 | `api_type_ss`     | `string` |    ✓    |    ✓   |     Yes     | One or more API-type identifiers (e.g. jskos, skosmos, sparql) denoting the service/interface protocols supported by the record.|
 | `api_url_ss`      | `string` |    x    |    ✓   |     Yes     | One or more fully qualified endpoint URLs corresponding to each api_type_ss entry.|
 | `languages_ss`    | `string` |    ✓    |    ✓   |     Yes     | ISO language codes of the document.                         |

@@ -19,7 +19,7 @@ export interface SolrDocument
   extends TitleFields,
     DescriptionFields,
     TypeLabelFields {
-  access_type_s?: string;
+  access_type_ss?: string[];
   alt_labels_ss: string[];
   api_type_ss: string[];
   api_url_ss: string[];

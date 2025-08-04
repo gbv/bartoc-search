@@ -41,3 +41,4 @@ config/config.json
 Thumbs.db
 
 
+data/lastIndexedAt.txt

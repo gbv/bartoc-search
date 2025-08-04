@@ -33,7 +33,7 @@ export const FACET_FIELD_LABELS = {
     label: "Api Type", 
     values: API_TYPE_LABELS,
   },
-  access_type_s: {
+  access_type_ss: {
     label: "Access Type",
     values: ACCESS_TYPE_LABELS,
   },
