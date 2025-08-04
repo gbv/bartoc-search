@@ -17,29 +17,30 @@ This document explains the design decisions and structure of the Solr schema use
 
 ### Field Definitions
 Each field is configured with `indexed`, `stored`, and `multiValued` attributes to match our data model and search requirements:
-| Field             | Type     | Indexed | Stored | MultiValued | Description                                                 |
-| ----------------- | -------- | :-----: | :----: | :---------: | ----------------------------------------------------------- |
-| `_version_`       | `long`   |    ✓    |    ✓   |      No     | Solr internal version for optimistic concurrency.           |
-| `id`              | `string` |    ✓    |    ✓   |      No     | Unique document identifier (URI).                           |
-| `access_type_ss`  | `string` |    ✓    |    ✓   |      Yes    | URIs denoting the resource’s access policy (e.g. Freely available, Registration required, License required )|
-| `api_type_ss`     | `string` |    ✓    |    ✓   |     Yes     | One or more API-type identifiers (e.g. jskos, skosmos, sparql) denoting the service/interface protocols supported by the record.|
-| `api_url_ss`      | `string` |    x    |    ✓   |     Yes     | One or more fully qualified endpoint URLs corresponding to each api_type_ss entry.|
-| `languages_ss`    | `string` |    ✓    |    ✓   |     Yes     | ISO language codes of the document.                         |
-| `listed_in_ss`    | `string` |    ✓    |    ✓   |     Yes     | Registry URIs of the scheme(s) that include this vocabulary.|
-| `license_type_ss` | `string` |    ✓    |    ✓   |     Yes     | A multivalued list of machine-readable license identifiers (URIs) under which the resource is released. |
-| `license_group_ss`| `string` |    ✓    |    ✓   |     Yes     | Canonical license category labels (e.g. “CC BY”, “CC BY-SA”, “Public Domain”, “WTFPL”) derived by mapping individual license URIs to a standardized group.|
-| `publisher_label` | `text`   |    ✓    |    ✓   |      No     | Name of the publishing organization (full-text).            |
-| `publisher_id`    | `string` |    ✓    |    ✓   |      No     | Identifier URI of the publisher.                            |
-| `alt_labels_ss`   | `string` |    ✓    |    ✓   |     Yes     | Alternative labels (multilingual).                          |
-| `ddc_ss`          | `string` |    ✓    |    ✓   |     Yes     | Dewey Decimal Classification notations.                     |
-| `ddc_root_ss`     | `string` |    ✓    |    ✓   |     Yes     | Dewey Decimal Classification notations only at root level.  |
-| `created_dt`      | `pdate`  |    ✓    |    ✓   |      No     | Document creation timestamp (ISO 8601).                     |
-| `modified_dt`     | `pdate`  |    ✓    |    ✓   |      No     | Last modification timestamp (ISO 8601).                     |
-| `start_year_i`    | `pint`   |    ✓    |    ✓   |      No     | Start year (integer) of the classification.                 |
-| `url_s`           | `string` |    ×    |    ✓   |      No     | Canonical URL for more information (not indexed).           |
-| `title_sort`      | `string` |    ✓    |    ✓   |      No     | Sortable, un-analyzed title.                                |
-| `type_uri`        | `string` |    ✓    |    ✓   |     Yes     | SKOS/NKOS type URIs (e.g. ConceptScheme, thesaurus).        |
-| `title_search`    | `text`   |    ✓    |    ×   |     Yes     | Dedicated, multi-valued title field for title-only queries. |
+| Field              | Type     | Indexed | Stored | MultiValued | Description                                                 |
+| -----------------  | -------- | :-----: | :----: | :---------: | ----------------------------------------------------------- |
+| `_version_`        | `long`   |    ✓    |    ✓   |      No     | Solr internal version for optimistic concurrency.           |
+| `id`               | `string` |    ✓    |    ✓   |      No     | Unique document identifier (URI).                           |
+| `access_type_ss`   | `string` |    ✓    |    ✓   |      Yes    | URIs denoting the resource’s access policy (e.g. Freely available, Registration required, License required )|
+| `address_country_s`| `string` |    ✓    |    ✓   |      No     | Country of origin|
+| `api_type_ss`      | `string` |    ✓    |    ✓   |     Yes     | One or more API-type identifiers (e.g. jskos, skosmos, sparql) denoting the service/interface protocols supported by the record.|
+| `api_url_ss`       | `string` |    x    |    ✓   |     Yes     | One or more fully qualified endpoint URLs corresponding to each api_type_ss entry.|
+| `languages_ss`     | `string` |    ✓    |    ✓   |     Yes     | ISO language codes of the document.                         |
+| `listed_in_ss`     | `string` |    ✓    |    ✓   |     Yes     | Registry URIs of the scheme(s) that include this vocabulary.|
+| `license_type_ss`  | `string` |    ✓    |    ✓   |     Yes     | A multivalued list of machine-readable license identifiers (URIs) under which the resource is released. |
+| `license_group_ss` | `string` |    ✓    |    ✓   |     Yes     | Canonical license category labels (e.g. “CC BY”, “CC BY-SA”, “Public Domain”, “WTFPL”) derived by mapping individual license URIs to a standardized group.|
+| `publisher_label`  | `text`   |    ✓    |    ✓   |      No     | Name of the publishing organization (full-text).            |
+| `publisher_id`     | `string` |    ✓    |    ✓   |      No     | Identifier URI of the publisher.                            |
+| `alt_labels_ss`    | `string` |    ✓    |    ✓   |     Yes     | Alternative labels (multilingual).                          |
+| `ddc_ss`           | `string` |    ✓    |    ✓   |     Yes     | Dewey Decimal Classification notations.                     |
+| `ddc_root_ss`      | `string` |    ✓    |    ✓   |     Yes     | Dewey Decimal Classification notations only at root level.  |
+| `created_dt`       | `pdate`  |    ✓    |    ✓   |      No     | Document creation timestamp (ISO 8601).                     |
+| `modified_dt`      | `pdate`  |    ✓    |    ✓   |      No     | Last modification timestamp (ISO 8601).                     |
+| `start_year_i`     | `pint`   |    ✓    |    ✓   |      No     | Start year (integer) of the classification.                 |
+| `url_s`            | `string` |    ×    |    ✓   |      No     | Canonical URL for more information (not indexed).           |
+| `title_sort`       | `string` |    ✓    |    ✓   |      No     | Sortable, un-analyzed title.                                |
+| `type_uri`         | `string` |    ✓    |    ✓   |     Yes     | SKOS/NKOS type URIs (e.g. ConceptScheme, thesaurus).        |
+| `title_search`     | `text`   |    ✓    |    ×   |     Yes     | Dedicated, multi-valued title field for title-only queries. |
 
 
 ### Dynamic Fields
