@@ -107,6 +107,10 @@
     <field name="api_type_ss" type="string" indexed="true" stored="true" multiValued="true"/>
     <field name="api_url_ss"  type="string" indexed="false" stored="true" multiValued="true"/>
 
+    <!-- Access type  -->
+    <field name="access_type_s" type="string" indexed="true" stored="true" multiValued="false"/>
+
+
   </fields>
 
   <!-- ================================================

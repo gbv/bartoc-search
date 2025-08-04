@@ -160,6 +160,7 @@ export function transformConceptSchemeToSolr(
   nKosConceptsDocs: ConceptZodType[],
 ): SolrDocument {
   const solrDoc: Partial<SolrDocument> = {
+    access_type_s: doc.ACCESS?.[0]?.uri,
     alt_labels_ss: doc.altLabel?.und || [],
     api_type_ss: doc.API?.map(a => a.type),
     api_url_ss:  doc.API?.map(a => a.url),
@@ -170,7 +171,7 @@ export function transformConceptSchemeToSolr(
     listed_in_ss: doc.partOf?.map(l => l.uri) || [],        
     modified_dt: doc.modified,
     publisher_id: doc.publisher?.[0]?.uri,
-    publisher_label: doc.publisher?.[0]?.prefLabel?.en || "",
+    publisher_label: doc.publisher?.[0]?.prefLabel?.en,
     start_year_i: doc.startDate ? parseInt(doc.startDate) : undefined,
     subject_uri: doc.subject?.map((s) => s.uri) || [],
     subject_notation: doc.subject?.flatMap((s) => s.notation || []) || [],
