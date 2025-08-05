@@ -83,22 +83,27 @@ A dedicated text field optimized for title-only searches.
 The following example illustrates a typical Solr document indexed in the bartoc-search core:
 
 ```json
-  {"created_dt":"2020-12-16T19:00:11.362Z",
-  "ddc_ss": ["7","700","338"],
-  "ddc_root_ss": ["7","3"],
-  "id": "http://bartoc.org/en/node/20087",
-  "languages_ss": ["ko"],
-  "modified_dt": "2024-12-04T18:31:25.903Z",
-  "publisher_id": "http://viaf.org/viaf/132970081",
-  "publisher_label": "Statistics Korea", 
-  "start_year_i": 2010, 
-  "subject_uri": ["http://dewey.info/class/7/e23/","http://dewey.info/class/700/e23/","http://dewey.info/class/338/e23/","http://eurovoc.europa.eu/1367","http://eurovoc.europa.eu/c_d6e5f3ab"], 
-  "subject_notation": ["7","700","338","1367","c_d6e5f3ab"], 
-  "subject_scheme": ["http://bartoc.org/en/node/241","http://bartoc.org/en/node/241","http://bartoc.org/en/node/241","http://eurovoc.europa.eu/100141","http://eurovoc.europa.eu/100141"], 
-  "type_uri": ["http://www.w3.org/2004/02/skos/core#ConceptScheme","http://w3id.org/nkos/nkostype#classification_schema"], 
-  "url_s":"http://kssc.kostat.go.kr/", 
-  "title_sort":"Contents Industry Classification", 
-  "title_en":"Contents Industry Classification", 
-  "description_en":"- To support the policy, the Ministry of Culture decided to unify the promotion policy of the content industry following the reorganization of the government in 2008.\n- Referring to international standards prepared by the OECD (Content Media Industry Classification) and UNESCO (2009 UNESCO Framework for Cultural Statistics) and reflecting the characteristics of domestic industries\n- Includes music, film and video, animation industry, broadcasting industry, game industry, performance industry, craft and design industry, advertising industry, information service industry, intellectual property management, etc.","title_ko":"콘텐츠산업분류", 
-  "description_und":"- 2008년 정부조직개편에 따라 문화부에서 콘텐츠산업 진흥정책을 일원화하기로 결정됨에 따라 해당 정책을 지원하기 위해 작성\n- OECD(콘텐츠미디어산업분류)와 UNESCO(2009 UNESCO Framework for Cultural Statistics)가 작성한 국제기준을 참조하고 국내산업의 특성을 반영하여 작성\n- 음악, 영화·비디오, 애니메이션 산업, 방송 산업, 게임 산업, 공연 산업, 공예품 및 디자인업, 광고 산업, 정보서비스업, 지적재산권 관리업 등을 포함","_version_":1839157696917405700}
+  {
+    "access_type_ss":["http://bartoc.org/en/Access/Free"],
+    "address_country_s":"Canada",
+    "alt_labels_ss":["Classification system for films"], 
+    "format_type_ss":["http://bartoc.org/en/Format/Online"],
+    "created_dt":"2015-04-20T11:08:00Z", 
+    "id":"http://bartoc.org/en/node/1313",
+    "languages_ss":["en","fr"],
+    "modified_dt":"2019-04-23T15:50:00Z",
+    "publisher_id":"http://viaf.org/viaf/151723291",
+    "publisher_label":"Bibliothèque et Archives nationales du Québec",
+    "subject_uri":["http://dewey.info/class/7/e23/","http://dewey.info/class/791/e23/"],
+    "subject_scheme":["http://bartoc.org/en/node/241","http://bartoc.org/en/node/241"],
+    "type_uri":["http://www.w3.org/2004/02/skos/core#ConceptScheme","http://w3id.org/nkos/nkostype#classification_schema"], 
+    "url_s":"https://www.banq.qc.ca/collections/collection_universelle/musique_films/classification_enregistrements_films/index.html?language_id=3#films", 
+    "format_group_ss":["Online"], 
+    "title_sort":"Film Classification Plan", 
+    "title_en":"Film Classification Plan", 
+    "description_en":"\"Fiction films are grouped into eight major cinematographic genres to help you choose from the collection. The films are sorted in alphabetical order according to each genre.\"", 
+    "title_und":"Plan de classement des films", 
+    "description_und":"\"Les films de fiction sont regroupés en huit grands genres cinématographiques afin de vous aider à faire un choix parmi la collection. Sous chaque genre, les films sont classés selon l’ordre alphabétique des réalisateurs.\"", 
+    "_version_":1839600375931338800
+    }
 ```

@@ -200,19 +200,36 @@ Performs a search query against the Solr index, returning results along with que
 
 All query parameters are optional.
 
-| Name | Type | Description |
-| --- | --- | --- | --- |
-| `search` | string | Search string |
-| `field` | string | specific field to search in |
-| `limit` | integer | Number of results to return (default: `10`) |
-| `sort` | string | Field to sort by (e.g. `relevance`, `created`, `modified`, `title`) (default: relevance) |
-| `order` | string | Sort direction: asc or desc (default: `desc`) |
 
+| Name            | Type     |  Default     | Description                                                                                  |
+| --------------- | -------- |  ----------- | -------------------------------------------------------------------------------------------- |
+| **search**      | `string` |  —           | Full-text search terms (e.g. `Film`).                                                        |
+| **limit**       | `number` | `10`        | Maximum number of results to return.                                                         |
+| **sort**        | `string` |`relevance` | Sort field (e.g. `relevance`, `created`, `modified`).                                        |
+| **order**       | `string` | `desc`      | Sort direction: `asc` or `desc`.                                                             |
+| **start**       | `number` |  `0`         | Zero-based index of first result to return (for paging).                                     |
+| **rows**        | `number` |  matches `limit` if omitted | Alias for `limit` — number of rows to return.                                            |
+| **filters**     | `object` |  `{}`        | Facet filters as a JSON object. Each key is a multivalued field name, value is an array of selected facet values. |
+
+### Faceted Filtering
+
+You can drive fine‐grained filtering by passing any of your multivalued facet fields in the `filters` object. Behind the scenes, each non-empty array translates to a Solr facet query like:
+
+ `/api/search?search=Film&sort=modified&order=desc&filters={"format_group_ss":[],"api_type_ss":[]}`
+
+
+- `filters={"format_group_ss":[],"api_type_ss":[]}`  
+  - Filters on the **format group** and **API type** facets.  
+  - An empty array (`[]`) means “no restriction” on that facet.  
+  - To restrict, supply one or more facet values, for example:  
+    ```json
+    filters={
+      "format_group_ss":["PDF","RDF"],
+      "api_type_ss":["jskos","sparql"]
+    }
+    ```
 
 #### Response
-
-JSON object like the following example `/api/search?search=Film&sort=modified&order=desc`:
-
   
 ```json
 {
@@ -295,7 +312,26 @@ JSON object like the following example `/api/search?search=Film&sort=modified&or
       },
       // …more documents…
     ]
-  }
+  },
+  "facet_counts": {
+  "facet_queries":  {},
+  "facet_fields": {
+    "format_group_ss": [
+      "PDF", 1024,
+      "Online", 2287,
+      "RDF",  629,
+      …
+    ],
+    "license_group_ss": [
+      "CC BY", 211,
+      "Public Domain", 210,
+      "CC BY-ND", 84,
+      …
+    ]
+  },
+  "facet_ranges":    {},
+  "facet_intervals": {},
+  "facet_heatmaps":  {}
 }
 ```
 
@@ -336,6 +372,24 @@ JSON object like the following example `/api/search?search=Film&sort=modified&or
 | └─ `modified_dt`         | string  | Last modification timestamp (ISO-8601).                  |
 | └─ `_version_`           | integer | Solr internal version number for optimistic concurrency. |
 
+
+
+#### Available Facet Fields
+
+| Field | Description |
+| --- | --- |
+| `type_uri` | SKOS/NKOS type URIs (e.g. ConceptScheme, thesaurus).|
+| `ddc_root_ss` | Dewey Decimal root notations |
+| `languages_ss` | ISO language codes |
+| `api_type_ss` | API protocol identifiers (e.g. jskos, sparql, skosmos) |
+| `listed_in_ss` | Registry URIs of the concept scheme(s) |
+| `access_type_ss` | Access policy URIs |
+| `license_type_ss` | Machine-readable license URIs |
+| `license_group_ss` | Canonical license group labels (e.g. “CC BY”, “Public Domain”, “WTFPL”) |
+| `format_type_ss` | Machine-readable format URIs |
+| `format_group_ss` | Canonical format group labels (e.g. “PDF”, “HTML”, “Spreadsheet”) |
+| `address_country_s` | Country of origin |
+| `publisher_label` | Name of the publisher |
 
 
 #### Error Responses
