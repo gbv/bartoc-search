@@ -78,7 +78,9 @@ app.get("/api/search", async (req: Request, res: Response): Promise<void> => {
     limit = 10, 
     sort = SortField.RELEVANCE, 
     order = SortOrder.ASC , 
-    filters = "{}" } = req.query as SearchParams;
+    filters = "{}",
+    format = ""
+  } = req.query as SearchParams;
 
   // Building the query
   const query = LuceneQuery.fromText(search, field, 3, 2).operator("OR");
@@ -102,6 +104,11 @@ app.get("/api/search", async (req: Request, res: Response): Promise<void> => {
       .for(query)
       .sort(sort, order)
       .limit(limit);
+
+    // If we're only returning JSKOS, ask Solr to only fetch the `fullrecord` field
+    if (format === "jskos") {
+      op.field("fullrecord");
+    }
    
     
     // Dynamically register each facet field
@@ -126,7 +133,25 @@ app.get("/api/search", async (req: Request, res: Response): Promise<void> => {
     });
 
     // Execute query
+    //
     const solrRes = await op.execute<SolrSearchResponse>();
+
+    // JSKOS output requested
+    if (format === "jskos") {
+      const jskosRecords = (solrRes.response.docs || []).map((doc) => {
+        try {
+          return JSON.parse(doc.fullrecord);
+        } catch {
+          return doc.fullrecord; // in case it wasn't valid JSON
+        }
+      });
+      res.json({
+        ...jskosRecords,
+      });
+      return;
+    }
+
+    // If we reach here, we are returning Solr's raw response
     const rawFacetFields = solrRes.facet_counts?.facet_fields;
     const facets = parseFacetFields(rawFacetFields);
 

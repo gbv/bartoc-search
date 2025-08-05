@@ -210,6 +210,7 @@ All query parameters are optional.
 | **start**       | `number` |  `0`         | Zero-based index of first result to return (for paging).                                     |
 | **rows**        | `number` |  matches `limit` if omitted | Alias for `limit` — number of rows to return.                                            |
 | **filters**     | `object` |  `{}`        | Facet filters as a JSON object. Each key is a multivalued field name, value is an array of selected facet values. |
+| **format**     | `string` |  -        |If set to `jskos`, returns the raw JSKOS records (from the `fullrecord` field) instead of the usual Solr docs.  |
 
 ### Faceted Filtering
 

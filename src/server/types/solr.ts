@@ -145,6 +145,7 @@ export interface SearchParams {
   sort?: SortField;
   order?: SortOrder;
   filters?: string;
+  format?: string; // e.g. "jskos",
 }
 
 /**
