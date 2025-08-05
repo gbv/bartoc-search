@@ -25,6 +25,8 @@ Each field is configured with `indexed`, `stored`, and `multiValued` attributes 
 | `address_country_s`| `string` |    ✓    |    ✓   |      No     | Country of origin|
 | `api_type_ss`      | `string` |    ✓    |    ✓   |     Yes     | One or more API-type identifiers (e.g. jskos, skosmos, sparql) denoting the service/interface protocols supported by the record.|
 | `api_url_ss`       | `string` |    x    |    ✓   |     Yes     | One or more fully qualified endpoint URLs corresponding to each api_type_ss entry.|
+| `format_type_ss`   | `array`  |    x    |    ✓   |     Yes     | A multivalued list of machine-readable format identifiers (URIs) describing the available resource formats. |
+| `format_group_ss`  | `array`  |    x    |    ✓   |     Yes     | Canonical format category labels (e.g. “PDF”, “HTML”, “Spreadsheet”) derived by mapping individual format URIs to standardized groups. |
 | `languages_ss`     | `string` |    ✓    |    ✓   |     Yes     | ISO language codes of the document.                         |
 | `listed_in_ss`     | `string` |    ✓    |    ✓   |     Yes     | Registry URIs of the scheme(s) that include this vocabulary.|
 | `license_type_ss`  | `string` |    ✓    |    ✓   |     Yes     | A multivalued list of machine-readable license identifiers (URIs) under which the resource is released. |

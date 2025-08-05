@@ -41,6 +41,10 @@ export const FACET_FIELD_LABELS = {
     label: "License Group",
     values: {},
   },
+  format_group_ss: {
+    label: "Format Group",
+    values: {},
+  },
   address_country_s: {
     label: "Country",
     values: {}, 

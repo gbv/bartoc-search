@@ -27,6 +27,8 @@ export interface SolrDocument
   created_dt?: string;
   ddc_ss: string[];
   ddc_root_ss: string[]
+  format_type_ss?: string[];
+  format_group_ss?: string[];
   id: string;
   languages_ss: string[];
   license_type_ss?: string[];

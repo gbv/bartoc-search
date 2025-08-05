@@ -14,16 +14,17 @@ import { AxiosError } from "axios";
 import { writeFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
-import { ConceptSchemeDocument, LicenseEntry, LicenseResult } from "../types/jskos";
-import { sleep, loadJSONFile } from "../utils/utils";
+import { ConceptSchemeDocument, GroupEntry } from "../types/jskos";
+import { sleep, loadJSONFile, mapUriToGroups, extractGroups } from "../utils/utils";
 import readline from "readline";
 import { extractDdc } from "../utils/ddc";
-import _ from "lodash";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const LAST_INDEX_FILE = join(__dirname, "../../../data/lastIndexedAt.txt");
-const LICENSE_GROUPS: LicenseEntry[] = await loadJSONFile<LicenseEntry[]>("/data/license-groups.json");
+const LICENSE_GROUPS: GroupEntry[] = await loadJSONFile<GroupEntry[]>("/data/license-groups.json");
+const FORMAT_GROUPS: GroupEntry[] = await loadJSONFile<GroupEntry[]>("/data/format-groups.json");
+
 
 const solr = new SolrClient();
 
@@ -169,6 +170,8 @@ export function transformConceptSchemeToSolr(
     api_url_ss:  doc.API?.map(a => a.url),
     ddc_ss: extractDdc(doc.subject, { rootLevel: false }),
     ddc_root_ss: extractDdc(doc.subject, { rootLevel: true }),
+    format_type_ss: doc.FORMAT?.map(f => f.uri) || [],
+    created_dt: doc.created,
     id: doc.uri,
     languages_ss: doc.languages || [],
     license_type_ss: doc.license?.map(lt => lt.uri) || [],
@@ -186,17 +189,10 @@ export function transformConceptSchemeToSolr(
   };
 
   // Extracting License groups
-  if (solrDoc.license_type_ss?.length) {
-    const grouped = solrDoc.license_type_ss.map((u) => ({
-      uri: u,
-      ...mapLicenseUri(u)
-    }));
+  extractGroups(solrDoc, "license_type_ss", "license_group_ss", LICENSE_GROUPS, mapUriToGroups);
+  // Extracting Format groups
+  extractGroups(solrDoc, "format_type_ss",  "format_group_ss",  FORMAT_GROUPS,  mapUriToGroups);
 
-    solrDoc.license_group_ss = grouped.map((g) => g.label);
-
-  } else {
-    solrDoc.license_group_ss = [];
-  } 
 
   // type solr fields for labels are to be addressed separately as currently the soruce is a ndJson file
   const nKosConceptsDoc = nKosConceptsDocs.find(
@@ -233,20 +229,6 @@ export function transformConceptSchemeToSolr(
   }
 
   return solrDoc as SolrDocument;
-}
-
-
-/**
- * Find the license group for a given URI.
- * @param uri The license URI to map
- * @returns An object with `key` and `label`
- */
-function mapLicenseUri(uri: string): LicenseResult {
-  const entry = _.find(LICENSE_GROUPS, (item) => _.includes(item.uris, uri));
-  if (entry) {
-    return { key: entry.key, label: entry.label };
-  }
-  return { key: "unknown", label: "Other / Unspecified" };
 }
 
 

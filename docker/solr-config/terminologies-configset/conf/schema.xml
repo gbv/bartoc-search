@@ -117,6 +117,12 @@
     <!-- ADDRESS fields  -->
     <field name="address_country_s" type="string" indexed="true" stored="true"/>
 
+    <!-- FORMAT type  -->
+    <field name="format_type_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="format_group_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+
+
+
 
   </fields>
 

@@ -156,3 +156,15 @@ export interface LicenseResult {
   key: string
   label: string
 }
+
+
+export interface GroupEntry {
+  key: string
+  label: string
+  uris: string[]
+}
+
+export interface GroupResult {
+  key: string
+  label: string
+}

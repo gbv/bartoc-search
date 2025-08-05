@@ -1,5 +1,8 @@
 import { promises as fsPromises } from "fs";
 import * as path from "path";
+import { GroupEntry, GroupResult } from "../types/jskos";
+import _ from "lodash";
+
 
 export type JSONObject =
   | string
@@ -83,3 +86,46 @@ export async function loadJSONFile<T = unknown>(
   
 }
 
+/**
+ * Find the group for a given URI. Used for license URIs, formats, etc.
+ * @param uri The URI to be mapped
+ * @param jsonGroups The array of GroupEntry objects to search in
+ * @returns An object with `key` and `label`
+ */
+export function mapUriToGroups(uri: string, jsonGroups: GroupEntry[]): GroupResult {
+  const entry = _.find(jsonGroups, (item) => _.includes(item.uris, uri));
+  if (entry) {
+    return { key: entry.key, label: entry.label };
+  }
+  return { key: "unknown", label: "Other / Unspecified" };
+}
+
+
+
+type SolrField = Record<string, unknown>;
+
+/**
+ * Extracts groups from a document and maps them to the target field.
+ * @param doc The document to extract groups from
+ * @param sourceField The field in the document containing URIs
+ * @param targetField The field to store the mapped group labels
+ * @param groups The array of GroupEntry objects to map against
+ * @param mapFn Function to map URIs to group labels
+ */
+export function extractGroups(
+  doc: SolrField,
+  sourceField: string,
+  targetField: string,
+  groups: GroupEntry[],
+  mapFn: (uri: string, groups: GroupEntry[]) => GroupResult
+) {
+  
+  const values: string[] = Array.isArray(doc[sourceField]) ? doc[sourceField] as string[] : [];
+  const grouped = values.map((u) => ({
+      uri: u,
+      ...mapFn(u, groups)
+    }));
+
+  doc[targetField] = grouped.map((g) => g.label);
+
+}

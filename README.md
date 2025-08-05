@@ -313,6 +313,8 @@ JSON object like the following example `/api/search?search=Film&sort=modified&or
 | └─ `title_sort`          | string  | Title normalized for sorting.                            |
 | └─ `title_und`           | string  | Title in the “undefined” (und) language.                 |
 | └─ `description_en`      | string  | Short English description or abstract.                   |
+| └─ `format_type_ss`      | array   | A multivalued list of machine-readable format identifiers (URIs) describing the available resource formats. |
+| └─ `format_group_ss`     | array   | Canonical format category labels (e.g. “PDF”, “HTML”, “Spreadsheet”) derived by mapping individual format URIs to standardized groups. |
 | └─ `alt_labels_ss`       | array   | Alternative labels (multilingual).                       |
 | └─ `languages_ss`        | array   | Languages available (ISO codes).                         |
 | └─ `license_type_ss`     | array   | A multivalued list of machine-readable license identifiers (URIs) under which the resource is released. |
