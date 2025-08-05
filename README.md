@@ -351,6 +351,7 @@ You can drive fine‐grained filtering by passing any of your multivalued facet 
 | └─ `description_en`      | string  | Short English description or abstract.                   |
 | └─ `format_type_ss`      | array   | A multivalued list of machine-readable format identifiers (URIs) describing the available resource formats. |
 | └─ `format_group_ss`     | array   | Canonical format category labels (e.g. “PDF”, “HTML”, “Spreadsheet”) derived by mapping individual format URIs to standardized groups. |
+| └─ `fullrecord`          | string  | The complete, unextended JSKOS record (raw JSON) as a string. (multilingual).                       |
 | └─ `alt_labels_ss`       | array   | Alternative labels (multilingual).                       |
 | └─ `languages_ss`        | array   | Languages available (ISO codes).                         |
 | └─ `license_type_ss`     | array   | A multivalued list of machine-readable license identifiers (URIs) under which the resource is released. |

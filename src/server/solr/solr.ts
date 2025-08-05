@@ -228,6 +228,11 @@ export function transformConceptSchemeToSolr(
 
   }
 
+  // Full record as JSON string. This is useful for displaying the full record in the UI
+  // and for debugging purposes. It should not be used for searching or filtering. It is 
+  // not indexed, just stored.
+  solrDoc.fullrecord = JSON.stringify(doc);
+
   return solrDoc as SolrDocument;
 }
 

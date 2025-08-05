@@ -19,43 +19,44 @@ This document explains the design decisions and structure of the Solr schema use
 Each field is configured with `indexed`, `stored`, and `multiValued` attributes to match our data model and search requirements:
 | Field              | Type     | Indexed | Stored | MultiValued | Description                                                 |
 | -----------------  | -------- | :-----: | :----: | :---------: | ----------------------------------------------------------- |
-| `_version_`        | `long`   |    ✓    |    ✓   |      No     | Solr internal version for optimistic concurrency.           |
-| `id`               | `string` |    ✓    |    ✓   |      No     | Unique document identifier (URI).                           |
-| `access_type_ss`   | `string` |    ✓    |    ✓   |      Yes    | URIs denoting the resource’s access policy (e.g. Freely available, Registration required, License required )|
-| `address_country_s`| `string` |    ✓    |    ✓   |      No     | Country of origin|
-| `api_type_ss`      | `string` |    ✓    |    ✓   |     Yes     | One or more API-type identifiers (e.g. jskos, skosmos, sparql) denoting the service/interface protocols supported by the record.|
-| `api_url_ss`       | `string` |    x    |    ✓   |     Yes     | One or more fully qualified endpoint URLs corresponding to each api_type_ss entry.|
-| `format_type_ss`   | `array`  |    x    |    ✓   |     Yes     | A multivalued list of machine-readable format identifiers (URIs) describing the available resource formats. |
-| `format_group_ss`  | `array`  |    x    |    ✓   |     Yes     | Canonical format category labels (e.g. “PDF”, “HTML”, “Spreadsheet”) derived by mapping individual format URIs to standardized groups. |
-| `languages_ss`     | `string` |    ✓    |    ✓   |     Yes     | ISO language codes of the document.                         |
-| `listed_in_ss`     | `string` |    ✓    |    ✓   |     Yes     | Registry URIs of the scheme(s) that include this vocabulary.|
-| `license_type_ss`  | `string` |    ✓    |    ✓   |     Yes     | A multivalued list of machine-readable license identifiers (URIs) under which the resource is released. |
-| `license_group_ss` | `string` |    ✓    |    ✓   |     Yes     | Canonical license category labels (e.g. “CC BY”, “CC BY-SA”, “Public Domain”, “WTFPL”) derived by mapping individual license URIs to a standardized group.|
-| `publisher_label`  | `text`   |    ✓    |    ✓   |      No     | Name of the publishing organization (full-text).            |
-| `publisher_id`     | `string` |    ✓    |    ✓   |      No     | Identifier URI of the publisher.                            |
-| `alt_labels_ss`    | `string` |    ✓    |    ✓   |     Yes     | Alternative labels (multilingual).                          |
-| `ddc_ss`           | `string` |    ✓    |    ✓   |     Yes     | Dewey Decimal Classification notations.                     |
-| `ddc_root_ss`      | `string` |    ✓    |    ✓   |     Yes     | Dewey Decimal Classification notations only at root level.  |
-| `created_dt`       | `pdate`  |    ✓    |    ✓   |      No     | Document creation timestamp (ISO 8601).                     |
-| `modified_dt`      | `pdate`  |    ✓    |    ✓   |      No     | Last modification timestamp (ISO 8601).                     |
-| `start_year_i`     | `pint`   |    ✓    |    ✓   |      No     | Start year (integer) of the classification.                 |
-| `url_s`            | `string` |    ×    |    ✓   |      No     | Canonical URL for more information (not indexed).           |
-| `title_sort`       | `string` |    ✓    |    ✓   |      No     | Sortable, un-analyzed title.                                |
-| `type_uri`         | `string` |    ✓    |    ✓   |     Yes     | SKOS/NKOS type URIs (e.g. ConceptScheme, thesaurus).        |
-| `title_search`     | `text`   |    ✓    |    ×   |     Yes     | Dedicated, multi-valued title field for title-only queries. |
+| `_version_`        | `long`   |    ✓    |    ✓   |      x     | Solr internal version for optimistic concurrency.           |
+| `id`               | `string` |    ✓    |    ✓   |      x     | Unique document identifier (URI).                           |
+| `access_type_ss`   | `string` |    ✓    |    ✓   |      ✓    | URIs denoting the resource’s access policy (e.g. Freely available, Registration required, License required )|
+| `address_country_s`| `string` |    ✓    |    ✓   |      x     | Country of origin|
+| `api_type_ss`      | `string` |    ✓    |    ✓   |     ✓     | One or more API-type identifiers (e.g. jskos, skosmos, sparql) denoting the service/interface protocols supported by the record.|
+| `api_url_ss`       | `string` |    x    |    ✓   |     ✓     | One or more fully qualified endpoint URLs corresponding to each api_type_ss entry.|
+| `format_type_ss`   | `array`  |    x    |    ✓   |     ✓     | A multivalued list of machine-readable format identifiers (URIs) describing the available resource formats. |
+| `format_group_ss`  | `array`  |    x    |    ✓   |     ✓     | Canonical format category labels (e.g. “PDF”, “HTML”, “Spreadsheet”) derived by mapping individual format URIs to standardized groups. |
+| `fullrecord`       | `string` |  	 x	  |    ✓ 	 |	   x      | The complete, unextended JSKOS record (raw JSON) as a string.|
+| `languages_ss`     | `string` |    ✓    |    ✓   |     ✓     | ISO language codes of the document.                         |
+| `listed_in_ss`     | `string` |    ✓    |    ✓   |     ✓     | Registry URIs of the scheme(s) that include this vocabulary.|
+| `license_type_ss`  | `string` |    ✓    |    ✓   |     ✓     | A multivalued list of machine-readable license identifiers (URIs) under which the resource is released. |
+| `license_group_ss` | `string` |    ✓    |    ✓   |     ✓     | Canonical license category labels (e.g. “CC BY”, “CC BY-SA”, “Public Domain”, “WTFPL”) derived by mapping individual license URIs to a standardized group.|
+| `publisher_label`  | `text`   |    ✓    |    ✓   |      x     | Name of the publishing organization (full-text).            |
+| `publisher_id`     | `string` |    ✓    |    ✓   |      x     | Identifier URI of the publisher.                            |
+| `alt_labels_ss`    | `string` |    ✓    |    ✓   |     ✓     | Alternative labels (multilingual).                          |
+| `ddc_ss`           | `string` |    ✓    |    ✓   |     ✓     | Dewey Decimal Classification notations.                     |
+| `ddc_root_ss`      | `string` |    ✓    |    ✓   |     ✓     | Dewey Decimal Classification notations only at root level.  |
+| `created_dt`       | `pdate`  |    ✓    |    ✓   |      x     | Document creation timestamp (ISO 8601).                     |
+| `modified_dt`      | `pdate`  |    ✓    |    ✓   |      x     | Last modification timestamp (ISO 8601).                     |
+| `start_year_i`     | `pint`   |    ✓    |    ✓   |      x     | Start year (integer) of the classification.                 |
+| `url_s`            | `string` |    ×    |    ✓   |      x     | Canonical URL for more information (not indexed).           |
+| `title_sort`       | `string` |    ✓    |    ✓   |      x     | Sortable, un-analyzed title.                                |
+| `type_uri`         | `string` |    ✓    |    ✓   |     ✓     | SKOS/NKOS type URIs (e.g. ConceptScheme, thesaurus).        |
+| `title_search`     | `text`   |    ✓    |    ×   |     ✓     | Dedicated, multi-valued title field for title-only queries. |
 
 
 ### Dynamic Fields
 These patterns capture additional multilingual or unforeseen fields without changing the schema:
 | Pattern         | Type     | Indexed | Stored | MultiValued | Description                                              |
 | --------------- | -------- | :-----: | :----: | :---------: | -------------------------------------------------------- |
-| `title_*`       | `text`   |    ✓    |    ✓   |      No     | Language-specific titles (`title_en`, `title_de`, etc.). |
-| `description_*` | `text`   |    ✓    |    ✓   |      No     | Language-specific descriptions.                          |
-| `subject_*`     | `text`   |    ✓    |    ✓   |     Yes     | Language-specific subject labels.                        |
-| `type_label_*`  | `text`   |    ✓    |    ✓   |      No     | Language-specific human-readable type labels.            |
-| `*_s`           | `string` |    ✓    |    ✓   |      No     | Arbitrary string fields following `_s` suffix.           |
-| `*_i`           | `pint`   |    ✓    |    ✓   |      No     | Arbitrary integer fields.                                |
-| `*_dt`          | `pdate`  |    ✓    |    ✓   |      No     | Arbitrary date fields.                                   |
+| `title_*`       | `text`   |    ✓    |    ✓   |      x     | Language-specific titles (`title_en`, `title_de`, etc.). |
+| `description_*` | `text`   |    ✓    |    ✓   |      x     | Language-specific descriptions.                          |
+| `subject_*`     | `text`   |    ✓    |    ✓   |     ✓     | Language-specific subject labels.                        |
+| `type_label_*`  | `text`   |    ✓    |    ✓   |      x     | Language-specific human-readable type labels.            |
+| `*_s`           | `string` |    ✓    |    ✓   |      x     | Arbitrary string fields following `_s` suffix.           |
+| `*_i`           | `pint`   |    ✓    |    ✓   |      x     | Arbitrary integer fields.                                |
+| `*_dt`          | `pdate`  |    ✓    |    ✓   |      x     | Arbitrary date fields.                                   |
 
 
 ### Copy Fields

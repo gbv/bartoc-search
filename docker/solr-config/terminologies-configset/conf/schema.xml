@@ -121,7 +121,8 @@
     <field name="format_type_ss" type="string" indexed="true" stored="true" multiValued="true"/>
     <field name="format_group_ss" type="string" indexed="true" stored="true" multiValued="true"/>
 
-
+   <!-- Full record -->
+   <field name="fullrecord" type="string" indexed="false" stored="true" multiValued="false"/>
 
 
   </fields>
