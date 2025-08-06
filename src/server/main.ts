@@ -17,7 +17,7 @@ import { ExpressAdapter } from "@bull-board/express";
 import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
 import { parseFacetFields } from "./utils/utils.js";
 import { SearchFilter } from "./solr/search/SearchFilter.js";
-// import { KOS_GROUP_QUERIES, KOSGroup } from "./types/kos";
+import _ from "lodash";
 
 const isProduction = process.env.NODE_ENV === "production";
 const base = process.env.VIRTUAL_PATH || "/";
@@ -79,7 +79,8 @@ app.get("/api/search", async (req: Request, res: Response): Promise<void> => {
     sort = SortField.RELEVANCE, 
     order = SortOrder.ASC , 
     filters = "{}",
-    format = ""
+    format = "",
+    uri = ""
   } = req.query as SearchParams;
 
   // Building the query
@@ -145,6 +146,15 @@ app.get("/api/search", async (req: Request, res: Response): Promise<void> => {
           return doc.fullrecord; // in case it wasn't valid JSON
         }
       });
+
+      if (!_.isEmpty(uri)) {
+        const jskosRecord = jskosRecords.filter(j => j.uri === uri);
+         res.json({
+          ...jskosRecord,
+        });
+        return;
+      }
+
       res.json({
         ...jskosRecords,
       });

@@ -211,6 +211,8 @@ All query parameters are optional.
 | **rows**        | `number` |  matches `limit` if omitted | Alias for `limit` — number of rows to return.                                            |
 | **filters**     | `object` |  `{}`        | Facet filters as a JSON object. Each key is a multivalued field name, value is an array of selected facet values. |
 | **format**     | `string` |  -        |If set to `jskos`, returns the raw JSKOS records (from the `fullrecord` field) instead of the usual Solr docs.  |
+| **uri**     | `string` |  -        | `format=jskos&uri=<ConceptURI>` When both are included, the endpoint returns the raw JSKOS record for that exact URI instead of the list of JSKOS records.|
+
 
 ### Faceted Filtering
 

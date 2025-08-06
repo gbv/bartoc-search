@@ -39,7 +39,7 @@
         modified {{ doc.modified_dt.replace(/:..Z.*/,"").replace("T","&nbsp;") }}
       </span>
       <a
-        :href="`https://bartoc.org/api/data?uri=${doc.id}`"
+        :href="JskosRecord(doc.id)"
         target="_blank">JSKOS</a>
       <a
         :href="getSolrRecord(doc.id)"
@@ -51,6 +51,9 @@
 <script setup lang="js">
 import { SupportedLang } from "../types/lang.js"
 import { computed } from "vue"
+import { useRoute } from "vue-router"
+
+const route = useRoute()
 
 /// <reference path="../types/solr.js" />
 
@@ -106,6 +109,21 @@ const shortDescription = computed(() => {
 function getSolrRecord(id) {
   return `${import.meta.env.BASE_URL}api/solr?id=${encodeURIComponent(id)}`
 }
+
+function serializeQuery(params) {
+  const res = Object.entries(params)
+    .map(([key, val]) =>
+      `${encodeURIComponent(key)}=${encodeURIComponent(val)}`,
+    )
+    .join("&")
+
+  return res
+}
+
+function JskosRecord(id) {
+  return `${import.meta.env.BASE_URL}api/search?${serializeQuery(route.query)}&format=jskos&uri=${encodeURIComponent(id)}`
+}
+
 </script>
 
 <style scoped>

@@ -146,6 +146,7 @@ export interface SearchParams {
   order?: SortOrder;
   filters?: string;
   format?: string; // e.g. "jskos",
+  uri?: string
 }
 
 /**
