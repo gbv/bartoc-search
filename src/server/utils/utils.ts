@@ -68,6 +68,11 @@ export function parseFacetFields(
     }
     out[fieldName] = buckets;
   }
+  // drop “Concept Scheme” from the KOS type facet
+  if (out.type_uri) {
+    out.type_uri = out.type_uri.filter(f => f.value !== "http://www.w3.org/2004/02/skos/core#ConceptScheme");
+  }
+  
   return out;
 }
 
