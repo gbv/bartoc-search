@@ -2,7 +2,7 @@ import { promises as fsPromises } from "fs";
 import * as path from "path";
 import { GroupEntry, GroupResult } from "../types/jskos";
 import _ from "lodash";
-
+import {NO_VALUE} from "../conf/conf";
 
 export type JSONObject =
   | string
@@ -60,9 +60,12 @@ export function parseFacetFields(
   for (const [fieldName, rawArr] of Object.entries(facetFields)) {
     const buckets: { value: string; count: number }[] = [];
     for (let i = 0; i < rawArr.length; i += 2) {
-      const value = rawArr[i]   as string;
+      let value = rawArr[i]   as string;
       const count = rawArr[i+1] as number;
       if (count > 0) {
+        if (value === null) {
+          value = NO_VALUE;
+        }
         buckets.push({ value, count });
       }
     }

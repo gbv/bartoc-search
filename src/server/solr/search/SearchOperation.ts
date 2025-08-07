@@ -12,6 +12,7 @@ export class SearchOperation extends SolrRequest {
   private _rows: number = 0;
   private _fq: SearchFilter[] = new Array<SearchFilter>();
   private _facetOnField: string[] = new Array<string>();
+  private _facetMissing: boolean = false;
   private _fl: string[] = new Array<string>();
   private readonly _wt = "json";
   private _q: SearchQuery = new LuceneQuery();
@@ -68,6 +69,14 @@ export class SearchOperation extends SolrRequest {
    */
   public facetOnField(field: string): SearchOperation {
     this._facetOnField.push(field);
+    return this;
+  }
+
+    /**
+   * @param {boolean} enable : the field that Solr should create a facet for in the response
+   */
+  public facetMissing(enable: boolean): SearchOperation {
+    this._facetMissing = enable;
     return this;
   }
 
@@ -164,6 +173,10 @@ export class SearchOperation extends SolrRequest {
     if (this._facetOnField.length) {
       params.facet = true;
       params["facet.field"] = [...this._facetOnField];
+    }
+
+    if (this._facetMissing) {
+      params["facet.missing"] = true;
     }
 
     if (this._fl.length) {

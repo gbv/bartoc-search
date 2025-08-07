@@ -2,6 +2,7 @@ import express, { Request, Response } from "express";
 import morgan from "morgan";
 import portfinder from "portfinder";
 import config from "./conf/conf";
+import { NO_VALUE } from "./conf/conf";
 import { SolrClient } from "./solr/SolrClient";
 import { SolrSearchResponse,  SortField, SortOrder, SearchParams } from "./types/solr";
 import { LuceneQuery } from "./solr/search/LuceneQuery";
@@ -104,7 +105,8 @@ app.get("/api/search", async (req: Request, res: Response): Promise<void> => {
       .prepareSelect(config.solr.coreName)
       .for(query)
       .sort(sort, order)
-      .limit(limit);
+      .limit(limit)
+      .facetMissing(true);
 
     // If we're only returning JSKOS, ask Solr to only fetch the `fullrecord` field
     if (format === "jskos") {
@@ -113,22 +115,38 @@ app.get("/api/search", async (req: Request, res: Response): Promise<void> => {
    
     
     // Dynamically register each facet field
-    Object.keys(parsedFilters).forEach((uiKey) => {
-      op.facetOnField(uiKey);
+    Object.keys(parsedFilters).forEach((facetName) => {
 
-      const values = parsedFilters[uiKey];
+      op.facetOnField(facetName);
+      let facetValues = (parsedFilters[facetName] ?? [])
+        .map(v => v.trim())
+        .filter(v => v !== "");
 
-      if (!values || values.length === 0) return;
+      // If nothing left and “no value” wasn’t requested, skip entirely
+      if (facetValues.length === 0 && !parsedFilters[facetName].includes(NO_VALUE)) {
+        return;
+      }
 
-      if (values.length == 1) {
+      // If the user selected the “no value” bucket, add a missing‐field filter
+      if (facetValues.includes(NO_VALUE)) {
+        // -field:[* TO *] -> documents where the field does NOT exist
         op.filter(
-          new SearchFilter(uiKey)
-            .equals(values[0])    
+          new SearchFilter(facetName)
+            .raw(`-${facetName}:[* TO *]`)
+        );
+      }
+
+      facetValues = facetValues.filter(v => v !== NO_VALUE);
+
+      if (facetValues.length == 1) {
+        op.filter(
+          new SearchFilter(facetName)
+            .equals(facetValues[0])    
         );
       } else {
         op.filter(
-          new SearchFilter(uiKey)
-            .ors(values) 
+          new SearchFilter(facetName)
+            .ors(facetValues) 
         );
       }
     });

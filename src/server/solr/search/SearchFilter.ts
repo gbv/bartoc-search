@@ -7,6 +7,8 @@ export class SearchFilter {
   private _toValue: string | number | Date = "";
   private _equalsValue: string | number | Date = "";
   private _orsValue: (string | number | Date)[] = [];
+  private _rawExpr?: string = "";
+
 
   constructor(private _field: string) {}
 
@@ -46,6 +48,15 @@ export class SearchFilter {
     return this;
   }
 
+  /**  
+    * * Inject a raw Solr filter clause (e.g. "-field:[* TO *]") 
+    * * @param expr : field to inject
+  */
+  public raw(expr: string): SearchFilter {
+    this._rawExpr = expr;
+    return this;
+  }
+
   private genericValueToString(value: string | number | Date): string {
     switch (typeof value) {
       case "string": {
@@ -64,27 +75,59 @@ export class SearchFilter {
   }
 
   public toHttpQueryStringParameter(): string {
-    let param = "";
-    if (this._field) {
-      if (this._equalsValue) {
-        // single‐value exact match
-        const raw = this.genericValueToString(this._equalsValue);
-        const v = this.escapeAndQuote(raw);
-        param = `${this._field}:${v}`;
-      } else if (this._orsValue.length) {
-        const terms = this._orsValue
-        .map(v => this.escapeAndQuote(this.genericValueToString(v)))
-        .join(" OR ");
-        param =`${this._field}:(${terms})`;
-      } else {
-        const fromValue: string =
-          this.genericValueToString(this._fromValue) || "*";
-        const toValue: string = this.genericValueToString(this._toValue) || "*";
-        param = `${this._field}:[${fromValue} TO ${toValue}]`;
-      }
-    }
-    return param;
+  if (this._rawExpr) {
+    return this._rawExpr;
   }
+
+  if (!this._field) return "";
+
+  // 1) single‐value exact match
+  if (this._equalsValue !== undefined) {
+    const raw = this.genericValueToString(this._equalsValue);
+
+    // “no value” bucket
+    if (raw === "") {
+      return `-${this._field}:[* TO *]`;
+    }
+
+    // normal exact match
+    const v = this.escapeAndQuote(raw);
+    return `${this._field}:${v}`;
+  }
+
+  // 2) OR‐list
+  if (this._orsValue.length) {
+    const hasNoValue = this._orsValue
+      .map(v => this.genericValueToString(v))
+      .includes("");
+
+    const vals = this._orsValue
+      .map(v => this.genericValueToString(v))
+      .filter(v => v !== "");
+
+    const termClauses = vals
+      .map(v => this.escapeAndQuote(v))
+      .join(" OR ");
+
+    // only “no value”
+    if (hasNoValue && !termClauses) {
+      return `-${this._field}:[* TO *]`;
+    }
+    // mix of values + no-value
+    if (hasNoValue && termClauses) {
+      return `(-${this._field}:[* TO *] OR ${this._field}:(${termClauses}))`;
+    }
+    // pure OR
+    return `${this._field}:(${termClauses})`;
+  }
+
+
+  // 3) range
+  const from = this.genericValueToString(this._fromValue) || "*";
+  const to   = this.genericValueToString(this._toValue)   || "*";
+  return `${this._field}:[${from} TO ${to}]`;
+
+}
 
   /**
  * Escape any Solr special characters in a term,

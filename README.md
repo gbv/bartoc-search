@@ -396,6 +396,17 @@ You can drive fine‐grained filtering by passing any of your multivalued facet 
 | `publisher_label` | Name of the publisher |
 
 
+##### “No value” Facet Bucket
+
+In addition to ordinary facet values, every facet field also offers a special “no value” option. 
+Selecting this will only return documents where that field is entirely absent (i.e. `null` or not defined).  
+Under the hood we translate it into the Solr `filter:-field:[* TO *]`
+For example:
+
+- `-languages_ss:[* TO *]` → documents with no `languages_ss`  
+- `-ddc_ss:[* TO *]`       → documents with no Dewey Decimal Classification with no root level 
+
+
 #### Error Responses
 
 ...
