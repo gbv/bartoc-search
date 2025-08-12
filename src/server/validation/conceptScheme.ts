@@ -1,6 +1,19 @@
 // Validating schema with zod
 import { z } from "zod";
 
+// reference is https://gbv.github.io/jskos/#list
+const jskosListSchema = z
+  .array(z.string().min(1).or(z.literal(null)))
+  .optional()
+  .refine(
+    list => !list || list.filter(x => x === null).length <= 1 && (
+      list[list.length - 1] === null || !list.includes(null)
+    ),
+    {
+      message: "If `null` is used, it must appear only once and only as the last item."
+    }
+  );
+
 export const conceptSchemeZodSchema = z.object({
   "@context": z.string(),
   ACCESS: z.array(z.object({ uri: z.string().url() })).optional(),
@@ -37,7 +50,9 @@ export const conceptSchemeZodSchema = z.object({
     )
     .optional(),
   definition: z.record(z.array(z.string())).optional(),
+  identifier: jskosListSchema,
   languages: z.array(z.string()).optional(),
+  namespace: z.string().url().optional(),
   modified: z.string(),
   created: z.string(),
   partOf: z.array(z.object({uri: z.string().url(),}),).optional(),

@@ -31,11 +31,13 @@ export interface SolrDocument
   format_group_ss?: string[];
   fullrecord: string;
   id: string;
+  identifier_ss: string[];
   languages_ss: string[];
   license_type_ss?: string[];
   license_group_ss?: string[];
   listed_in_ss?: string[];
   modified_dt?: string;
+  namespace_s?: string;
   publisher_id: string;
   publisher_label: string;
   subject_notation: string[];

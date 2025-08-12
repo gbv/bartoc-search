@@ -28,10 +28,12 @@ Each field is configured with `indexed`, `stored`, and `multiValued` attributes 
 | `format_type_ss`   | `array`  |    x    |    ✓   |     ✓     | A multivalued list of machine-readable format identifiers (URIs) describing the available resource formats. |
 | `format_group_ss`  | `array`  |    x    |    ✓   |     ✓     | Canonical format category labels (e.g. “PDF”, “HTML”, “Spreadsheet”) derived by mapping individual format URIs to standardized groups. |
 | `fullrecord`       | `string` |  	 x	  |    ✓ 	 |	   x      | The complete, unextended JSKOS record (raw JSON) as a string.|
+| `identifier_ss`    | `string` |  	 ✓ 	  |    ✓ 	 |	   ✓     | Additional identifiers of the resource; corresponds to the JSKOS identifier field (alternate URIs or local IDs).|
 | `languages_ss`     | `string` |    ✓    |    ✓   |     ✓     | ISO language codes of the document.                         |
 | `listed_in_ss`     | `string` |    ✓    |    ✓   |     ✓     | Registry URIs of the scheme(s) that include this vocabulary.|
 | `license_type_ss`  | `string` |    ✓    |    ✓   |     ✓     | A multivalued list of machine-readable license identifiers (URIs) under which the resource is released. |
 | `license_group_ss` | `string` |    ✓    |    ✓   |     ✓     | Canonical license category labels (e.g. “CC BY”, “CC BY-SA”, “Public Domain”, “WTFPL”) derived by mapping individual license URIs to a standardized group.|
+| `namespace_s`      | `string` |    ✓    |    ✓   |      x     | Namespace (URI prefix) of the Concept Scheme; corresponds to the JSKOS namespace field |
 | `publisher_label`  | `text`   |    ✓    |    ✓   |      x     | Name of the publishing organization (full-text).            |
 | `publisher_id`     | `string` |    ✓    |    ✓   |      x     | Identifier URI of the publisher.                            |
 | `alt_labels_ss`    | `string` |    ✓    |    ✓   |     ✓     | Alternative labels (multilingual).                          |

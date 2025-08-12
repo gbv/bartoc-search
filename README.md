@@ -355,10 +355,12 @@ You can drive fine‐grained filtering by passing any of your multivalued facet 
 | └─ `format_type_ss`      | array   | A multivalued list of machine-readable format identifiers (URIs) describing the available resource formats. |
 | └─ `format_group_ss`     | array   | Canonical format category labels (e.g. “PDF”, “HTML”, “Spreadsheet”) derived by mapping individual format URIs to standardized groups. |
 | └─ `fullrecord`          | string  | The complete, unextended JSKOS record (raw JSON) as a string. (multilingual).                       |
+| └─ `identifier_ss`       | array  | Additional identifiers of the resource; corresponds to the JSKOS identifier field (alternate URIs or local IDs).|
 | └─ `alt_labels_ss`       | array   | Alternative labels (multilingual).                       |
 | └─ `languages_ss`        | array   | Languages available (ISO codes).                         |
 | └─ `license_type_ss`     | array   | A multivalued list of machine-readable license identifiers (URIs) under which the resource is released. |
 | └─ `license_group_ss`    | array   | Canonical license category labels (e.g. “CC BY”, “CC BY-SA”, “Public Domain”, “WTFPL”) derived by mapping individual license URIs to a standardized group.|
+| └─ `namespace_s`         | string  | Namespace (URI prefix) of the Concept Scheme; corresponds to the JSKOS namespace field |
 | └─ `access_type_ss`      | string  | URIs denoting the resource’s access policy (e.g. Freely available, Registration required, License required )|
 | └─ `address_country_s`   | string  | Country of origin                                        |
 | └─ `api_type_ss`         | array   | One or more API-type identifiers (e.g. jskos, skosmos, sparql) denoting the service/interface protocols supported by the record.|

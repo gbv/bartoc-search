@@ -48,12 +48,17 @@ export interface ConceptSchemeDocument {
     [lang: string]: string[];
   };
 
+  // https://gbv.github.io/jskos/#list
+  identifier?: (string | null)[];
+
   // Made optional
   languages?: string[];
 
   license?: Array<{
     uri: string;
   }>;
+
+  namespace?:string;
 
   modified: string;
 

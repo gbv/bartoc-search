@@ -4,6 +4,7 @@
       v-model="search"
       type="text"
       placeholder="Search terminology..."
+      @input="lookupUri"
       @keydown.enter="onSearch">
     <select v-model="field">
       <option value="">
@@ -25,8 +26,9 @@
 </template>
 
 <script setup lang="js">
-import { ref, onMounted } from "vue"
+import { ref, onMounted, inject } from "vue"
 import { useRoute } from "vue-router"
+const namespaces = inject("namespaces")
 
 /**
  * @type {{ searchOnMounted: boolean }}
@@ -38,7 +40,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(["search"])
+const emit = defineEmits(["search", "lookupUri"])
 
 const route = useRoute()
 const search = ref(route.query.search?.toString() || "")
@@ -66,6 +68,31 @@ async function onSearch() {
 if (props.searchOnMounted) {
   onMounted(onSearch)
 }
+
+
+function lookupUri() {
+  const q = (search.value || "").trim()
+  if (!isHttpUrl(q)) {
+    return emit("lookupUri", {})
+  }
+
+  const name = namespaces?.lookup?.(q)
+  return emit("lookupUri", name ? { uri: q, name } : {})
+
+}
+
+const isHttpUrl = (v) => {
+  if (typeof v !== "string") {
+    return false
+  }
+  try {
+    const u = new URL(v.trim())
+    return u.protocol === "http:" || u.protocol === "https:"
+  } catch {
+    return false 
+  }
+}
+
 </script>
 
 <style>

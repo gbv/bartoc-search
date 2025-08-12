@@ -18,11 +18,22 @@
         </option>
       </select>
     </form>
+    <div
+      v-if="lookupUri" 
+      class="lookup-message">
+      <span class="lookup-message__uri">
+        {{ lookupUri.uri }}
+      </span>
+      <span> is likely an URI from </span>
+      <span class="lookup-message__name">
+        {{ lookupUri.name }}
+      </span>
+    </div>
   </div>
 </template>
 
 <script setup lang="js">
-import { ref, watch } from "vue"
+import { ref, watch, computed } from "vue"
 
 // Sort options 
 const options = [
@@ -52,12 +63,17 @@ const props = defineProps({
     type: String,
     default: "relevance",
   },
+  lookupUri:{ 
+    type: Object, 
+    default: null },
 })
+
 
 const emit = defineEmits(["sort"])
 
 // Internal ref to track selection
 const selectedSort = ref(props.modelValue)
+const lookupUri = computed(() => props.lookupUri)
 
 // whenever the parent changes modelValue, update the local state
 watch(
@@ -79,3 +95,23 @@ function onChange() {
 }
 
 </script>
+
+<style>
+.lookup-message {
+  color: black;
+  display: flex;
+  flex-direction: row; 
+  align-items: baseline;
+  gap: .25rem;    
+  flex-wrap: wrap;
+  padding-left: 12px;
+}
+
+.lookup-message__uri {
+  background: #ff9;
+}
+
+.lookup-message__name {
+  font-weight: bold;
+}
+</style>

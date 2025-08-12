@@ -7,10 +7,12 @@
     <SearchBar
       class="search-bar__area"
       :search-on-mounted="true"
+      @lookup-uri="onInspect"
       @search="onSearch" />
     <SearchControls
       class="search-controls__area"
       :model-value="sortKey"
+      :lookup-uri="lookupUri"
       @sort="onSort" />
     <SearchResults
       class="search-results__area"
@@ -54,6 +56,7 @@ const results = ref({ docs: [], numFound: 0 })
 const loading = ref(true)
 const errorMessage = ref(null)
 const sortBy = ref()
+const lookupUri = ref()
 
 // Computed summary for breadcrumb data
 const summary = computed(() => ({
@@ -186,6 +189,11 @@ function onFilterChange(filters) {
   setFilters({ ...activeFilters, ...filters })
   const newQuery = { ...route.query, filters: JSON.stringify(activeFilters)}
   fetchResults(newQuery)
+}
+
+function onInspect(raw) {
+  lookupUri.value = !_.isEmpty(raw) ? raw : undefined
+  console.log("lookupUri.value ", lookupUri.value)
 }
 
 </script>
