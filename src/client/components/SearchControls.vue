@@ -22,7 +22,11 @@
       v-if="lookupUri" 
       class="lookup-message">
       <span class="lookup-message__uri">
-        {{ lookupUri.uri }}
+        <a
+          :href="lookupUri.uri"
+          target="_blank">
+          {{ lookupUri.uri }}
+        </a>
       </span>
       <span> is likely an URI from </span>
       <span class="lookup-message__name">
