@@ -89,24 +89,3 @@ function onChange() {
 }
 
 </script>
-
-<style>
-.lookup-message {
-  color: black;
-  display: flex;
-  flex-direction: row; 
-  align-items: baseline;
-  gap: .25rem;    
-  flex-wrap: wrap;
-  padding-left: 12px;
-  padding-top: 24px;
-}
-
-.lookup-message__uri {
-  background: #ff9;
-}
-
-.lookup-message__name {
-  font-weight: bold;
-}
-</style>
