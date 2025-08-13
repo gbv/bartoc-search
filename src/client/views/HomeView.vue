@@ -29,7 +29,11 @@ function onSearch(query) {
           v-if="lookupUri" 
           class="lookup-message">
           <div class="lookup-message__uri">
-            {{ lookupUri.uri }}
+            <a
+              :href="lookupUri.uri"
+              target="_blank">
+              {{ lookupUri.uri }}
+            </a>
           </div>
           <div>is likely an URI from</div>
           <div class="lookup-message__name">
