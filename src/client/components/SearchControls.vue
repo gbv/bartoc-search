@@ -105,6 +105,7 @@ function onChange() {
   gap: .25rem;    
   flex-wrap: wrap;
   padding-left: 12px;
+  padding-top: 24px;
 }
 
 .lookup-message__uri {
