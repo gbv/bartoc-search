@@ -1,9 +1,10 @@
 <script setup lang="js">
 import SearchBar from "../components/SearchBar.vue"
+import LookupHint from "../components/LookupHint.vue"
 import { ref } from "vue"
-const lookupUri = ref()
 import _ from "lodash"
  
+const lookupUri = ref()
 
 function onInspect(raw) {
   lookupUri.value = !_.isEmpty(raw) ? raw : undefined
@@ -25,40 +26,11 @@ function onSearch(query) {
         <SearchBar
           @lookup-uri="onInspect"
           @search="onSearch" />
-        <div
-          v-if="lookupUri" 
-          class="lookup-message">
-          <div class="lookup-message__uri">
-            <a
-              :href="lookupUri.uri"
-              target="_blank">
-              {{ lookupUri.uri }}
-            </a>
-          </div>
-          <div>is likely an URI from</div>
-          <div class="lookup-message__name">
-            {{ lookupUri.name }}
-          </div>
-        </div>
       </div>
+      <LookupHint
+        v-if="lookupUri"
+        :uri="lookupUri.uri"
+        :name="lookupUri.name" />
     </section>
   </section>
 </template>
-
-<style>
-.lookup-message {
-  color: var(--black);
-  display: flex;
-  justify-content: center;
-  flex-direction: column;
-}
-
-.lookup-message__uri {
-  background: #ff9;
-}
-
-.lookup-message__name {
-  font-weight: bold;
-}
-
-</style>

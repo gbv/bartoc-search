@@ -18,26 +18,16 @@
         </option>
       </select>
     </form>
-    <div
-      v-if="lookupUri" 
-      class="lookup-message">
-      <span class="lookup-message__uri">
-        <a
-          :href="lookupUri.uri"
-          target="_blank">
-          {{ lookupUri.uri }}
-        </a>
-      </span>
-      <span> is likely an URI from </span>
-      <span class="lookup-message__name">
-        {{ lookupUri.name }}
-      </span>
-    </div>
+    <LookupHint
+      v-if="lookupUri"
+      :uri="lookupUri.uri"
+      :name="lookupUri.name" />
   </div>
 </template>
 
 <script setup lang="js">
 import { ref, watch, computed } from "vue"
+import LookupHint from "./LookupHint.vue"
 
 // Sort options 
 const options = [

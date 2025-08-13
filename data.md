@@ -200,9 +200,9 @@ data/
 
 ---
 
-## `namespaces_entries.json`
+## `lookup_entries.json`
 
-**Purpose:** Prebuilt entries to power client-side URI detection (e.g., with `namespace-lookup`). Each item ties a Concept Scheme (`uri`) to its namespace prefix and labels. 
+**Purpose:** Prebuilt entries to power client-side URI detection (e.g., with `namespace-lookup`). Each item ties a Concept Scheme (`uri`) to its namespace prefix, labels and identifiers. 
 
 **Format:** JSON array of objects.
 **Shape:**
@@ -210,18 +210,16 @@ data/
 ```json
 [
   {
-    "uri": "http://bartoc.org/en/node/1031",
-    "namespace": "http://uri.gbv.de/terminology/kab/",
+    "uri": "http://bartoc.org/en/node/18514",
+    "identifier": [
+      "http://purl.org/heritagedata/schemes/eh_period",
+      "http://purl.org/heritagedata/schemes/eh_period/concepts/"
+    ],
     "prefLabel": {
-      "de": "Klassifikation für Allgemeinbibliotheken",
-      "en": "Classification for general libraries"
-    }
-  },
-  {
-    "uri": "http://bartoc.org/en/node/1042",
-    "namespace": "http://bartoc.org/en/node/1042/",
-    "prefLabel": { "en": "Field of Science and Technology Classification" }
-  },
+      "en": "Historic England Periods Authority File"
+    },
+    "namespace": "http://purl.org/heritagedata/schemes/eh_period/"
+  }
   ...
 ]
 ```

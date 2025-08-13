@@ -4,11 +4,7 @@ import { createRouterInstance } from "./router/router"
 import * as JSKOSVue from "jskos-vue"
 import "jskos-vue/dist/style.css"
 import { Namespaces } from "namespace-lookup" 
-import NAMESPACE_ENTRIES from "../../data/namespaces_entries.json"
-import IDENTIFIER_ENTRIES from "../../data/identifiers_entries.json"
-
-
-
+import LOOKUP_ENTRIES from "../../data/lookup_entries.json"
 
 // SSR requires a fresh app instance per request, therefore we export a function
 // that creates a fresh app instance. If using Vuex, we'd also be creating a
@@ -27,30 +23,28 @@ export function createApp(url = "/", isClient = false) {
     let namespaces = window.__namespaces
     if (!namespaces) {
       namespaces = new Namespaces()
-      const seen = new Set()
       
-      // Adding data from namespaces_entries.json
-      for (const { namespace, prefLabel } of NAMESPACE_ENTRIES) {
-        const ns = (namespace || "").trim()
-        if (!ns || seen.has(ns)) {
-          continue
-        }
-        const label = prefLabel?.en ?? prefLabel?.de ?? prefLabel?.und ?? ""
-        namespaces.add(ns, label)
-        seen.add(ns)
-      }
+      // Adding data from lookup_entries.json
+      for (const entry of LOOKUP_ENTRIES) {
+        const label = entry.prefLabel?.en ?? entry.prefLabel?.de ?? entry.prefLabel?.und ?? ""
 
-      // Adding data from identifiers_entries.json
-      for (const { identifier, prefLabel } of IDENTIFIER_ENTRIES) {
-        const id = (identifier || "").trim()
-        if (!id || seen.has(id)) {
-          continue
+        // Add main uri
+        if (entry.uri) {
+          namespaces.add(entry.uri, label)
         }
-        const label = prefLabel?.en ?? prefLabel?.de ?? prefLabel?.und ?? ""
-        namespaces.add(id, label)
-        seen.add(id)
-      }
 
+        // Add identifiers
+        if (Array.isArray(entry.identifier)) {
+          for (const id of entry.identifier) {
+            namespaces.add(id, label)
+          }
+        }
+
+        // Add namespace
+        if (entry.namespace) {
+          namespaces.add(entry.namespace.trim(), label)
+        }
+      }
       window.__namespaces = namespaces // cache for HMR
     }
     app.provide("namespaces", namespaces)
