@@ -38,6 +38,7 @@ export const conceptSchemeZodSchema = z.object({
     .optional(),
   CONTACT: z.string().email().optional(),
   DISPLAY: displaySchema.optional(),
+  EXAMPLES: z.array(z.string()).optional(),
   FORMAT: z.array(z.object({ uri: z.string().url() })).optional(),
   altLabel: z.record(z.array(z.string())).optional(),
   contributor: z

@@ -97,6 +97,9 @@
     <field name="display_hideNotation_b"      type="boolean" indexed="true" stored="true"/>
     <field name="display_numericalNotation_b" type="boolean" indexed="true" stored="true"/>
 
+    <!-- DISPLAY field -->
+    <field name="examples_ss" type="lc_keyword" indexed="true" stored="true" multiValued="true"/>
+
     <!-- Multivalued language field -->
     <field name="languages_ss" type="string" indexed="true" stored="true" multiValued="true"/>
 
@@ -173,6 +176,7 @@
   <!-- Copy several fields into the catch-all field -->
   <!-- Make address searchable without affecting facet buckets -->
   <copyField source="address_*" dest="allfields"/>
+  <copyField source="examples_ss" dest="allfields"/>
   <copyField source="title_*" dest="allfields"/>
   <copyField source="title_*" dest="title_search"/>
   <copyField source="description_*" dest="allfields"/>

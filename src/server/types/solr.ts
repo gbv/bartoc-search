@@ -30,6 +30,7 @@ export interface SolrDocument
   contact_email_s?: string;
   display_hideNotation_b?: boolean;
   display_numericalNotation_b?: boolean;
+  examples_ss?: string[];
   alt_labels_ss: string[];
   created_dt?: string;
   ddc_ss: string[];

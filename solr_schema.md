@@ -34,6 +34,7 @@ Each field is configured with `indexed`, `stored`, and `multiValued` attributes 
 | `contact_email_s`  | `string` |    ✓    |    ✓   |     x     | Email address of anyone in charge of the vocabulary |
 | `display_hideNotation_b`  | `boolean` |    ✓    |    ✓   |     x     | Hide notation it is only used as internal identifier  |
 | `display_numericalNotation_b`  | `boolean` |    ✓    |    ✓   |     x     | Numerical notation concepts of the vocabulary will be sorted numerically when displayed as a list  |
+| `examples_ss`      | `lc_keyword` | ✓ | ✓ | ✓ | Example sentences/snippets from JSKOS EXAMPLES field; |
 | `format_type_ss`   | `array`  |    x    |    ✓   |     ✓     | A multivalued list of machine-readable format identifiers (URIs) describing the available resource formats. |
 | `format_group_ss`  | `array`  |    x    |    ✓   |     ✓     | Canonical format category labels (e.g. “PDF”, “HTML”, “Spreadsheet”) derived by mapping individual format URIs to standardized groups. |
 | `fullrecord`       | `string` |  	 x	  |    ✓ 	 |	   x      | The complete, unextended JSKOS record (raw JSON) as a string.|

@@ -22,6 +22,8 @@ export interface ConceptSchemeDocument {
 
   DISPLAY?: DisplaySettings;
 
+  EXAMPLES?: string[]
+
   FORMAT?: Array<{
     uri: string;
   }>;
@@ -155,10 +157,12 @@ export interface JskosSubject {
 }
 
 
-type DisplaySettings = {
+export type DisplaySettings = {
   hideNotation?: boolean;
   numericalNotation?: boolean;
 };
+
+export type ExampleItem = string | { text?: string; note?: string }; 
 
 
 export interface LicenseEntry {

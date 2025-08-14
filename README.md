@@ -359,6 +359,7 @@ You can drive fine‐grained filtering by passing any of your multivalued facet 
 | └─ `contact_email_s`     | string  | Email address of anyone in charge of the vocabulary |
 | └─ `display_hideNotation_b`  | boolean |  Hide notation it is only used as internal identifier  |
 | └─`display_numericalNotation_b`  | boolean |  Numerical notation concepts of the vocabulary will be sorted numerically when displayed as a list  |
+| └─ `examples_ss`         | lc_keyword |  Example sentences/snippets from JSKOS EXAMPLES field |
 | └─ `title_en`            | string  | English title of the thesaurus or concept scheme.        |
 | └─ `title_sort`          | string  | Title normalized for sorting.                            |
 | └─ `title_und`           | string  | Title in the “undefined” (und) language.                 |
