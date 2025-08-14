@@ -31,12 +31,12 @@ export interface SolrDocument
   display_hideNotation_b?: boolean;
   display_numericalNotation_b?: boolean;
   examples_ss?: string[];
+  format_type_ss?: string[];
+  format_group_ss?: string[];
   alt_labels_ss: string[];
   created_dt?: string;
   ddc_ss: string[];
-  ddc_root_ss: string[]
-  format_type_ss?: string[];
-  format_group_ss?: string[];
+  ddc_root_ss: string[];
   fullrecord: string;
   id: string;
   identifier_ss: string[];

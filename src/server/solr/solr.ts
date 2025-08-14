@@ -200,6 +200,7 @@ export function transformConceptSchemeToSolr(
 
   // Extracting License groups
   extractGroups(solrDoc, "license_type_ss", "license_group_ss", LICENSE_GROUPS, mapUriToGroups);
+  
   // Extracting Format groups
   extractGroups(solrDoc, "format_type_ss",  "format_group_ss",  FORMAT_GROUPS,  mapUriToGroups);
 

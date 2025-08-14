@@ -97,8 +97,12 @@
     <field name="display_hideNotation_b"      type="boolean" indexed="true" stored="true"/>
     <field name="display_numericalNotation_b" type="boolean" indexed="true" stored="true"/>
 
-    <!-- DISPLAY field -->
+    <!-- EXAMPLES field -->
     <field name="examples_ss" type="lc_keyword" indexed="true" stored="true" multiValued="true"/>
+
+    <!-- FORMAT field  -->
+    <field name="format_type_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="format_group_ss" type="string" indexed="true" stored="true" multiValued="true"/>
 
     <!-- Multivalued language field -->
     <field name="languages_ss" type="string" indexed="true" stored="true" multiValued="true"/>
@@ -138,10 +142,6 @@
     <!-- License type  -->
     <field name="license_type_ss" type="string" indexed="true" stored="true" multiValued="true"/>
     <field name="license_group_ss" type="string" indexed="true" stored="true" multiValued="true"/>
-
-    <!-- FORMAT type  -->
-    <field name="format_type_ss" type="string" indexed="true" stored="true" multiValued="true"/>
-    <field name="format_group_ss" type="string" indexed="true" stored="true" multiValued="true"/>
 
     <!-- Full record -->
     <field name="fullrecord" type="string" indexed="false" stored="true" multiValued="false"/>

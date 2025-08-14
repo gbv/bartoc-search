@@ -360,12 +360,12 @@ You can drive fine‐grained filtering by passing any of your multivalued facet 
 | └─ `display_hideNotation_b`  | boolean |  Hide notation it is only used as internal identifier  |
 | └─`display_numericalNotation_b`  | boolean |  Numerical notation concepts of the vocabulary will be sorted numerically when displayed as a list  |
 | └─ `examples_ss`         | lc_keyword |  Example sentences/snippets from JSKOS EXAMPLES field |
+| └─ `format_type_ss`      | array   | A multivalued list of machine-readable format identifiers (URIs) describing the available resource formats. |
+| └─ `format_group_ss`     | array   | Canonical format category labels (e.g. “PDF”, “HTML”, “Spreadsheet”) derived by mapping individual format URIs to standardized groups. |
 | └─ `title_en`            | string  | English title of the thesaurus or concept scheme.        |
 | └─ `title_sort`          | string  | Title normalized for sorting.                            |
 | └─ `title_und`           | string  | Title in the “undefined” (und) language.                 |
 | └─ `description_en`      | string  | Short English description or abstract.                   |
-| └─ `format_type_ss`      | array   | A multivalued list of machine-readable format identifiers (URIs) describing the available resource formats. |
-| └─ `format_group_ss`     | array   | Canonical format category labels (e.g. “PDF”, “HTML”, “Spreadsheet”) derived by mapping individual format URIs to standardized groups. |
 | └─ `fullrecord`          | string  | The complete, unextended JSKOS record (raw JSON) as a string. (multilingual).                       |
 | └─ `identifier_ss`       | array  | Additional identifiers of the resource; corresponds to the JSKOS identifier field (alternate URIs or local IDs).|
 | └─ `alt_labels_ss`       | array   | Alternative labels (multilingual).                       |
