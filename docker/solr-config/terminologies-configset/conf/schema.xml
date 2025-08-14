@@ -77,13 +77,17 @@
     <!-- ACCESS uri  -->
     <field name="access_type_ss" type="string" indexed="true" stored="true" multiValued="true"/>
 
-    <!-- ADDRESS fields  -->
+    <!-- ADDRESS field  -->
     <!-- Exact keywords, facet/filter friendly (case-insensitive) -->
     <field name="address_code_s"     type="lc_keyword" indexed="true" stored="true"/>
     <field name="address_country_s"  type="lc_keyword" indexed="true" stored="true"/>
     <field name="address_locality_s" type="lc_keyword" indexed="true" stored="true"/>
     <field name="address_region_s"   type="lc_keyword" indexed="true" stored="true"/>
     <field name="address_street_s"   type="lc_keyword" indexed="true" stored="true"/>
+
+    <!-- API field  -->
+    <field name="api_type_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="api_url_ss"  type="string" indexed="false" stored="true" multiValued="true"/>
 
     <!-- Multivalued language field -->
     <field name="languages_ss" type="string" indexed="true" stored="true" multiValued="true"/>
@@ -119,10 +123,6 @@
 
     <!-- Multivalued Listed in field -->
     <field name="listed_in_ss" type="string" indexed="true" stored="true" multiValued="true"/>
-
-    <!-- Multivalued Api types  -->
-    <field name="api_type_ss" type="string" indexed="true" stored="true" multiValued="true"/>
-    <field name="api_url_ss"  type="string" indexed="false" stored="true" multiValued="true"/>
 
     <!-- License type  -->
     <field name="license_type_ss" type="string" indexed="true" stored="true" multiValued="true"/>

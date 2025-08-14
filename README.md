@@ -354,6 +354,8 @@ You can drive fine‐grained filtering by passing any of your multivalued facet 
 | └─ `address_locality_s`  | lc_keyword | City / locality (e.g., Rome) |
 | └─ `address_region_s`    | lc_keyword | Region / state / province (e.g., Lazio) |
 | └─ `address_street_s`    | lc_keyword | Street address line (e.g., via Monte del Gallo 47) |
+| └─ `api_type_ss`         | array   | One or more API-type identifiers (e.g. jskos, skosmos, sparql) denoting the service/interface protocols supported by the record.|
+| └─ `api_url_ss`          | array   | One or more fully qualified endpoint URLs corresponding to each api_type_ss entry.|
 | └─ `title_en`            | string  | English title of the thesaurus or concept scheme.        |
 | └─ `title_sort`          | string  | Title normalized for sorting.                            |
 | └─ `title_und`           | string  | Title in the “undefined” (und) language.                 |
@@ -367,8 +369,6 @@ You can drive fine‐grained filtering by passing any of your multivalued facet 
 | └─ `license_type_ss`     | array   | A multivalued list of machine-readable license identifiers (URIs) under which the resource is released. |
 | └─ `license_group_ss`    | array   | Canonical license category labels (e.g. “CC BY”, “CC BY-SA”, “Public Domain”, “WTFPL”) derived by mapping individual license URIs to a standardized group.|
 | └─ `namespace_s`         | string  | Namespace (URI prefix) of the Concept Scheme; corresponds to the JSKOS namespace field |
-| └─ `api_type_ss`         | array   | One or more API-type identifiers (e.g. jskos, skosmos, sparql) denoting the service/interface protocols supported by the record.|
-| └─ `api_url_ss`          | array   | One or more fully qualified endpoint URLs corresponding to each api_type_ss entry.|
 | └─ `listed_in_ss`        | array   | Registry URIs of the scheme(s) that include this vocabulary.|
 | └─ `ddc_ss`              | array   | Dewey Decimal Classification notations.                  |
 | └─ `ddc_root_ss`         | array   | Dewey Decimal Classification notations at root level.    |

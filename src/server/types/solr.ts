@@ -25,9 +25,9 @@ export interface SolrDocument
   address_locality_s?: string;
   address_region_s?: string;
   address_street_s?: string;
-  alt_labels_ss: string[];
   api_type_ss: string[];
   api_url_ss: string[];
+  alt_labels_ss: string[];
   created_dt?: string;
   ddc_ss: string[];
   ddc_root_ss: string[]
