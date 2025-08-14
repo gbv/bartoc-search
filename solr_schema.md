@@ -8,11 +8,12 @@ This document explains the design decisions and structure of the Solr schema use
 
 | Name     | Class                 | Description                                                                                                                                                |
 | -------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `string` | `solr.StrField`       | Non-tokenized strings for IDs, exact keywords, and URIs.                                                                                                   |
-| `long`   | `solr.LongPointField` | 64-bit integers (used for internal versioning, `_version_`).                                                                                               |
-| `text`   | `solr.TextField`      | Full-text fields with custom analyzers for English: specials folding, word-delimiter, unicode folding, synonym expansion, stemming, and duplicate removal. |
-| `pdate`  | `solr.TrieDateField`  | ISO 8601 date fields. (*Note: currently `TrieDateField`; consider moving to `DatePointField` in a future Solr major release.*)                             |
-| `pint`   | `solr.TrieIntField`   | 32-bit integer fields. (*Note: currently `TrieIntField`; consider `IntPointField` later.*)                                                                 |
+| `string` | `solr.StrField`       | Non-tokenized strings for IDs, exact keywords, and URIs.|
+| `lc_keyword` | `solr.StrField`   | Case-insensitive keyword. Uses KeywordTokenizer + LowerCaseFilter; not tokenized (one term), short values (countries, postal codes, names, URIs) without case issues. Stored value keeps original casing.|
+| `long`   | `solr.LongPointField` | 64-bit integers (used for internal versioning `_version_`).|
+| `text`   | `solr.TextField`      | Full-text fields with custom analyzers for English: specials folding, word-delimiter, unicode folding, synonym expansion, stemming, and duplicate removal.|
+| `pdate`  | `solr.TrieDateField`  | ISO 8601 date fields. (*Note: currently `TrieDateField`; consider moving to `DatePointField` in a future Solr major release.*)|
+| `pint`   | `solr.TrieIntField`   | 32-bit integer fields. (*Note: currently `TrieIntField`; consider `IntPointField` later.*)|
 
 
 ### Field Definitions
@@ -22,7 +23,11 @@ Each field is configured with `indexed`, `stored`, and `multiValued` attributes 
 | `_version_`        | `long`   |    ✓    |    ✓   |      x     | Solr internal version for optimistic concurrency.           |
 | `id`               | `string` |    ✓    |    ✓   |      x     | Unique document identifier (URI).                           |
 | `access_type_ss`   | `string` |    ✓    |    ✓   |      ✓    | URIs denoting the resource’s access policy (e.g. Freely available, Registration required, License required )|
-| `address_country_s`| `string` |    ✓    |    ✓   |      x     | Country of origin|
+| `address_code_s`   | `lc_keyword` |    ✓    |    ✓   |      x     | Postal/ZIP code (e.g., 00165) |
+| `address_country_s`| `lc_keyword` |    ✓    |    ✓   |      x     | Country name (verbatim; case-insensitive match) (e.g., Italy) |
+| `address_locality_s`  | `lc_keyword` |    ✓    |    ✓   |      x     | City / locality (e.g., Rome) |
+| `address_region_s`    | `lc_keyword` |    ✓    |    ✓   |      x     | Region / state / province (e.g., Lazio) |
+| `address_street_s`    | `lc_keyword` |    ✓    |    ✓   |      x     | Street address line (e.g., via Monte del Gallo 47) |
 | `api_type_ss`      | `string` |    ✓    |    ✓   |     ✓     | One or more API-type identifiers (e.g. jskos, skosmos, sparql) denoting the service/interface protocols supported by the record.|
 | `api_url_ss`       | `string` |    x    |    ✓   |     ✓     | One or more fully qualified endpoint URLs corresponding to each api_type_ss entry.|
 | `format_type_ss`   | `array`  |    x    |    ✓   |     ✓     | A multivalued list of machine-readable format identifiers (URIs) describing the available resource formats. |
@@ -66,6 +71,7 @@ To enable both targeted and global search, we copy field values into broader cat
 
 | Source            | Destination    |
 | ----------------- | -------------- |
+| `address_*`       | `allfields`    |
 | `title_*`         | `allfields`    |
 | `description_*`   | `allfields`    |
 | `publisher_label` | `allfields`    |

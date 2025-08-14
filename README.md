@@ -348,6 +348,12 @@ You can drive fine‐grained filtering by passing any of your multivalued facet 
 | `response.numFoundExact` | boolean | Indicates if `numFound` is an exact count.               |
 | `response.docs`          | array   | Array of document objects matching the query.            |
 | └─ `id`                  | string  | Unique document identifier (URI).                        |
+| └─ `access_type_ss`      | string  | URIs denoting the resource’s access policy (e.g. Freely available, Registration required, License required )|
+| └─ `address_code_s`      | lc_keyword | Postal/ZIP code (e.g., 00165) |
+| └─ `address_country_s`   | lc_keyword | Country name (verbatim; case-insensitive match) (e.g., Italy) |
+| └─ `address_locality_s`  | lc_keyword | City / locality (e.g., Rome) |
+| └─ `address_region_s`    | lc_keyword | Region / state / province (e.g., Lazio) |
+| └─ `address_street_s`    | lc_keyword | Street address line (e.g., via Monte del Gallo 47) |
 | └─ `title_en`            | string  | English title of the thesaurus or concept scheme.        |
 | └─ `title_sort`          | string  | Title normalized for sorting.                            |
 | └─ `title_und`           | string  | Title in the “undefined” (und) language.                 |
@@ -361,8 +367,6 @@ You can drive fine‐grained filtering by passing any of your multivalued facet 
 | └─ `license_type_ss`     | array   | A multivalued list of machine-readable license identifiers (URIs) under which the resource is released. |
 | └─ `license_group_ss`    | array   | Canonical license category labels (e.g. “CC BY”, “CC BY-SA”, “Public Domain”, “WTFPL”) derived by mapping individual license URIs to a standardized group.|
 | └─ `namespace_s`         | string  | Namespace (URI prefix) of the Concept Scheme; corresponds to the JSKOS namespace field |
-| └─ `access_type_ss`      | string  | URIs denoting the resource’s access policy (e.g. Freely available, Registration required, License required )|
-| └─ `address_country_s`   | string  | Country of origin                                        |
 | └─ `api_type_ss`         | array   | One or more API-type identifiers (e.g. jskos, skosmos, sparql) denoting the service/interface protocols supported by the record.|
 | └─ `api_url_ss`          | array   | One or more fully qualified endpoint URLs corresponding to each api_type_ss entry.|
 | └─ `listed_in_ss`        | array   | Registry URIs of the scheme(s) that include this vocabulary.|

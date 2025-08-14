@@ -49,6 +49,13 @@
       </analyzer>
     </fieldType>
 
+    <!-- Case-insensitive, untokenized keyword -->
+    <fieldType name="lc_keyword" class="solr.TextField" positionIncrementGap="100">
+      <analyzer>
+        <tokenizer class="solr.KeywordTokenizerFactory"/>
+        <filter class="solr.LowerCaseFilterFactory"/>
+      </analyzer>
+    </fieldType>
 
     <!-- Date type: based on ISO 8601 -->
     <fieldType name="pdate" class="solr.TrieDateField" precisionStep="0" positionIncrementGap="0"/>
@@ -67,6 +74,17 @@
     <!-- Unique Identifier -->
     <field name="id" type="string" indexed="true" stored="true" required="true"/>
 
+    <!-- ACCESS uri  -->
+    <field name="access_type_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+
+    <!-- ADDRESS fields  -->
+    <!-- Exact keywords, facet/filter friendly (case-insensitive) -->
+    <field name="address_code_s"     type="lc_keyword" indexed="true" stored="true"/>
+    <field name="address_country_s"  type="lc_keyword" indexed="true" stored="true"/>
+    <field name="address_locality_s" type="lc_keyword" indexed="true" stored="true"/>
+    <field name="address_region_s"   type="lc_keyword" indexed="true" stored="true"/>
+    <field name="address_street_s"   type="lc_keyword" indexed="true" stored="true"/>
+
     <!-- Multivalued language field -->
     <field name="languages_ss" type="string" indexed="true" stored="true" multiValued="true"/>
 
@@ -80,7 +98,6 @@
     <!-- Multivalued Dewey Decimal Classifications -->
     <field name="ddc_ss" type="string" indexed="true" stored="true" multiValued="true"/>
     <field name="ddc_root_ss" type="string" indexed="true" stored="true" multiValued="true"/>
-
 
     <!-- Date fields -->
     <field name="created_dt" type="pdate" indexed="true" stored="true"/>
@@ -107,15 +124,9 @@
     <field name="api_type_ss" type="string" indexed="true" stored="true" multiValued="true"/>
     <field name="api_url_ss"  type="string" indexed="false" stored="true" multiValued="true"/>
 
-    <!-- Access type  -->
-    <field name="access_type_ss" type="string" indexed="true" stored="true" multiValued="true"/>
-
     <!-- License type  -->
     <field name="license_type_ss" type="string" indexed="true" stored="true" multiValued="true"/>
     <field name="license_group_ss" type="string" indexed="true" stored="true" multiValued="true"/>
-
-    <!-- ADDRESS fields  -->
-    <field name="address_country_s" type="string" indexed="true" stored="true"/>
 
     <!-- FORMAT type  -->
     <field name="format_type_ss" type="string" indexed="true" stored="true" multiValued="true"/>
@@ -152,6 +163,8 @@
   <field name="allfields" type="text" indexed="true" stored="false" multiValued="true"/>
 
   <!-- Copy several fields into the catch-all field -->
+  <!-- Make address searchable without affecting facet buckets -->
+  <copyField source="address_*" dest="allfields"/>
   <copyField source="title_*" dest="allfields"/>
   <copyField source="title_*" dest="title_search"/>
   <copyField source="description_*" dest="allfields"/>

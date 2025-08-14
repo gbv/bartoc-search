@@ -164,7 +164,11 @@ export function transformConceptSchemeToSolr(
 ): SolrDocument {
   const solrDoc: Partial<SolrDocument> = {
     access_type_ss: doc.ACCESS?.map(a => a.uri) || [],
-    address_country_s: doc.ADDRESS?.country, 
+    address_code_s: doc.ADDRESS?.code,
+    address_country_s: doc.ADDRESS?.country,
+    address_locality_s: doc.ADDRESS?.locality,
+    address_region_s: doc.ADDRESS?.region,
+    address_street_s: doc.ADDRESS?.street,
     alt_labels_ss: doc.altLabel?.und || [],
     api_type_ss: doc.API?.map(a => a.type),
     api_url_ss:  doc.API?.map(a => a.url),
