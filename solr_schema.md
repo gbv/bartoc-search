@@ -9,7 +9,8 @@ This document explains the design decisions and structure of the Solr schema use
 | Name     | Class                 | Description                                                                                                                                                |
 | -------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `string` | `solr.StrField`       | Non-tokenized strings for IDs, exact keywords, and URIs.|
-| `lc_keyword` | `solr.StrField`   | Case-insensitive keyword. Uses KeywordTokenizer + LowerCaseFilter; not tokenized (one term), short values (countries, postal codes, names, URIs) without case issues. Stored value keeps original casing.|
+| `boolean` | `solr.BoolField` | True/false flag. |
+| `lc_keyword` | `solr.StrField`   | Case-insensitive keyword, Uses KeywordTokenizer + LowerCaseFilter|
 | `long`   | `solr.LongPointField` | 64-bit integers (used for internal versioning `_version_`).|
 | `text`   | `solr.TextField`      | Full-text fields with custom analyzers for English: specials folding, word-delimiter, unicode folding, synonym expansion, stemming, and duplicate removal.|
 | `pdate`  | `solr.TrieDateField`  | ISO 8601 date fields. (*Note: currently `TrieDateField`; consider moving to `DatePointField` in a future Solr major release.*)|
@@ -31,6 +32,8 @@ Each field is configured with `indexed`, `stored`, and `multiValued` attributes 
 | `api_type_ss`      | `string` |    ✓    |    ✓   |     ✓     | One or more API-type identifiers (e.g. jskos, skosmos, sparql) denoting the service/interface protocols supported by the record.|
 | `api_url_ss`       | `string` |    x    |    ✓   |     ✓     | One or more fully qualified endpoint URLs corresponding to each api_type_ss entry.|
 | `contact_email_s`  | `string` |    ✓    |    ✓   |     x     | Email address of anyone in charge of the vocabulary |
+| `display_hideNotation_b`  | `boolean` |    ✓    |    ✓   |     x     | Hide notation it is only used as internal identifier  |
+| `display_numericalNotation_b`  | `boolean` |    ✓    |    ✓   |     x     | Numerical notation concepts of the vocabulary will be sorted numerically when displayed as a list  |
 | `format_type_ss`   | `array`  |    x    |    ✓   |     ✓     | A multivalued list of machine-readable format identifiers (URIs) describing the available resource formats. |
 | `format_group_ss`  | `array`  |    x    |    ✓   |     ✓     | Canonical format category labels (e.g. “PDF”, “HTML”, “Spreadsheet”) derived by mapping individual format URIs to standardized groups. |
 | `fullrecord`       | `string` |  	 x	  |    ✓ 	 |	   x      | The complete, unextended JSKOS record (raw JSON) as a string.|

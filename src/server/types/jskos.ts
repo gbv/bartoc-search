@@ -20,6 +20,8 @@ export interface ConceptSchemeDocument {
 
   CONTACT?: string;
 
+  DISPLAY?: DisplaySettings;
+
   FORMAT?: Array<{
     uri: string;
   }>;
@@ -151,6 +153,12 @@ export interface JskosSubject {
   notation?: string[];
   uri: string;
 }
+
+
+type DisplaySettings = {
+  hideNotation?: boolean;
+  numericalNotation?: boolean;
+};
 
 
 export interface LicenseEntry {

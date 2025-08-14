@@ -7,6 +7,7 @@
     <!-- A non-tokenized string: used for IDs and keywords -->
     <fieldType name="string" class="solr.StrField" sortMissingLast="true" />
     <fieldType name="long" class="solr.LongPointField" positionIncrementGap="0"/>
+    <fieldType name="boolean" class="solr.BoolField"/>
 
     <fieldType name="text" class="solr.TextField" positionIncrementGap="100" termVectors="true">
       <analyzer type="index">
@@ -90,7 +91,11 @@
     <field name="api_url_ss"  type="string" indexed="false" stored="true" multiValued="true"/>
 
     <!-- CONTACT field  -->
-   <field name="contact_email_s" type="lc_keyword" indexed="true" stored="true"/>
+    <field name="contact_email_s" type="lc_keyword" indexed="true" stored="true"/>
+
+    <!-- DISPLAY field -->
+    <field name="display_hideNotation_b"      type="boolean" indexed="true" stored="true"/>
+    <field name="display_numericalNotation_b" type="boolean" indexed="true" stored="true"/>
 
     <!-- Multivalued language field -->
     <field name="languages_ss" type="string" indexed="true" stored="true" multiValued="true"/>

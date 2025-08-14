@@ -14,6 +14,11 @@ const jskosListSchema = z
     }
   );
 
+const displaySchema = z.object({
+  hideNotation: z.boolean().optional(),
+  numericalNotation: z.boolean().optional(),
+}).strict();
+
 export const conceptSchemeZodSchema = z.object({
   "@context": z.string(),
   ACCESS: z.array(z.object({ uri: z.string().url() })).optional(),
@@ -31,7 +36,8 @@ export const conceptSchemeZodSchema = z.object({
     url: z.string().url(),
   }))
     .optional(),
-  CONTACT: z.string().email().optional(),  
+  CONTACT: z.string().email().optional(),
+  DISPLAY: displaySchema.optional(),
   FORMAT: z.array(z.object({ uri: z.string().url() })).optional(),
   altLabel: z.record(z.array(z.string())).optional(),
   contributor: z

@@ -27,7 +27,9 @@ export interface SolrDocument
   address_street_s?: string;
   api_type_ss: string[];
   api_url_ss: string[];
-  contact_email_s?: string
+  contact_email_s?: string;
+  display_hideNotation_b?: boolean;
+  display_numericalNotation_b?: boolean;
   alt_labels_ss: string[];
   created_dt?: string;
   ddc_ss: string[];
