@@ -356,6 +356,7 @@ You can drive fine‐grained filtering by passing any of your multivalued facet 
 | └─ `address_street_s`    | lc_keyword | Street address line (e.g., via Monte del Gallo 47) |
 | └─ `api_type_ss`         | array   | One or more API-type identifiers (e.g. jskos, skosmos, sparql) denoting the service/interface protocols supported by the record.|
 | └─ `api_url_ss`          | array   | One or more fully qualified endpoint URLs corresponding to each api_type_ss entry.|
+| └─ `contact_email_s`     | string  | Email address of anyone in charge of the vocabulary |
 | └─ `title_en`            | string  | English title of the thesaurus or concept scheme.        |
 | └─ `title_sort`          | string  | Title normalized for sorting.                            |
 | └─ `title_und`           | string  | Title in the “undefined” (und) language.                 |

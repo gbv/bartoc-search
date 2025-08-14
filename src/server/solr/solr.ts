@@ -171,6 +171,7 @@ export function transformConceptSchemeToSolr(
     address_street_s: doc.ADDRESS?.street,
     api_type_ss: doc.API?.map(a => a.type),
     api_url_ss:  doc.API?.map(a => a.url),
+    contact_email_s: doc.CONTACT,
     alt_labels_ss: doc.altLabel?.und || [],
     ddc_ss: extractDdc(doc.subject, { rootLevel: false }),
     ddc_root_ss: extractDdc(doc.subject, { rootLevel: true }),

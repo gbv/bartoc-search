@@ -89,6 +89,9 @@
     <field name="api_type_ss" type="string" indexed="true" stored="true" multiValued="true"/>
     <field name="api_url_ss"  type="string" indexed="false" stored="true" multiValued="true"/>
 
+    <!-- CONTACT field  -->
+   <field name="contact_email_s" type="lc_keyword" indexed="true" stored="true"/>
+
     <!-- Multivalued language field -->
     <field name="languages_ss" type="string" indexed="true" stored="true" multiValued="true"/>
 

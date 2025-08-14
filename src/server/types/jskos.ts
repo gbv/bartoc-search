@@ -18,6 +18,8 @@ export interface ConceptSchemeDocument {
     url: string;
   }>;
 
+  CONTACT?: string;
+
   FORMAT?: Array<{
     uri: string;
   }>;

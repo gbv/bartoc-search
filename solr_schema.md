@@ -30,6 +30,7 @@ Each field is configured with `indexed`, `stored`, and `multiValued` attributes 
 | `address_street_s`    | `lc_keyword` |    ✓    |    ✓   |      x     | Street address line (e.g., via Monte del Gallo 47) |
 | `api_type_ss`      | `string` |    ✓    |    ✓   |     ✓     | One or more API-type identifiers (e.g. jskos, skosmos, sparql) denoting the service/interface protocols supported by the record.|
 | `api_url_ss`       | `string` |    x    |    ✓   |     ✓     | One or more fully qualified endpoint URLs corresponding to each api_type_ss entry.|
+| `contact_email_s`  | `string` |    ✓    |    ✓   |     x     | Email address of anyone in charge of the vocabulary |
 | `format_type_ss`   | `array`  |    x    |    ✓   |     ✓     | A multivalued list of machine-readable format identifiers (URIs) describing the available resource formats. |
 | `format_group_ss`  | `array`  |    x    |    ✓   |     ✓     | Canonical format category labels (e.g. “PDF”, “HTML”, “Spreadsheet”) derived by mapping individual format URIs to standardized groups. |
 | `fullrecord`       | `string` |  	 x	  |    ✓ 	 |	   x      | The complete, unextended JSKOS record (raw JSON) as a string.|
