@@ -18,7 +18,7 @@ import { ConceptSchemeDocument, GroupEntry } from "../types/jskos";
 import { sleep, loadJSONFile, mapUriToGroups, extractGroups } from "../utils/utils";
 import readline from "readline";
 import { extractDdc } from "../utils/ddc";
-import { applyLangMap } from "../utils/utils";
+import { applyLangMap, applyContributors } from "../utils/utils";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -204,9 +204,14 @@ export function transformConceptSchemeToSolr(
   // Extracting Format groups
   extractGroups(solrDoc, "format_type_ss",  "format_group_ss",  FORMAT_GROUPS,  mapUriToGroups);
 
-  
+  // Adding altLabel data to solr
   if (doc.altLabel) {
    applyLangMap(doc.altLabel ?? {}, solrDoc, "alt_label", "alt_labels_ss");
+  }
+
+  // Adding contributor data to solr
+  if (doc.contributor) {
+    applyContributors(doc, solrDoc);
   }
 
 

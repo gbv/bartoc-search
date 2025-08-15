@@ -19,6 +19,11 @@ const displaySchema = z.object({
   numericalNotation: z.boolean().optional(),
 }).strict();
 
+const contributorSchema = z.object({
+  uri: z.string().url(),
+  prefLabel: z.record(z.array(z.string().min(1))).optional(), // normalized to Record<string, string[]>
+});
+
 export const conceptSchemeZodSchema = z.object({
   "@context": z.string(),
   ACCESS: z.array(z.object({ uri: z.string().url() })).optional(),
@@ -41,14 +46,7 @@ export const conceptSchemeZodSchema = z.object({
   EXAMPLES: z.array(z.string()).optional(),
   FORMAT: z.array(z.object({ uri: z.string().url() })).optional(),
   altLabel: z.record(z.array(z.string())).optional(),
-  contributor: z
-    .array(
-      z.object({
-        prefLabel: z.object({ en: z.string().optional() }),
-        uri: z.string().url(),
-      }),
-    )
-    .optional(),
+  contributor: z.array(contributorSchema).optional(),
   creator: z
     .array(
       z.object({

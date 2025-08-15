@@ -33,6 +33,11 @@ export type AggOut<A extends string> = Partial<Record<A, string[]>>;
 /** Combined output shape: dynamic per-language + aggregate. */
 export type DynamicOut<F extends string, A extends string> = PerLangOut<F> & AggOut<A>;
 
+
+export type ContributorOut = DynamicOut<"contributor_label", "contributor_labels_ss"> & {
+  contributor_uri_ss?: string[];
+};
+
 export interface SolrDocument
   extends TitleFields,
     DescriptionFields,
@@ -52,6 +57,7 @@ export interface SolrDocument
   format_type_ss?: string[];
   format_group_ss?: string[];
   alt_labels_ss?: string[];
+  contributor_labels_ss?: string[];
   created_dt?: string;
   ddc_ss: string[];
   ddc_root_ss: string[];

@@ -107,6 +107,10 @@
     <!-- altlLabel field -->
     <field name="alt_labels_ss" type="string" indexed="true" stored="true" multiValued="true"/>
 
+    <!-- contributor field -->
+    <field name="contributor_uri_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="contributor_labels_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+
     <!-- Multivalued language field -->
     <field name="languages_ss" type="string" indexed="true" stored="true" multiValued="true"/>
 
@@ -159,6 +163,7 @@
        Dynamic Field Definitions
        ================================================ -->
   <dynamicField name="alt_label_*" type="text" indexed="true" stored="true" multiValued="true"/>
+  <dynamicField name="contributor_label_*" type="text" indexed="true"  stored="true" multiValued="true"/>
   <dynamicField name="title_*" type="text" indexed="true" stored="true"/>
   <dynamicField name="description_*" type="text" indexed="true" stored="true"/>
   <dynamicField name="subject_*" type="text" indexed="true" stored="true" multiValued="true"/>
@@ -179,6 +184,8 @@
   <copyField source="address_*" dest="allfields"/>
   <copyField source="alt_label_*" dest="allfields"/>
   <copyField source="alt_labels_ss" dest="allfields"/>
+  <copyField source="contributor_label_*" dest="allfields"/>
+  <copyField source="contributor_labels_ss" dest="allfields"/>
   <copyField source="examples_ss" dest="allfields"/>
   <copyField source="title_*" dest="allfields"/>
   <copyField source="title_*" dest="title_search"/>

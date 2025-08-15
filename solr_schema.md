@@ -38,6 +38,8 @@ Each field is configured with `indexed`, `stored`, and `multiValued` attributes 
 | `format_type_ss`   | `array`  |    x    |    ✓   |     ✓     | A multivalued list of machine-readable format identifiers (URIs) describing the available resource formats. |
 | `format_group_ss`  | `array`  |    x    |    ✓   |     ✓     | Canonical format category labels (e.g. “PDF”, “HTML”, “Spreadsheet”) derived by mapping individual format URIs to standardized groups. |
 | `alt_labels_ss`    | `array`  |    x    |    ✓   |     ✓     | Language-agnostic aggregate of all altLabel values. Trimmed and de-duplicated across languages.|
+| `contributor_uri_ss` | `array`  |    x    |    ✓   |     ✓    | Aggregate of all contributor uris|
+| `contributor_labels_ss` | `array`  |    x    |    ✓   |     ✓  | Language-agnostic aggregate of all altLabel values. Trimmed and de-duplicated across languages.|
 | `fullrecord`       | `string` |  	 x	  |    ✓ 	 |	   x      | The complete, unextended JSKOS record (raw JSON) as a string.|
 | `identifier_ss`    | `string` |  	 ✓ 	  |    ✓ 	 |	   ✓     | Additional identifiers of the resource; corresponds to the JSKOS identifier field (alternate URIs or local IDs).|
 | `languages_ss`     | `string` |    ✓    |    ✓   |     ✓     | ISO language codes of the document.                         |
@@ -63,6 +65,7 @@ These patterns capture additional multilingual or unforeseen fields without chan
 | Pattern         | Type     | Indexed | Stored | MultiValued | Description                                              |
 | --------------- | -------- | :-----: | :----: | :---------: | -------------------------------------------------------- |
 | `alt_label_*`   | `text`   |    ✓    |    ✓   |      ✓     | Language-specific alternative labels (`alt_label_de`, `alt_label_und`, etc.). |
+| `contibutor_label_*`   | `text`   |    ✓    |    ✓   |      ✓     | Language-specific contributor labels (`contibutor_label_de`, `contibutor_label_en`, etc.). |
 | `title_*`       | `text`   |    ✓    |    ✓   |      x     | Language-specific titles (`title_en`, `title_de`, etc.). |
 | `description_*` | `text`   |    ✓    |    ✓   |      x     | Language-specific descriptions.                          |
 | `subject_*`     | `text`   |    ✓    |    ✓   |     ✓     | Language-specific subject labels.                        |
@@ -78,13 +81,18 @@ To enable both targeted and global search, we copy field values into broader cat
 | Source            | Destination    |
 | ----------------- | -------------- |
 | `address_*`       | `allfields`    |
+| `alt_label_*`       | `allfields`   |
+| `alt_labels_ss`     | `allfields`    |
+| `contributor_label_*` | `allfields`    |
+| `contributor_labels_ss`   | `allfields`    |
+| `examples_ss`   | `allfields`    |
 | `title_*`         | `allfields`    |
 | `description_*`   | `allfields`    |
 | `publisher_label` | `allfields`    |
 | `subject_*`       | `allfields`    |
-| `alt_labels_ss`   | `allfields`    |
 | `title_*`         | `title_search` |
 | `title_en`        | `title_sort`   |
+
 
 - allfields
 A multi-valued text field that aggregates most human-readable content for global full-text queries.

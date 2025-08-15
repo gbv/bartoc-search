@@ -32,13 +32,7 @@ export interface ConceptSchemeDocument {
     [lang: string]: string[];
   };
 
-  // From current data structure contributor prefLabel is always given in English
-  contributor?: Array<{
-    prefLabel: {
-      en?: string;
-    };
-    uri: string;
-  }>;
+  contributor?: Contributor[]
 
   created: string;
 
@@ -156,6 +150,15 @@ export interface JskosSubject {
   uri: string;
 }
 
+/**
+ * Input shape of JKSOKS record about languages mapping
+ */
+export type LangMap = Record<string, string[]>;
+
+export type Contributor = {
+  uri?: string;
+  prefLabel?: LangMap;   // e.g. { en: "Foo Org", de: ["Foo Verein", "FV"] }
+};
 
 export type DisplaySettings = {
   hideNotation?: boolean;
