@@ -1,6 +1,7 @@
 import { promises as fsPromises } from "fs";
 import * as path from "path";
 import { GroupEntry, GroupResult } from "../types/jskos";
+import { DynamicOut, PerLangOut, FamilyKey, AggOut } from "../types/solr";
 import _ from "lodash";
 import {NO_VALUE} from "../conf/conf";
 
@@ -135,5 +136,60 @@ export function extractGroups(
     }));
 
   doc[targetField] = grouped.map((g) => g.label);
+
+}
+
+// Helpers
+/** Trims a value if it’s a string; returns "" for non-strings. */
+export const trimSafe = (s: unknown): string => (typeof s === "string" ? s.trim() : "");
+
+/** True if the string is non-empty. */
+export const nonempty = (s: string) => s.length > 0;
+
+/** Returns a new array with duplicates removed, preserving order. */
+export const uniq = <T,>(arr: T[]) => Array.from(new Set(arr));
+
+
+/**
+ * Emits per-language dynamic fields (<family>_<lang>) and a language-agnostic
+ * aggregate field. Overwrites existing values in `out`.
+ *
+ * Input:
+ *  - `langMap`: Record<string, string[]> (e.g., altLabel by language)
+ *  - `out`:     target object to mutate (e.g., your Solr doc)
+ *  - `family`:  dynamic family prefix (e.g., "altLabel")
+ *  - `aggregateField`: aggregate field name (e.g., "alt_labels_ss")
+ * 
+ */
+export function applyLangMap<F extends string, A extends string>(
+  langMap: Record<string, string[]>,
+  out: DynamicOut<F, A>,
+  family: F,
+  aggregateField: A
+): void {
+  const perLang: PerLangOut<F> = {};
+  const aggregate: string[] = [];
+
+  for (const [lang, values] of Object.entries(langMap)) {
+    // Clean and validate the values for this language
+    const cleaned = values.map(trimSafe).filter(nonempty);
+    if (!cleaned.length) continue;
+
+    // Field name for this language
+    const key = `${family}_${lang}` as FamilyKey<F>;
+
+    // Overwrite per-language field with de-duplicated values
+    perLang[key] = uniq(cleaned);
+
+     // Collect into aggregate. i.e. alt_labels_ss
+    aggregate.push(...cleaned);
+  }
+
+  Object.assign(out, perLang);
+  
+  // Overwrite aggregate field (de-duplicated)
+  if (aggregate.length) {
+    (out as AggOut<A>)[aggregateField] = uniq(aggregate); // overwrite aggregate
+  }
 
 }

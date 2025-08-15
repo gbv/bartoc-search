@@ -367,8 +367,8 @@ You can drive fine‐grained filtering by passing any of your multivalued facet 
 | └─ `title_und`           | string  | Title in the “undefined” (und) language.                 |
 | └─ `description_en`      | string  | Short English description or abstract.                   |
 | └─ `fullrecord`          | string  | The complete, unextended JSKOS record (raw JSON) as a string. (multilingual).                       |
-| └─ `identifier_ss`       | array  | Additional identifiers of the resource; corresponds to the JSKOS identifier field (alternate URIs or local IDs).|
-| └─ `alt_labels_ss`       | array   | Alternative labels (multilingual).                       |
+| └─ `identifier_ss`       | array   | Additional identifiers of the resource; corresponds to the JSKOS identifier field (alternate URIs or local IDs).|
+| └─ `alt_labels_ss`       | array   | Language-agnostic aggregate of all altLabel values. Trimmed and de-duplicated across languages.
 | └─ `languages_ss`        | array   | Languages available (ISO codes).                         |
 | └─ `license_type_ss`     | array   | A multivalued list of machine-readable license identifiers (URIs) under which the resource is released. |
 | └─ `license_group_ss`    | array   | Canonical license category labels (e.g. “CC BY”, “CC BY-SA”, “Public Domain”, “WTFPL”) derived by mapping individual license URIs to a standardized group.|

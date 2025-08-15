@@ -104,15 +104,15 @@
     <field name="format_type_ss" type="string" indexed="true" stored="true" multiValued="true"/>
     <field name="format_group_ss" type="string" indexed="true" stored="true" multiValued="true"/>
 
+    <!-- altlLabel field -->
+    <field name="alt_labels_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+
     <!-- Multivalued language field -->
     <field name="languages_ss" type="string" indexed="true" stored="true" multiValued="true"/>
 
     <!-- Multivalued publisher -->
     <field name="publisher_label" type="string" indexed="true" stored="true"/>
     <field name="publisher_id" type="string" indexed="true" stored="true" />
-
-    <!-- Multivalued alternative labels -->
-    <field name="alt_labels_ss" type="string" indexed="true" stored="true" multiValued="true"/>
 
     <!-- Multivalued Dewey Decimal Classifications -->
     <field name="ddc_ss" type="string" indexed="true" stored="true" multiValued="true"/>
@@ -158,6 +158,7 @@
   <!-- ================================================
        Dynamic Field Definitions
        ================================================ -->
+  <dynamicField name="alt_label_*" type="text" indexed="true" stored="true" multiValued="true"/>
   <dynamicField name="title_*" type="text" indexed="true" stored="true"/>
   <dynamicField name="description_*" type="text" indexed="true" stored="true"/>
   <dynamicField name="subject_*" type="text" indexed="true" stored="true" multiValued="true"/>
@@ -176,13 +177,14 @@
   <!-- Copy several fields into the catch-all field -->
   <!-- Make address searchable without affecting facet buckets -->
   <copyField source="address_*" dest="allfields"/>
+  <copyField source="alt_label_*" dest="allfields"/>
+  <copyField source="alt_labels_ss" dest="allfields"/>
   <copyField source="examples_ss" dest="allfields"/>
   <copyField source="title_*" dest="allfields"/>
   <copyField source="title_*" dest="title_search"/>
   <copyField source="description_*" dest="allfields"/>
   <copyField source="publisher_label" dest="allfields"/>
   <copyField source="subject_*" dest="allfields"/>
-  <copyField source="alt_labels_ss" dest="allfields"/>
 
   <!-- ================================================
        Schema Configuration

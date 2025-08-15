@@ -18,6 +18,7 @@ import { ConceptSchemeDocument, GroupEntry } from "../types/jskos";
 import { sleep, loadJSONFile, mapUriToGroups, extractGroups } from "../utils/utils";
 import readline from "readline";
 import { extractDdc } from "../utils/ddc";
+import { applyLangMap } from "../utils/utils";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -175,7 +176,6 @@ export function transformConceptSchemeToSolr(
     display_hideNotation_b: doc.DISPLAY?.hideNotation,
     display_numericalNotation_b: doc.DISPLAY?.numericalNotation,
     examples_ss: doc.EXAMPLES?.map(s => (typeof s === "string" ? s.trim() : "")).filter(Boolean) ?? [],
-    alt_labels_ss: doc.altLabel?.und || [],
     ddc_ss: extractDdc(doc.subject, { rootLevel: false }),
     ddc_root_ss: extractDdc(doc.subject, { rootLevel: true }),
     format_type_ss: doc.FORMAT?.map(f => f.uri) || [],
@@ -203,6 +203,11 @@ export function transformConceptSchemeToSolr(
   
   // Extracting Format groups
   extractGroups(solrDoc, "format_type_ss",  "format_group_ss",  FORMAT_GROUPS,  mapUriToGroups);
+
+  
+  if (doc.altLabel) {
+   applyLangMap(doc.altLabel ?? {}, solrDoc, "alt_label", "alt_labels_ss");
+  }
 
 
   // type solr fields for labels are to be addressed separately as currently the soruce is a ndJson file

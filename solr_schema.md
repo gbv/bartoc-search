@@ -37,6 +37,7 @@ Each field is configured with `indexed`, `stored`, and `multiValued` attributes 
 | `examples_ss`      | `lc_keyword` | ✓ | ✓ | ✓ | Example sentences/snippets from JSKOS EXAMPLES field; |
 | `format_type_ss`   | `array`  |    x    |    ✓   |     ✓     | A multivalued list of machine-readable format identifiers (URIs) describing the available resource formats. |
 | `format_group_ss`  | `array`  |    x    |    ✓   |     ✓     | Canonical format category labels (e.g. “PDF”, “HTML”, “Spreadsheet”) derived by mapping individual format URIs to standardized groups. |
+| `alt_labels_ss`    | `array`  |    x    |    ✓   |     ✓     | Language-agnostic aggregate of all altLabel values. Trimmed and de-duplicated across languages.|
 | `fullrecord`       | `string` |  	 x	  |    ✓ 	 |	   x      | The complete, unextended JSKOS record (raw JSON) as a string.|
 | `identifier_ss`    | `string` |  	 ✓ 	  |    ✓ 	 |	   ✓     | Additional identifiers of the resource; corresponds to the JSKOS identifier field (alternate URIs or local IDs).|
 | `languages_ss`     | `string` |    ✓    |    ✓   |     ✓     | ISO language codes of the document.                         |
@@ -46,7 +47,6 @@ Each field is configured with `indexed`, `stored`, and `multiValued` attributes 
 | `namespace_s`      | `string` |    ✓    |    ✓   |      x     | Namespace (URI prefix) of the Concept Scheme; corresponds to the JSKOS namespace field |
 | `publisher_label`  | `text`   |    ✓    |    ✓   |      x     | Name of the publishing organization (full-text).            |
 | `publisher_id`     | `string` |    ✓    |    ✓   |      x     | Identifier URI of the publisher.                            |
-| `alt_labels_ss`    | `string` |    ✓    |    ✓   |     ✓     | Alternative labels (multilingual).                          |
 | `ddc_ss`           | `string` |    ✓    |    ✓   |     ✓     | Dewey Decimal Classification notations.                     |
 | `ddc_root_ss`      | `string` |    ✓    |    ✓   |     ✓     | Dewey Decimal Classification notations only at root level.  |
 | `created_dt`       | `pdate`  |    ✓    |    ✓   |      x     | Document creation timestamp (ISO 8601).                     |
@@ -62,6 +62,7 @@ Each field is configured with `indexed`, `stored`, and `multiValued` attributes 
 These patterns capture additional multilingual or unforeseen fields without changing the schema:
 | Pattern         | Type     | Indexed | Stored | MultiValued | Description                                              |
 | --------------- | -------- | :-----: | :----: | :---------: | -------------------------------------------------------- |
+| `alt_label_*`   | `text`   |    ✓    |    ✓   |      ✓     | Language-specific alternative labels (`alt_label_de`, `alt_label_und`, etc.). |
 | `title_*`       | `text`   |    ✓    |    ✓   |      x     | Language-specific titles (`title_en`, `title_de`, etc.). |
 | `description_*` | `text`   |    ✓    |    ✓   |      x     | Language-specific descriptions.                          |
 | `subject_*`     | `text`   |    ✓    |    ✓   |     ✓     | Language-specific subject labels.                        |

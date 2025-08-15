@@ -15,6 +15,24 @@ type TypeLabelFields = {
   [K in SupportedLang as `type_label_${K}`]?: string;
 };
 
+
+// We write per-language fields named like "<family>_<lang>", e.g.:
+//   - altLabel_de
+//   - altLabel_it
+//   - altLabel_und
+
+/** Template for any "<family>_<lang>" field key. */
+export type FamilyKey<F extends string> = `${F}_${string}`;
+
+/** Output shape for the per-language fields. */
+export type PerLangOut<F extends string> = Partial<Record<FamilyKey<F>, string[]>>;
+
+/** Output shape for the aggregate field. */
+export type AggOut<A extends string> = Partial<Record<A, string[]>>;
+
+/** Combined output shape: dynamic per-language + aggregate. */
+export type DynamicOut<F extends string, A extends string> = PerLangOut<F> & AggOut<A>;
+
 export interface SolrDocument
   extends TitleFields,
     DescriptionFields,
@@ -33,7 +51,7 @@ export interface SolrDocument
   examples_ss?: string[];
   format_type_ss?: string[];
   format_group_ss?: string[];
-  alt_labels_ss: string[];
+  alt_labels_ss?: string[];
   created_dt?: string;
   ddc_ss: string[];
   ddc_root_ss: string[];

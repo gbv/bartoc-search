@@ -162,8 +162,6 @@ export type DisplaySettings = {
   numericalNotation?: boolean;
 };
 
-export type ExampleItem = string | { text?: string; note?: string }; 
-
 
 export interface LicenseEntry {
   key: string
