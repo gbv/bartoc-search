@@ -78,16 +78,12 @@ ul {
   list-style: none;
   padding: 0;
 }
-.facet-item {
-  border-bottom-right-radius: 4px;
-  border-bottom-left-radius: 4px;
-}
 
 .facet-group .facet-item {
   display: flex;
   width: 100%;
-  padding-right: 8px;
-  border: 1px solid var(--divider-light-1);
+  padding: 0.5rem;
+  border-radius: 0;
   text-align: inherit;
   justify-content: space-between;
 }
@@ -95,7 +91,6 @@ ul {
 .facet-badge {
   background: var(--color-button-background);
   color: white;
-  border-radius: 1em;
   padding: 0 0.5em;
   font-size: 0.75em;
   margin-left: 0.5em;
@@ -143,7 +138,6 @@ ul {
 .options-list li {
   cursor: pointer;
   display: flex;
-  border: 1px solid var(--divider-light-1);
   padding: 5px;
 }
 
@@ -155,16 +149,7 @@ ul {
 /* highlight facet-count on li hover */
 .options-list li:hover .facet-count {
   background-color: var(--color-background);
-  border-radius: 2px;
   color: var(--color-text-light-1);
-}
-
-.options-list li:first-child {
-  border-top: none;
-}
-
-.options-list li:not(:last-child) {
-  border-bottom: none;
 }
 
 .facet-count {

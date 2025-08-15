@@ -45,11 +45,7 @@ function updateFilters(field, values) {
 <style scoped>
 .sidebar {
   padding: 1rem;
-  border-radius: 4px;
   width: 400px;
-}
-.facet-group + .facet-group {
-  margin-top: 1rem;
 }
 .facet-group {
   display: block;

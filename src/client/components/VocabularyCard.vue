@@ -128,18 +128,15 @@ function JskosRecord(id) {
 
 <style scoped>
 .result-card {
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  padding: 8px;
+  padding-left: 0.5rem;
   margin: 12px 8px;
   background-color: #fff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: box-shadow 0.2s ease;
   text-align: left;
   color: #4a5568;
+  border-left: 2px solid #fff;
 }
 .result-card:hover {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  border-left: 2px solid #000;
 }
 
 .result-title {
