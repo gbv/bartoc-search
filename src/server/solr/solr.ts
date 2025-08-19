@@ -2,7 +2,7 @@
 import axios from "axios";
 import config from "../conf/conf";
 import { SolrClient } from "./SolrClient";
-import { PingResponse, SolrDocument } from "../types/solr";
+import { ContributorOut, CreatorOut, PingResponse, SolrDocument } from "../types/solr";
 import { SupportedLang } from "../types/lang";
 import { ConceptZodType } from "../validation/concept";
 import {
@@ -15,10 +15,10 @@ import { writeFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { ConceptSchemeDocument, GroupEntry } from "../types/jskos";
-import { sleep, loadJSONFile, mapUriToGroups, extractGroups } from "../utils/utils";
+import { sleep, loadJSONFile, mapUriToGroups, extractGroups, applyAgents } from "../utils/utils";
 import readline from "readline";
 import { extractDdc } from "../utils/ddc";
-import { applyLangMap, applyContributors } from "../utils/utils";
+import { applyLangMap } from "../utils/utils";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -211,7 +211,14 @@ export function transformConceptSchemeToSolr(
 
   // Adding contributor data to solr
   if (doc.contributor) {
-    applyContributors(doc, solrDoc);
+    // applyContributors(doc, solrDoc);
+    applyAgents(doc.contributor, solrDoc as ContributorOut, "contributor_label", "contributor_labels_ss", "contributor_uri_ss");
+  }
+
+  // Adding creator data to solr
+  if (doc.creator) {
+    // applyContributors(doc, solrDoc);
+    applyAgents(doc.creator, solrDoc as CreatorOut, "creator_label", "creator_labels_ss", "creator_uri_ss");
   }
 
 

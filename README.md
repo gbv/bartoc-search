@@ -371,6 +371,9 @@ You can drive fine‐grained filtering by passing any of your multivalued facet 
 | └─ `alt_labels_ss`       | array   | Language-agnostic aggregate of all altLabel values. Trimmed and de-duplicated across languages.
 | └─ `contributor_uri_ss`  | array   | Aggregate of all contributor uris|
 | └─ `contributor_labels_ss` | array | Language-agnostic aggregate of all contributor prefLabel values. Trimmed and de-duplicated across languages.|
+| └─ `created_dt`          | string  | Creation timestamp (ISO-8601).                           |
+| └─ `creator_uri_ss`      | array  |  Aggregate of all creator uris|
+| └─ `creator_labels_ss`   | array  |  Language-agnostic aggregate of all creator values. Trimmed and de-duplicated across languages.|
 | └─ `languages_ss`        | array   | Languages available (ISO codes).                         |
 | └─ `license_type_ss`     | array   | A multivalued list of machine-readable license identifiers (URIs) under which the resource is released. |
 | └─ `license_group_ss`    | array   | Canonical license category labels (e.g. “CC BY”, “CC BY-SA”, “Public Domain”, “WTFPL”) derived by mapping individual license URIs to a standardized group.|

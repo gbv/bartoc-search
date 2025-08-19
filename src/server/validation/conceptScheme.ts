@@ -24,6 +24,11 @@ const contributorSchema = z.object({
   prefLabel: z.record(z.array(z.string().min(1))).optional(), // normalized to Record<string, string[]>
 });
 
+const creatorSchema = z.object({
+  uri: z.string().url(),
+  prefLabel: z.record(z.array(z.string().min(1))).optional(), // normalized to Record<string, string[]>
+});
+
 export const conceptSchemeZodSchema = z.object({
   "@context": z.string(),
   ACCESS: z.array(z.object({ uri: z.string().url() })).optional(),
@@ -47,14 +52,7 @@ export const conceptSchemeZodSchema = z.object({
   FORMAT: z.array(z.object({ uri: z.string().url() })).optional(),
   altLabel: z.record(z.array(z.string())).optional(),
   contributor: z.array(contributorSchema).optional(),
-  creator: z
-    .array(
-      z.object({
-        prefLabel: z.object({ en: z.string().optional() }),
-        uri: z.string().url(),
-      }),
-    )
-    .optional(),
+  creator: z.array(creatorSchema).optional(),
   definition: z.record(z.array(z.string())).optional(),
   identifier: jskosListSchema,
   languages: z.array(z.string()).optional(),

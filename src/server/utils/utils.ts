@@ -1,7 +1,7 @@
 import { promises as fsPromises } from "fs";
 import * as path from "path";
-import { Contributor, GroupEntry, GroupResult, LangMap } from "../types/jskos";
-import { DynamicOut, PerLangOut, FamilyKey, AggOut, ContributorOut } from "../types/solr";
+import {GroupEntry, GroupResult } from "../types/jskos";
+import { DynamicOut, PerLangOut, FamilyKey, AggOut,UriOut } from "../types/solr";
 import _ from "lodash";
 import {NO_VALUE} from "../conf/conf";
 
@@ -195,6 +195,59 @@ export function applyLangMap<F extends string, A extends string>(
 }
 
 
+// Minimal JSKOS agent shape used by both contributor and creator
+type PrefLabelMap = Record<string, string[] | string>;
+
+// An Agent can be a contributor or a creator or whatever has a similar JSKOS structure to those properties
+type Agent = { uri?: string; prefLabel?: PrefLabelMap };
+
+/**
+ * Emit URIs + per-language labels + aggregate for a list of agents.
+ * Overwrites existing values in `out`.
+ */
+export function applyAgents<F extends string, A extends string, U extends string>(
+  agents: Agent[] | undefined,
+  out: (DynamicOut<F, A> & UriOut<U>),
+  family: F,
+  aggregateField: A,
+  uriField: U
+): void {
+  const list = agents ?? [];
+  if (!list.length) return;
+
+  // 1) URIs (trim + dedupe)
+  const uris = Array.from(new Set(list.map(a => trimSafe(a.uri)).filter(nonempty)));
+  if (uris.length) {
+    // Narrow to `UriOut<U>` for this write to avoid `never` from the intersection
+    const outUris: UriOut<U> = out;
+    outUris[uriField] = uris;
+  }
+
+  // 2) Build language map from all prefLabels
+  const langMap: Record<string, string[]> = {};
+  for (const a of list) {
+    if (!a.prefLabel) continue;
+    for (const [lang, vals] of Object.entries(a.prefLabel)) {
+      const arr = (Array.isArray(vals) ? vals : [vals])
+        .map(trimSafe)
+        .filter(nonempty);
+      if (arr.length) langMap[lang] = (langMap[lang] ?? []).concat(arr);
+    }
+  }
+
+  // 3) Emit <family>_<lang> + aggregate (overwrite)
+  if (Object.keys(langMap).length) {
+    applyLangMap(langMap, out, family, aggregateField);
+  }
+}
+
+
+
+
+
+
+/* 
+
 /**
  * Populate contributor fields in the Solr output document.
  *
@@ -206,7 +259,7 @@ export function applyLangMap<F extends string, A extends string>(
  *  - contributor_label_<lang>: string[] // per-language labels (via applyLangMap)
  *  - contributor_labels_ss:   string[] // language-agnostic aggregate of all labels
  *
- */
+ 
 
 export function applyContributors(
   src: { contributor?: Contributor[] },
@@ -246,3 +299,4 @@ export function applyContributors(
   }
 }
 
+*/

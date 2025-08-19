@@ -16,27 +16,60 @@ type TypeLabelFields = {
 };
 
 
-// We write per-language fields named like "<family>_<lang>", e.g.:
-//   - altLabel_de
-//   - altLabel_it
-//   - altLabel_und
 
-/** Template for any "<family>_<lang>" field key. */
+// Dynamic Solr field typing helpers
+
+/**
+ * Template for any per-language dynamic field emitted at ETL time.
+ * Example (family = "altLabel"): "altLabel_en", "altLabel_de", "altLabel_und".
+ * The resulting keys MUST match a Solr rule like:
+ *   <dynamicField name="<family>_*" ... />
+ */
 export type FamilyKey<F extends string> = `${F}_${string}`;
 
-/** Output shape for the per-language fields. */
+/**
+ * Sparse object whose keys are per-language dynamic fields (<family>_<lang>)
+ * and whose values are the multi-valued strings written to Solr.
+ * Example keys: "altLabel_en", "creator_label_de".
+ */
 export type PerLangOut<F extends string> = Partial<Record<FamilyKey<F>, string[]>>;
 
-/** Output shape for the aggregate field. */
+/**
+ * Language-agnostic aggregate field, typically a multiValued `string` used for
+ * facets, exact filters, and simple display (e.g., "alt_labels_ss").
+ */
 export type AggOut<A extends string> = Partial<Record<A, string[]>>;
 
-/** Combined output shape: dynamic per-language + aggregate. */
+/**
+ * Convenience type that combines per-language dynamic fields with one aggregate
+ * field for the same family (e.g., altLabel_* + alt_labels_ss).
+ */
 export type DynamicOut<F extends string, A extends string> = PerLangOut<F> & AggOut<A>;
 
+/**
+ * Adds a concrete URI bucket to the output (e.g., "contributor_uri_ss").
+ * Value is a multi-valued list of canonical URIs.
+ */
+export type UriOut<U extends string> = { [K in U]?: string[] };
 
-export type ContributorOut = DynamicOut<"contributor_label", "contributor_labels_ss"> & {
-  contributor_uri_ss?: string[];
-};
+
+// Family-specific output shapes
+
+/**
+ * Contributor fields:
+ * - `contributor_label_<lang>`  (dynamic, analyzed text; multi-valued)
+ * - `contributor_labels_ss`     (aggregate across languages; multi-valued string)
+ * - `contributor_uri_ss`        (URIs; multi-valued string)
+ */
+export type ContributorOut = DynamicOut<"contributor_label","contributor_labels_ss"> & UriOut<"contributor_uri_ss">;
+
+/**
+ * Creator fields:
+ * - `creator_label_<lang>`  (dynamic, analyzed text; multi-valued)
+ * - `creator_labels_ss`     (aggregate across languages; multi-valued string)
+ * - `creator_uri_ss`        (URIs; multi-valued string)
+ */
+export type CreatorOut = DynamicOut<"creator_label","creator_labels_ss"> & UriOut<"creator_uri_ss">;
 
 export interface SolrDocument
   extends TitleFields,
@@ -58,6 +91,7 @@ export interface SolrDocument
   format_group_ss?: string[];
   alt_labels_ss?: string[];
   contributor_labels_ss?: string[];
+  creator_labels_ss?: string[];
   created_dt?: string;
   ddc_ss: string[];
   ddc_root_ss: string[];

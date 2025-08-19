@@ -36,13 +36,7 @@ export interface ConceptSchemeDocument {
 
   created: string;
 
-  // From current data structure creator prefLabel is always given in English
-  creator?: Array<{
-    prefLabel: {
-      en?: string;
-    };
-    uri: string;
-  }>;
+  creator?: Creator[]
 
   definition?: {
     [lang: string]: string[];
@@ -156,6 +150,11 @@ export interface JskosSubject {
 export type LangMap = Record<string, string[]>;
 
 export type Contributor = {
+  uri?: string;
+  prefLabel?: LangMap;   // e.g. { en: "Foo Org", de: ["Foo Verein", "FV"] }
+};
+
+export type Creator = {
   uri?: string;
   prefLabel?: LangMap;   // e.g. { en: "Foo Org", de: ["Foo Verein", "FV"] }
 };

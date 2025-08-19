@@ -111,6 +111,13 @@
     <field name="contributor_uri_ss" type="string" indexed="true" stored="true" multiValued="true"/>
     <field name="contributor_labels_ss" type="string" indexed="true" stored="true" multiValued="true"/>
 
+    <!-- created field-->
+    <field name="created_dt" type="pdate" indexed="true" stored="true"/>
+
+    <!-- creator field-->
+    <field name="creator_uri_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="creator_labels_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+
     <!-- Multivalued language field -->
     <field name="languages_ss" type="string" indexed="true" stored="true" multiValued="true"/>
 
@@ -122,8 +129,7 @@
     <field name="ddc_ss" type="string" indexed="true" stored="true" multiValued="true"/>
     <field name="ddc_root_ss" type="string" indexed="true" stored="true" multiValued="true"/>
 
-    <!-- Date fields -->
-    <field name="created_dt" type="pdate" indexed="true" stored="true"/>
+    <!-- modified field -->
     <field name="modified_dt" type="pdate" indexed="true" stored="true"/>
 
     <!-- Start Year as integer -->
@@ -164,6 +170,7 @@
        ================================================ -->
   <dynamicField name="alt_label_*" type="text" indexed="true" stored="true" multiValued="true"/>
   <dynamicField name="contributor_label_*" type="text" indexed="true"  stored="true" multiValued="true"/>
+  <dynamicField name="creator_label_*" type="text"   indexed="true" stored="true" multiValued="true"/>
   <dynamicField name="title_*" type="text" indexed="true" stored="true"/>
   <dynamicField name="description_*" type="text" indexed="true" stored="true"/>
   <dynamicField name="subject_*" type="text" indexed="true" stored="true" multiValued="true"/>
@@ -186,6 +193,8 @@
   <copyField source="alt_labels_ss" dest="allfields"/>
   <copyField source="contributor_label_*" dest="allfields"/>
   <copyField source="contributor_labels_ss" dest="allfields"/>
+  <copyField source="creator_label_*" dest="allfields"/>
+  <copyField source="creator_labels_ss" dest="allfields"/>
   <copyField source="examples_ss" dest="allfields"/>
   <copyField source="title_*" dest="allfields"/>
   <copyField source="title_*" dest="title_search"/>

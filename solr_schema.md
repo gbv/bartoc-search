@@ -39,7 +39,10 @@ Each field is configured with `indexed`, `stored`, and `multiValued` attributes 
 | `format_group_ss`  | `array`  |    x    |    ✓   |     ✓     | Canonical format category labels (e.g. “PDF”, “HTML”, “Spreadsheet”) derived by mapping individual format URIs to standardized groups. |
 | `alt_labels_ss`    | `array`  |    x    |    ✓   |     ✓     | Language-agnostic aggregate of all altLabel values. Trimmed and de-duplicated across languages.|
 | `contributor_uri_ss` | `array`  |    x    |    ✓   |     ✓    | Aggregate of all contributor uris|
-| `contributor_labels_ss` | `array`  |    x    |    ✓   |     ✓  | Language-agnostic aggregate of all altLabel values. Trimmed and de-duplicated across languages.|
+| `contributor_labels_ss` | `array`  |    x    |    ✓   |     ✓  | Language-agnostic aggregate of all contributor values. Trimmed and de-duplicated across languages.|
+| `created_dt`       | `pdate`  |    ✓    |    ✓   |      x     | Document creation timestamp (ISO 8601).                     |
+| `creator_uri_ss` | `array`  |    x    |    ✓   |     ✓    | Aggregate of all creator uris|
+| `creator_labels_ss` | `array`  |    x    |    ✓   |     ✓  | Language-agnostic aggregate of all creator values. Trimmed and de-duplicated across languages.|
 | `fullrecord`       | `string` |  	 x	  |    ✓ 	 |	   x      | The complete, unextended JSKOS record (raw JSON) as a string.|
 | `identifier_ss`    | `string` |  	 ✓ 	  |    ✓ 	 |	   ✓     | Additional identifiers of the resource; corresponds to the JSKOS identifier field (alternate URIs or local IDs).|
 | `languages_ss`     | `string` |    ✓    |    ✓   |     ✓     | ISO language codes of the document.                         |
@@ -51,7 +54,6 @@ Each field is configured with `indexed`, `stored`, and `multiValued` attributes 
 | `publisher_id`     | `string` |    ✓    |    ✓   |      x     | Identifier URI of the publisher.                            |
 | `ddc_ss`           | `string` |    ✓    |    ✓   |     ✓     | Dewey Decimal Classification notations.                     |
 | `ddc_root_ss`      | `string` |    ✓    |    ✓   |     ✓     | Dewey Decimal Classification notations only at root level.  |
-| `created_dt`       | `pdate`  |    ✓    |    ✓   |      x     | Document creation timestamp (ISO 8601).                     |
 | `modified_dt`      | `pdate`  |    ✓    |    ✓   |      x     | Last modification timestamp (ISO 8601).                     |
 | `start_year_i`     | `pint`   |    ✓    |    ✓   |      x     | Start year (integer) of the classification.                 |
 | `url_s`            | `string` |    ×    |    ✓   |      x     | Canonical URL for more information (not indexed).           |
