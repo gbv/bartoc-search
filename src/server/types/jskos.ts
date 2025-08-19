@@ -42,6 +42,8 @@ export interface ConceptSchemeDocument {
     [lang: string]: string[];
   };
 
+  distributions?: Distributions[];
+
   // https://gbv.github.io/jskos/#list
   identifier?: (string | null)[];
 
@@ -158,6 +160,12 @@ export type Creator = {
   uri?: string;
   prefLabel?: LangMap;   // e.g. { en: "Foo Org", de: ["Foo Verein", "FV"] }
 };
+
+export type Distributions = {
+  download?: string[];
+  format?: string[];
+  mimetype?: string[];
+}
 
 export type DisplaySettings = {
   hideNotation?: boolean;

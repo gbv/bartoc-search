@@ -71,6 +71,12 @@ export type ContributorOut = DynamicOut<"contributor_label","contributor_labels_
  */
 export type CreatorOut = DynamicOut<"creator_label","creator_labels_ss"> & UriOut<"creator_uri_ss">;
 
+export type DistributionsOut = {
+  distributions_download_ss?: string[];
+  distributions_format_ss?: string[];
+  distributions_mimetype_ss?: string[];
+};
+
 export interface SolrDocument
   extends TitleFields,
     DescriptionFields,
@@ -94,6 +100,9 @@ export interface SolrDocument
   creator_ss?: string[];
   created_dt?: string;
   definition_ss?: string[];
+  distributions_download_ss?: string[];
+  distributions_format_ss?: string[];
+  distributions_mimetype_ss?: string[];
   ddc_ss: string[];
   ddc_root_ss: string[];
   fullrecord: string;

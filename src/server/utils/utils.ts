@@ -1,7 +1,7 @@
 import { promises as fsPromises } from "fs";
 import * as path from "path";
-import {GroupEntry, GroupResult } from "../types/jskos";
-import { DynamicOut, PerLangOut, FamilyKey, AggOut,UriOut } from "../types/solr";
+import {GroupEntry, GroupResult, Distributions } from "../types/jskos";
+import { DynamicOut, PerLangOut, FamilyKey, AggOut, UriOut, DistributionsOut } from "../types/solr";
 import _ from "lodash";
 import {NO_VALUE} from "../conf/conf";
 
@@ -239,4 +239,28 @@ export function applyAgents<F extends string, A extends string, U extends string
   if (Object.keys(langMap).length) {
     applyLangMap(langMap, out, family, aggregateField);
   }
+}
+
+export function applyDistributions(
+  src: { distributions?: Distributions[] },
+  out: DistributionsOut
+): void {
+  const list = src.distributions ?? [];
+  if (!list.length) return;
+
+  const downloads = uniq(
+    list.map(d => trimSafe(d.download)).filter(nonempty)
+  );
+  if (downloads.length) out.distributions_download_ss = downloads;
+
+  const formats = uniq(
+    list.map(d => trimSafe(d.format)).filter(nonempty)
+  );
+  if (formats.length) out.distributions_format_ss = formats;
+
+  const mimes = uniq(
+    list.map(d => trimSafe(d.mimetype).toLowerCase())
+        .filter(nonempty)
+  );
+  if (mimes.length) out.distributions_mimetype_ss = mimes;
 }

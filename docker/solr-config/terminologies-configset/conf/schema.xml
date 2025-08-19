@@ -121,6 +121,11 @@
     <!-- definition field -->
     <field name="definition_ss" type="string" indexed="true" stored="true" multiValued="true"/>
 
+    <!-- distributions field -->
+    <field name="distributions_download_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="distributions_format_ss" type="lc_keyword" indexed="true" stored="true" multiValued="true"/>
+    <field name="distributions_mimetype_ss" type="lc_keyword" indexed="true" stored="true" multiValued="true"/>
+
     <!-- Multivalued language field -->
     <field name="languages_ss" type="string" indexed="true" stored="true" multiValued="true"/>
 

@@ -375,6 +375,9 @@ You can drive fine‐grained filtering by passing any of your multivalued facet 
 | └─ `creator_uri_ss`      | array  |  Aggregate of all creator uris|
 | └─ `creator_ss`   | array  |  Language-agnostic aggregate of all creator values. Trimmed and de-duplicated across languages.|
 | └─ `definition_ss`       | array   | Language-agnostic aggregate of all definition values. Trimmed and de-duplicated across languages.
+| └─ `distribution_download_ss`       | array   | Download URLs for the record’s distributions.
+| └─ `distribution_format_ss`       | lc_keyword   | Distribution format labels (case-insensitive exact match), e.g., CSV, JSON.
+| └─ `distribution_mimetype_ss`       | lc_keyword   | Distribution MIME types, e.g., text/csv, application/json.
 | └─ `languages_ss`        | array   | Languages available (ISO codes).                         |
 | └─ `license_type_ss`     | array   | A multivalued list of machine-readable license identifiers (URIs) under which the resource is released. |
 | └─ `license_group_ss`    | array   | Canonical license category labels (e.g. “CC BY”, “CC BY-SA”, “Public Domain”, “WTFPL”) derived by mapping individual license URIs to a standardized group.|

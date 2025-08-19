@@ -43,6 +43,9 @@ Each field is configured with `indexed`, `stored`, and `multiValued` attributes 
 | `created_dt`       | `pdate`  |    ✓    |    ✓   |      x     | Document creation timestamp (ISO 8601).                     |
 | `creator_uri_ss`   | `array`  |    x    |    ✓   |     ✓    | Aggregate of all creator uris|
 | `creator_ss`       | `array`  |    x    |    ✓   |     ✓  | Language-agnostic aggregate of all creator values. Trimmed and de-duplicated across languages.|
+| `distribution_download_ss`| `array` |    x    |    ✓   |     ✓  |   Download URLs for the record’s distributions.
+| `distribution_format_ss` | `array`  |    ✓   |    ✓   |     ✓  |   Distribution format labels (case-insensitive exact match), e.g., CSV, JSON.
+| `distribution_mimetype_ss` | `array`|    ✓   |    ✓   |     ✓  |    Distribution MIME types, e.g., text/csv, application/json.
 | `fullrecord`       | `string` |  	 x	  |    ✓ 	 |	   x      | The complete, unextended JSKOS record (raw JSON) as a string.|
 | `identifier_ss`    | `string` |  	 ✓ 	  |    ✓ 	 |	   ✓     | Additional identifiers of the resource; corresponds to the JSKOS identifier field (alternate URIs or local IDs).|
 | `languages_ss`     | `string` |    ✓    |    ✓   |     ✓     | ISO language codes of the document.                         |
