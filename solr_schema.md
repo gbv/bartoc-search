@@ -39,10 +39,10 @@ Each field is configured with `indexed`, `stored`, and `multiValued` attributes 
 | `format_group_ss`  | `array`  |    x    |    ✓   |     ✓     | Canonical format category labels (e.g. “PDF”, “HTML”, “Spreadsheet”) derived by mapping individual format URIs to standardized groups. |
 | `alt_labels_ss`    | `array`  |    x    |    ✓   |     ✓     | Language-agnostic aggregate of all altLabel values. Trimmed and de-duplicated across languages.|
 | `contributor_uri_ss` | `array`  |    x    |    ✓   |     ✓    | Aggregate of all contributor uris|
-| `contributor_labels_ss` | `array`  |    x    |    ✓   |     ✓  | Language-agnostic aggregate of all contributor values. Trimmed and de-duplicated across languages.|
+| `contributor_ss`   | `array`  |    x    |    ✓   |     ✓  | Language-agnostic aggregate of all contributor values. Trimmed and de-duplicated across languages.|
 | `created_dt`       | `pdate`  |    ✓    |    ✓   |      x     | Document creation timestamp (ISO 8601).                     |
-| `creator_uri_ss` | `array`  |    x    |    ✓   |     ✓    | Aggregate of all creator uris|
-| `creator_labels_ss` | `array`  |    x    |    ✓   |     ✓  | Language-agnostic aggregate of all creator values. Trimmed and de-duplicated across languages.|
+| `creator_uri_ss`   | `array`  |    x    |    ✓   |     ✓    | Aggregate of all creator uris|
+| `creator_ss`       | `array`  |    x    |    ✓   |     ✓  | Language-agnostic aggregate of all creator values. Trimmed and de-duplicated across languages.|
 | `fullrecord`       | `string` |  	 x	  |    ✓ 	 |	   x      | The complete, unextended JSKOS record (raw JSON) as a string.|
 | `identifier_ss`    | `string` |  	 ✓ 	  |    ✓ 	 |	   ✓     | Additional identifiers of the resource; corresponds to the JSKOS identifier field (alternate URIs or local IDs).|
 | `languages_ss`     | `string` |    ✓    |    ✓   |     ✓     | ISO language codes of the document.                         |
@@ -66,11 +66,13 @@ Each field is configured with `indexed`, `stored`, and `multiValued` attributes 
 These patterns capture additional multilingual or unforeseen fields without changing the schema:
 | Pattern         | Type     | Indexed | Stored | MultiValued | Description                                              |
 | --------------- | -------- | :-----: | :----: | :---------: | -------------------------------------------------------- |
-| `alt_label_*`   | `text`   |    ✓    |    ✓   |      ✓     | Language-specific alternative labels (`alt_label_de`, `alt_label_und`, etc.). |
-| `contibutor_label_*`   | `text`   |    ✓    |    ✓   |      ✓     | Language-specific contributor labels (`contibutor_label_de`, `contibutor_label_en`, etc.). |
+| `alt_label_*`   | `text`   |    ✓    |    ✓   |      x     | Language-specific alternative labels (`alt_label_de`, `alt_label_und`, etc.). |
+| `contibutor_*`  | `text`   |    ✓    |    ✓   |      x     | Language-specific contributor labels (`contibutor_de`, `contibutor_en`, etc.). |
+| `creator_*`     | `text`   |    ✓    |    ✓   |      x     | Language-specific creator labels (`creator_de`, `creator_en`, etc.). |
+| `definition_*`  | `text`   |    ✓    |    ✓   |      x     | Language-specific definition labels (`definition_de`, `definition_en`, etc.). |
 | `title_*`       | `text`   |    ✓    |    ✓   |      x     | Language-specific titles (`title_en`, `title_de`, etc.). |
 | `description_*` | `text`   |    ✓    |    ✓   |      x     | Language-specific descriptions.                          |
-| `subject_*`     | `text`   |    ✓    |    ✓   |     ✓     | Language-specific subject labels.                        |
+| `subject_*`     | `text`   |    ✓    |    ✓   |      ✓     | Language-specific subject labels.                        |
 | `type_label_*`  | `text`   |    ✓    |    ✓   |      x     | Language-specific human-readable type labels.            |
 | `*_s`           | `string` |    ✓    |    ✓   |      x     | Arbitrary string fields following `_s` suffix.           |
 | `*_i`           | `pint`   |    ✓    |    ✓   |      x     | Arbitrary integer fields.                                |
@@ -83,13 +85,14 @@ To enable both targeted and global search, we copy field values into broader cat
 | Source            | Destination    |
 | ----------------- | -------------- |
 | `address_*`       | `allfields`    |
-| `alt_label_*`       | `allfields`   |
-| `alt_labels_ss`     | `allfields`    |
-| `contributor_label_*` | `allfields`    |
-| `contributor_labels_ss`   | `allfields`    |
-| `examples_ss`   | `allfields`    |
+| `alt_label_*`     | `allfields`    |
+| `alt_labels_ss`   | `allfields`    |
+| `contributor_*`   | `allfields`    |
+| `contributor_ss`  | `allfields`    |
+| `examples_ss`     | `allfields`    |
 | `title_*`         | `allfields`    |
 | `description_*`   | `allfields`    |
+| `description_ss`  | `allfields`    |
 | `publisher_label` | `allfields`    |
 | `subject_*`       | `allfields`    |
 | `title_*`         | `title_search` |

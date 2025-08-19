@@ -90,9 +90,10 @@ export interface SolrDocument
   format_type_ss?: string[];
   format_group_ss?: string[];
   alt_labels_ss?: string[];
-  contributor_labels_ss?: string[];
-  creator_labels_ss?: string[];
+  contributor_ss?: string[];
+  creator_ss?: string[];
   created_dt?: string;
+  definition_ss?: string[];
   ddc_ss: string[];
   ddc_root_ss: string[];
   fullrecord: string;

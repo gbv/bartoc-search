@@ -212,13 +212,18 @@ export function transformConceptSchemeToSolr(
   // Adding contributor data to solr
   if (doc.contributor) {
     // applyContributors(doc, solrDoc);
-    applyAgents(doc.contributor, solrDoc as ContributorOut, "contributor_label", "contributor_labels_ss", "contributor_uri_ss");
+    applyAgents(doc.contributor, solrDoc as ContributorOut, "contributor", "contributor_ss", "contributor_uri_ss");
   }
 
   // Adding creator data to solr
   if (doc.creator) {
     // applyContributors(doc, solrDoc);
-    applyAgents(doc.creator, solrDoc as CreatorOut, "creator_label", "creator_labels_ss", "creator_uri_ss");
+    applyAgents(doc.creator, solrDoc as CreatorOut, "creator", "creator_ss", "creator_uri_ss");
+  }
+
+  // Adding definition data to solr
+  if (doc.definition) {
+   applyLangMap(doc.definition ?? {}, solrDoc, "definition", "definition_ss");
   }
 
 

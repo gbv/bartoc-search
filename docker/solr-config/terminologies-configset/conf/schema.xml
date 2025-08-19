@@ -109,14 +109,17 @@
 
     <!-- contributor field -->
     <field name="contributor_uri_ss" type="string" indexed="true" stored="true" multiValued="true"/>
-    <field name="contributor_labels_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="contributor_ss" type="string" indexed="true" stored="true" multiValued="true"/>
 
     <!-- created field-->
     <field name="created_dt" type="pdate" indexed="true" stored="true"/>
 
     <!-- creator field-->
     <field name="creator_uri_ss" type="string" indexed="true" stored="true" multiValued="true"/>
-    <field name="creator_labels_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="creator_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+
+    <!-- definition field -->
+    <field name="definition_ss" type="string" indexed="true" stored="true" multiValued="true"/>
 
     <!-- Multivalued language field -->
     <field name="languages_ss" type="string" indexed="true" stored="true" multiValued="true"/>
@@ -169,8 +172,9 @@
        Dynamic Field Definitions
        ================================================ -->
   <dynamicField name="alt_label_*" type="text" indexed="true" stored="true" multiValued="true"/>
-  <dynamicField name="contributor_label_*" type="text" indexed="true"  stored="true" multiValued="true"/>
-  <dynamicField name="creator_label_*" type="text"   indexed="true" stored="true" multiValued="true"/>
+  <dynamicField name="contributor_*" type="text" indexed="true"  stored="true" multiValued="true"/>
+  <dynamicField name="creator_*" type="text"   indexed="true" stored="true" multiValued="true"/>
+  <dynamicField name="definition_*" type="text" indexed="true" stored="true" multiValued="true"/>
   <dynamicField name="title_*" type="text" indexed="true" stored="true"/>
   <dynamicField name="description_*" type="text" indexed="true" stored="true"/>
   <dynamicField name="subject_*" type="text" indexed="true" stored="true" multiValued="true"/>
@@ -191,10 +195,12 @@
   <copyField source="address_*" dest="allfields"/>
   <copyField source="alt_label_*" dest="allfields"/>
   <copyField source="alt_labels_ss" dest="allfields"/>
-  <copyField source="contributor_label_*" dest="allfields"/>
-  <copyField source="contributor_labels_ss" dest="allfields"/>
-  <copyField source="creator_label_*" dest="allfields"/>
-  <copyField source="creator_labels_ss" dest="allfields"/>
+  <copyField source="contributor_*" dest="allfields"/>
+  <copyField source="contributor_ss" dest="allfields"/>
+  <copyField source="creator_*" dest="allfields"/>
+  <copyField source="creator_ss" dest="allfields"/>
+  <copyField source="defintion_*" dest="allfields"/>
+  <copyField source="definition_ss" dest="allfields"/>
   <copyField source="examples_ss" dest="allfields"/>
   <copyField source="title_*" dest="allfields"/>
   <copyField source="title_*" dest="title_search"/>
