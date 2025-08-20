@@ -176,7 +176,7 @@ export function transformConceptSchemeToSolr(
     display_hideNotation_b: doc.DISPLAY?.hideNotation,
     display_numericalNotation_b: doc.DISPLAY?.numericalNotation,
     examples_ss: doc.EXAMPLES?.map(s => (typeof s === "string" ? s.trim() : "")).filter(Boolean) ?? [],
-    extent_s: doc.extent ?? "",
+    extent_s: doc.extent,
     ddc_ss: extractDdc(doc.subject, { rootLevel: false }),
     ddc_root_ss: extractDdc(doc.subject, { rootLevel: true }),
     format_type_ss: doc.FORMAT?.map(f => f.uri) || [],
