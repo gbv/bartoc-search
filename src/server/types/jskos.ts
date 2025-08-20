@@ -66,6 +66,7 @@ export interface ConceptSchemeDocument {
 
   notationPattern?: string;
   
+  // is used in solr as listed_in
   partOf?: Array<{
     uri: string;
   }>;

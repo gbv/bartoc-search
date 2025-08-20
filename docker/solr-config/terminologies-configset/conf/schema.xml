@@ -141,7 +141,13 @@
     <!-- notationPattern field -->
     <field name="notation_pattern_s" type="string" indexed="false" stored="true" multiValued="false"/>
 
-    <!-- Multivalued publisher -->
+    <!-- partOf field -->
+    <field name="listed_in_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+
+    <!-- prefLabel field -->
+    <field name="pref_labels_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+    
+    <!-- publisher field -->
     <field name="publisher_label" type="string" indexed="true" stored="true"/>
     <field name="publisher_id" type="string" indexed="true" stored="true" />
 
@@ -166,9 +172,6 @@
 
     <field name="title_search" type="text" indexed="true" stored="false" multiValued="true"/>
 
-    <!-- Multivalued Listed in field -->
-    <field name="listed_in_ss" type="string" indexed="true" stored="true" multiValued="true"/>
-
     <!-- License type  -->
     <field name="license_type_ss" type="string" indexed="true" stored="true" multiValued="true"/>
     <field name="license_group_ss" type="string" indexed="true" stored="true" multiValued="true"/>
@@ -192,9 +195,10 @@
   <dynamicField name="contributor_*" type="text" indexed="true"  stored="true" multiValued="true"/>
   <dynamicField name="creator_*" type="text"   indexed="true" stored="true" multiValued="true"/>
   <dynamicField name="definition_*" type="text" indexed="true" stored="true" multiValued="true"/>
-  <dynamicField name="title_*" type="text" indexed="true" stored="true"/>
   <dynamicField name="description_*" type="text" indexed="true" stored="true"/>
+  <dynamicField name="pref_label_*" type="text" indexed="true" stored="true" multiValued="true"/>
   <dynamicField name="subject_*" type="text" indexed="true" stored="true" multiValued="true"/>
+  <dynamicField name="title_*" type="text" indexed="true" stored="true"/>
   <dynamicField name="type_label_*" type="text" indexed="true" stored="true"/>
 
   <dynamicField name="*_s" type="string" indexed="true" stored="true"/>
@@ -218,13 +222,15 @@
   <copyField source="creator_ss" dest="allfields"/>
   <copyField source="defintion_*" dest="allfields"/>
   <copyField source="definition_ss" dest="allfields"/>
+  <copyField source="description_*" dest="allfields"/>
   <copyField source="examples_ss" dest="allfields"/>
   <copyField source="notation_ss" dest="allfields"/>
+  <copyField source="publisher_label" dest="allfields"/>
+  <copyField source="prefLabel_*"    dest="allfields"/>
+  <copyField source="pref_labels_ss" dest="allfields"/>
+  <copyField source="subject_*" dest="allfields"/>
   <copyField source="title_*" dest="allfields"/>
   <copyField source="title_*" dest="title_search"/>
-  <copyField source="description_*" dest="allfields"/>
-  <copyField source="publisher_label" dest="allfields"/>
-  <copyField source="subject_*" dest="allfields"/>
 
   <!-- ================================================
        Schema Configuration

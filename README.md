@@ -386,9 +386,10 @@ You can drive fine‐grained filtering by passing any of your multivalued facet 
 | └─ `notation_ss`         | array  | Notational codes/identifiers from JSKOS notation |
 | └─ `notation_examples_ss`| array  | Example notational codes from JSKOS notationExamples |
 | └─ `notation_pattern_s`| array  | Regex pattern from JSKOS notationPattern |
-| └─ `listed_in_ss`        | array   | Registry URIs of the scheme(s) that include this vocabulary.|
+| └─ `listed_in_ss`        | array   | Registry URIs of the scheme(s) that include this vocabulary, coming from JSKOS partOf.|
 | └─ `ddc_ss`              | array   | Dewey Decimal Classification notations.                  |
 | └─ `ddc_root_ss`         | array   | Dewey Decimal Classification notations at root level.    |
+| └─ `pref_labels_ss`      | string  | Aggregate of all preferred titles. |
 | └─ `publisher_id`        | string  | Identifier URI of the publishing organization.           |
 | └─ `publisher_label`     | string  | Human‐readable label of the publishing organization.     |
 | └─ `subject_uri`         | array   | URIs of subject classifications.                         |
@@ -398,7 +399,6 @@ You can drive fine‐grained filtering by passing any of your multivalued facet 
 | └─ `created_dt`          | string  | Creation timestamp (ISO-8601).                           |
 | └─ `modified_dt`         | string  | Last modification timestamp (ISO-8601).                  |
 | └─ `_version_`           | integer | Solr internal version number for optimistic concurrency. |
-
 
 
 #### Available Facet Fields

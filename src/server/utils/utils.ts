@@ -264,3 +264,24 @@ export function applyDistributions(
   );
   if (mimes.length) out.distributions_mimetype_ss = mimes;
 }
+
+// Output typing for prefLabel fields
+type PrefOut = DynamicOut<"prefLabel","pref_labels_ss">;
+
+/** Emit prefLabel_<lang> (dynamic) + pref_labels_ss (aggregate). */
+export function applyPrefLabel(
+  src: { prefLabel?: Record<string, string> },
+  out: PrefOut
+): void {
+  const map = src.prefLabel ?? {};
+  const langMap: Record<string, string[]> = {};
+
+  for (const [lang, val] of Object.entries(map)) {
+    const s = trimSafe(val);
+    if (s) (langMap[lang] ??= []).push(s);
+  }
+
+  if (Object.keys(langMap).length) {
+    applyLangMap(langMap, out, "pref_label", "pref_labels_ss");
+  }
+}

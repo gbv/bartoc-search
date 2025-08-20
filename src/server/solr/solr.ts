@@ -15,7 +15,7 @@ import { writeFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { ConceptSchemeDocument, GroupEntry } from "../types/jskos";
-import { sleep, loadJSONFile, mapUriToGroups, extractGroups, applyAgents, applyDistributions } from "../utils/utils";
+import { sleep, loadJSONFile, mapUriToGroups, extractGroups, applyAgents, applyDistributions, applyPrefLabel } from "../utils/utils";
 import readline from "readline";
 import { extractDdc } from "../utils/ddc";
 import { applyLangMap } from "../utils/utils";
@@ -232,6 +232,10 @@ export function transformConceptSchemeToSolr(
 
   if (doc.distributions) {
     applyDistributions(doc, solrDoc);
+  }
+
+  if (doc.prefLabel) {
+    applyPrefLabel(doc, solrDoc);
   }
 
 

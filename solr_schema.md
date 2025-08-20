@@ -50,7 +50,7 @@ Each field is configured with `indexed`, `stored`, and `multiValued` attributes 
 | `fullrecord`       | `string` |  	 x	  |    ✓ 	 |	   x      | The complete, unextended JSKOS record (raw JSON) as a string.|
 | `identifier_ss`    | `string` |  	 ✓ 	  |    ✓ 	 |	   ✓     | Additional identifiers of the resource; corresponds to the JSKOS identifier field (alternate URIs or local IDs).|
 | `languages_ss`     | `array` |    ✓    |    ✓   |     ✓     | ISO language codes of the document.                         |
-| `listed_in_ss`     | `string` |    ✓    |    ✓   |     ✓     | Registry URIs of the scheme(s) that include this vocabulary.|
+| `listed_in_ss`     | `string` |    ✓    |    ✓   |     ✓     | Registry URIs of the scheme(s) that include this vocabulary, coming from JSKOS partOf|
 | `license_type_ss`  | `string` |    ✓    |    ✓   |     ✓     | A multivalued list of machine-readable license identifiers (URIs) under which the resource is released. |
 | `license_group_ss` | `string` |    ✓    |    ✓   |     ✓     | Canonical license category labels (e.g. “CC BY”, “CC BY-SA”, “Public Domain”, “WTFPL”) derived by mapping individual license URIs to a standardized group.|
 | `namespace_s`      | `string` |    ✓    |    ✓   |      x     | Namespace (URI prefix) of the Concept Scheme; corresponds to the JSKOS namespace field |
@@ -59,6 +59,7 @@ Each field is configured with `indexed`, `stored`, and `multiValued` attributes 
 | `notation_pattern_s`| `string`  |   x    |    ✓   |     x     |  Regex pattern from JSKOS notationPattern |
 | `publisher_label`  | `text`   |    ✓    |    ✓   |      x     | Name of the publishing organization (full-text).            |
 | `publisher_id`     | `string` |    ✓    |    ✓   |      x     | Identifier URI of the publisher.                            |
+| `pref_labels_ss`   | `string` |    ✓    |    ✓   |      ✓     | Aggregate of all preferred titles (trimmed, de-duplicated). |
 | `ddc_ss`           | `string` |    ✓    |    ✓   |     ✓     | Dewey Decimal Classification notations.                     |
 | `ddc_root_ss`      | `string` |    ✓    |    ✓   |     ✓     | Dewey Decimal Classification notations only at root level.  |
 | `modified_dt`      | `pdate`  |    ✓    |    ✓   |      x     | Last modification timestamp (ISO 8601).                     |
@@ -79,6 +80,7 @@ These patterns capture additional multilingual or unforeseen fields without chan
 | `definition_*`  | `text`   |    ✓    |    ✓   |      x     | Language-specific definition labels (`definition_de`, `definition_en`, etc.). |
 | `title_*`       | `text`   |    ✓    |    ✓   |      x     | Language-specific titles (`title_en`, `title_de`, etc.). |
 | `description_*` | `text`   |    ✓    |    ✓   |      x     | Language-specific descriptions.                          |
+| `prefLabel_*`   | `text`   |    ✓    |    ✓   |      ✓     | Per-language preferred titles (`*` = language code).        |
 | `subject_*`     | `text`   |    ✓    |    ✓   |      ✓     | Language-specific subject labels.                        |
 | `type_label_*`  | `text`   |    ✓    |    ✓   |      x     | Language-specific human-readable type labels.            |
 | `*_s`           | `string` |    ✓    |    ✓   |      x     | Arbitrary string fields following `_s` suffix.           |
