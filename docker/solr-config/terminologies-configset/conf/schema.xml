@@ -126,6 +126,11 @@
     <field name="distributions_format_ss" type="lc_keyword" indexed="true" stored="true" multiValued="true"/>
     <field name="distributions_mimetype_ss" type="lc_keyword" indexed="true" stored="true" multiValued="true"/>
 
+    <!-- extent field -->
+    <field name="extent_s" type="string" indexed="true" stored="true" multiValued="false"/>
+
+
+
     <!-- Multivalued language field -->
     <field name="languages_ss" type="string" indexed="true" stored="true" multiValued="true"/>
 

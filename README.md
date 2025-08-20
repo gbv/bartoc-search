@@ -378,6 +378,7 @@ You can drive fine‐grained filtering by passing any of your multivalued facet 
 | └─ `distribution_download_ss`       | array   | Download URLs for the record’s distributions.
 | └─ `distribution_format_ss`       | lc_keyword   | Distribution format labels (case-insensitive exact match), e.g., CSV, JSON.
 | └─ `distribution_mimetype_ss`       | lc_keyword   | Distribution MIME types, e.g., text/csv, application/json.
+| └─ `extent_s`       | string   | Original extent string, as provided (display-only). |
 | └─ `languages_ss`        | array   | Languages available (ISO codes).                         |
 | └─ `license_type_ss`     | array   | A multivalued list of machine-readable license identifiers (URIs) under which the resource is released. |
 | └─ `license_group_ss`    | array   | Canonical license category labels (e.g. “CC BY”, “CC BY-SA”, “Public Domain”, “WTFPL”) derived by mapping individual license URIs to a standardized group.|

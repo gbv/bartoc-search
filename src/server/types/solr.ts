@@ -103,6 +103,7 @@ export interface SolrDocument
   distributions_download_ss?: string[];
   distributions_format_ss?: string[];
   distributions_mimetype_ss?: string[];
+  extent_s?: string;
   ddc_ss: string[];
   ddc_root_ss: string[];
   fullrecord: string;

@@ -44,6 +44,8 @@ export interface ConceptSchemeDocument {
 
   distributions?: Distributions[];
 
+  extent?: string;
+
   // https://gbv.github.io/jskos/#list
   identifier?: (string | null)[];
 

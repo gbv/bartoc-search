@@ -61,6 +61,7 @@ export const conceptSchemeZodSchema = z.object({
   creator: z.array(creatorSchema).optional(),
   definition: z.record(z.array(z.string())).optional(),
   distributions: z.array(DistributionsSchema).optional(),
+  extent: z.string().optional(),
   identifier: jskosListSchema,
   languages: z.array(z.string()).optional(),
   namespace: z.string().url().optional(),
