@@ -191,7 +191,7 @@ export function transformConceptSchemeToSolr(
     notation_ss: doc.notation ?? [],
     notation_examples_ss: doc.notationExamples ?? [],
     notation_pattern_s: doc.notationPattern,
-    start_year_i: doc.startDate ? parseInt(doc.startDate) : undefined,
+    start_date_i: doc.startDate ? parseInt(doc.startDate) : undefined,
     subject_uri: doc.subject?.map((s) => s.uri) || [],
     subject_notation: doc.subject?.flatMap((s) => s.notation || []) || [],
     subject_scheme:

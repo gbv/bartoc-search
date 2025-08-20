@@ -63,7 +63,7 @@ Each field is configured with `indexed`, `stored`, and `multiValued` attributes 
 | `ddc_ss`           | `string` |    ✓    |    ✓   |     ✓     | Dewey Decimal Classification notations.                     |
 | `ddc_root_ss`      | `string` |    ✓    |    ✓   |     ✓     | Dewey Decimal Classification notations only at root level.  |
 | `modified_dt`      | `pdate`  |    ✓    |    ✓   |      x     | Last modification timestamp (ISO 8601).                     |
-| `start_year_i`     | `pint`   |    ✓    |    ✓   |      x     | Start year (integer) of the classification.                 |
+| `start_date_i`     | `pint`   |    ✓    |    ✓   |      x     | Start year (integer) of the classification.                 |
 | `url_s`            | `string` |    ×    |    ✓   |      x     | Canonical URL for more information (not indexed).           |
 | `title_sort`       | `string` |    ✓    |    ✓   |      x     | Sortable, un-analyzed title.                                |
 | `type_uri`         | `string` |    ✓    |    ✓   |     ✓     | SKOS/NKOS type URIs (e.g. ConceptScheme, thesaurus).        |

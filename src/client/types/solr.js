@@ -13,7 +13,7 @@
  * @property {string[]} type_uri
  * @property {string} [created_dt]
  * @property {string} [modified_dt]
- * @property {number} [start_year_i]
+ * @property {number} [start_date_i]
  * @property {string} [url_s]
  * @property {Object.<string, any>} [title_xx]
  * @property {Object.<string, any>} [description_xx]

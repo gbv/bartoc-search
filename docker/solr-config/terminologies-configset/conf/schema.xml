@@ -151,15 +151,15 @@
     <field name="publisher_uri_ss" type="string" indexed="true" stored="true" multiValued="true"/>
     <field name="publisher_labels_ss" type="lc_keyword" indexed="true" stored="true" multiValued="true"/>
 
+    <!-- startDate field -->
+    <field name="start_date_i" type="pint" indexed="true" stored="true"/>
+
     <!-- Multivalued Dewey Decimal Classifications -->
     <field name="ddc_ss" type="string" indexed="true" stored="true" multiValued="true"/>
     <field name="ddc_root_ss" type="string" indexed="true" stored="true" multiValued="true"/>
 
     <!-- modified field -->
     <field name="modified_dt" type="pdate" indexed="true" stored="true"/>
-
-    <!-- Start Year as integer -->
-    <field name="start_year_i" type="pint" indexed="true" stored="true"/>
 
     <!-- URL field -->
     <field name="url_s" type="string" indexed="false" stored="true"/>

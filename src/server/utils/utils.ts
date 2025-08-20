@@ -299,7 +299,7 @@ export function applyPublishers(
     out,
     "publisher",       
     "publisher_labels_ss",   
-    "publisher_uri_ss"       
+    "publisher_uri_ss"
   );
 }
 

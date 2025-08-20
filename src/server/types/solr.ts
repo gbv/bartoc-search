@@ -123,7 +123,7 @@ export interface SolrDocument
   subject_notation: string[];
   subject_uri: string[];
   subject_scheme: string[];
-  start_year_i?: number;
+  start_date_i?: number;
   title_sort?: string;
   type_uri: string[];
   url_s?: string;

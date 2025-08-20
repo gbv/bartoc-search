@@ -390,7 +390,8 @@ You can drive fine‐grained filtering by passing any of your multivalued facet 
 | └─ `ddc_ss`              | array   | Dewey Decimal Classification notations.                  |
 | └─ `ddc_root_ss`         | array   | Dewey Decimal Classification notations at root level.    |
 | └─ `pref_labels_ss`      | string  | Aggregate of all preferred titles. |
-| └─ `publisher_uri_ss`     | string  | Identifier URI of the publishing organization.           |
+| └─ `publisher_uri_ss`    | string  | Identifier URI of the publishing organization.           |
+| └─ `start_date_i`        |  pint   | Start year (integer) of the classification.|
 | └─ `subject_uri`         | array   | URIs of subject classifications.                         |
 | └─ `subject_notation`    | array   | Notation codes for subjects.                             |
 | └─ `subject_scheme`      | array   | URIs of subject schemes.                                 |
