@@ -385,6 +385,7 @@ You can drive fine‐grained filtering by passing any of your multivalued facet 
 | └─ `namespace_s`         | string  | Namespace (URI prefix) of the Concept Scheme; corresponds to the JSKOS namespace field |
 | └─ `notation_ss`         | array  | Notational codes/identifiers from JSKOS notation |
 | └─ `notation_examples_ss`| array  | Example notational codes from JSKOS notationExamples |
+| └─ `notation_pattern_s`| array  | Regex pattern from JSKOS notationPattern |
 | └─ `listed_in_ss`        | array   | Registry URIs of the scheme(s) that include this vocabulary.|
 | └─ `ddc_ss`              | array   | Dewey Decimal Classification notations.                  |
 | └─ `ddc_root_ss`         | array   | Dewey Decimal Classification notations at root level.    |

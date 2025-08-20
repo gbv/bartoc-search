@@ -63,6 +63,8 @@ export interface ConceptSchemeDocument {
   notation?: string[];
 
   notationExamples?: string[];
+
+  notationPattern?: string;
   
   partOf?: Array<{
     uri: string;

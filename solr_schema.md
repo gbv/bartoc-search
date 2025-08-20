@@ -56,6 +56,7 @@ Each field is configured with `indexed`, `stored`, and `multiValued` attributes 
 | `namespace_s`      | `string` |    ✓    |    ✓   |      x     | Namespace (URI prefix) of the Concept Scheme; corresponds to the JSKOS namespace field |
 | `notation_ss`      | `array`  |   ✓    |    ✓   |     ✓     | Notational codes/identifiers from JSKOS notation |
 | `notation_examples_ss`| `array`  |   ✓    |    ✓   |     ✓     | Example notational codes from JSKOS notationExamples |
+| `notation_pattern_s`| `string`  |   x    |    ✓   |     x     |  Regex pattern from JSKOS notationPattern |
 | `publisher_label`  | `text`   |    ✓    |    ✓   |      x     | Name of the publishing organization (full-text).            |
 | `publisher_id`     | `string` |    ✓    |    ✓   |      x     | Identifier URI of the publisher.                            |
 | `ddc_ss`           | `string` |    ✓    |    ✓   |     ✓     | Dewey Decimal Classification notations.                     |

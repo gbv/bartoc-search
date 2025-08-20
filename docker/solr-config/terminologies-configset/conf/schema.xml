@@ -138,6 +138,9 @@
     <!-- notationExamples field -->
     <field name="notation_examples_ss" type="lc_keyword" indexed="true" stored="true" multiValued="true"/>
 
+    <!-- notationPattern field -->
+    <field name="notation_pattern_s" type="string" indexed="false" stored="true" multiValued="false"/>
+
     <!-- Multivalued publisher -->
     <field name="publisher_label" type="string" indexed="true" stored="true"/>
     <field name="publisher_id" type="string" indexed="true" stored="true" />

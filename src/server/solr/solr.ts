@@ -190,6 +190,7 @@ export function transformConceptSchemeToSolr(
     namespace_s: doc.namespace,
     notation_ss: doc.notation ?? [],
     notation_examples_ss: doc.notationExamples ?? [],
+    notation_pattern_s: doc.notationPattern,
     publisher_id: doc.publisher?.[0]?.uri,
     publisher_label: doc.publisher?.[0]?.prefLabel?.en,
     start_year_i: doc.startDate ? parseInt(doc.startDate) : undefined,

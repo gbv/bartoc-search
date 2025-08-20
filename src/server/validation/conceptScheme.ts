@@ -67,6 +67,7 @@ export const conceptSchemeZodSchema = z.object({
   namespace: z.string().url().optional(),
   notation: z.array(z.string()).optional(),
   notationExamples: z.array(z.string()).optional(),
+  notationPattern: z.string().optional(),
   modified: z.string(),
   created: z.string(),
   partOf: z.array(z.object({uri: z.string().url(),}),).optional(),
