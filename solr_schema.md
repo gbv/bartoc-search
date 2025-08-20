@@ -49,7 +49,7 @@ Each field is configured with `indexed`, `stored`, and `multiValued` attributes 
 | `extent_s`       | string   |    ✓   |    ✓   |     x  |  Original extent string, as provided (display-only). |
 | `fullrecord`       | `string` |  	 x	  |    ✓ 	 |	   x      | The complete, unextended JSKOS record (raw JSON) as a string.|
 | `identifier_ss`    | `string` |  	 ✓ 	  |    ✓ 	 |	   ✓     | Additional identifiers of the resource; corresponds to the JSKOS identifier field (alternate URIs or local IDs).|
-| `languages_ss`     | `string` |    ✓    |    ✓   |     ✓     | ISO language codes of the document.                         |
+| `languages_ss`     | `array` |    ✓    |    ✓   |     ✓     | ISO language codes of the document.                         |
 | `listed_in_ss`     | `string` |    ✓    |    ✓   |     ✓     | Registry URIs of the scheme(s) that include this vocabulary.|
 | `license_type_ss`  | `string` |    ✓    |    ✓   |     ✓     | A multivalued list of machine-readable license identifiers (URIs) under which the resource is released. |
 | `license_group_ss` | `string` |    ✓    |    ✓   |     ✓     | Canonical license category labels (e.g. “CC BY”, “CC BY-SA”, “Public Domain”, “WTFPL”) derived by mapping individual license URIs to a standardized group.|

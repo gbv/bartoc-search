@@ -129,9 +129,7 @@
     <!-- extent field -->
     <field name="extent_s" type="string" indexed="true" stored="true" multiValued="false"/>
 
-
-
-    <!-- Multivalued language field -->
+    <!-- languages field -->
     <field name="languages_ss" type="string" indexed="true" stored="true" multiValued="true"/>
 
     <!-- Multivalued publisher -->
