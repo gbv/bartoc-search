@@ -303,4 +303,35 @@ export function applyPublishers(
   );
 }
 
+type SubjectOf = { url?: string };
+type SubjectOfOut = {
+  subject_of_url_ss?: string[];
+  subject_of_host_ss?: string[];
+};
+
+
+export function applySubjectOf(
+  src: { subjectOf?: SubjectOf[] },
+  out: SubjectOfOut
+): void {
+  const list = src.subjectOf ?? [];
+  if (!list.length) return;
+
+  const urls = uniq(
+    list.map(x => trimSafe(x.url))
+        .filter(u => /^https?:\/\//i.test(u)) // keep http(s) only
+  );
+  if (urls.length) out.subject_of_url_ss = urls;
+
+  const hosts = uniq(
+    urls.map(u => {
+      try { 
+        return new URL(u).hostname.toLowerCase(); 
+      } catch { 
+        return ""; 
+      }}).filter(nonempty)
+  );
+  if (hosts.length) out.subject_of_host_ss = hosts;
+}
+
 

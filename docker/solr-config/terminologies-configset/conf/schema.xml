@@ -154,6 +154,10 @@
     <!-- startDate field -->
     <field name="start_date_i" type="pint" indexed="true" stored="true"/>
 
+    <!-- subjectOf field -->
+    <field name="subject_of_url_ss" type="string" indexed="false" stored="true" multiValued="true"/>
+    <field name="subject_of_host_ss" type="lc_keyword" indexed="true" stored="true" multiValued="true"/>
+
     <!-- Multivalued Dewey Decimal Classifications -->
     <field name="ddc_ss" type="string" indexed="true" stored="true" multiValued="true"/>
     <field name="ddc_root_ss" type="string" indexed="true" stored="true" multiValued="true"/>

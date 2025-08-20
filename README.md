@@ -395,6 +395,8 @@ You can drive fine‐grained filtering by passing any of your multivalued facet 
 | └─ `subject_uri`         | array   | URIs of subject classifications.                         |
 | └─ `subject_notation`    | array   | Notation codes for subjects.                             |
 | └─ `subject_scheme`      | array   | URIs of subject schemes.                                 |
+| └─ `subject_of_url_ss`   | string  | Related resource URLs from JSKOS subjectOf  |
+| └─ `subject_of_host_ss` | lc_keyword | Hostnames extracted from URLs coming from JSKOS subjectOf (case-insensitive exact match). |
 | └─ `type_uri`            | array   | URIs indicating the resource’s SKOS/NKOS type(s).        |
 | └─ `created_dt`          | string  | Creation timestamp (ISO-8601).                           |
 | └─ `modified_dt`         | string  | Last modification timestamp (ISO-8601).                  |

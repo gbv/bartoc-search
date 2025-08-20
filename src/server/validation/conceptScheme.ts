@@ -34,6 +34,8 @@ const publisherSchema = z.object({
   prefLabel: z.record(z.array(z.string().min(1))).optional(), 
 });
 
+const SubjectOfSchema = z.object({ url: z.string().url().optional() }).strict();
+
 export const DistributionsSchema = z.object({
   download: z.array(z.string().min(1)).optional(),   
   format: z.array(z.string().min(1)).optional(),    
@@ -88,6 +90,7 @@ export const conceptSchemeZodSchema = z.object({
       }),
     )
     .optional(),
+  subjectOf: z.array(SubjectOfSchema).optional(),
   type: z.array(z.string()),
   uri: z.string().url(),
   url: z.string().url().optional(),

@@ -123,6 +123,8 @@ export interface SolrDocument
   subject_notation: string[];
   subject_uri: string[];
   subject_scheme: string[];
+  subject_of_url_ss?: string[];
+  subject_of_host_ss?: string[];
   start_date_i?: number;
   title_sort?: string;
   type_uri: string[];

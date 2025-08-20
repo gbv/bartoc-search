@@ -87,6 +87,10 @@ export interface ConceptSchemeDocument {
     uri: string;
   }>;
 
+  subjectOf?: Array<{
+    url?: string;
+  }>;
+
   type: string[];
 
   uri: string;

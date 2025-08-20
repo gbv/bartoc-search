@@ -15,7 +15,8 @@ import { writeFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { ConceptSchemeDocument, GroupEntry } from "../types/jskos";
-import { sleep, loadJSONFile, mapUriToGroups, extractGroups, applyAgents, applyDistributions, applyPrefLabel, applyPublishers } from "../utils/utils";
+import { sleep, loadJSONFile, mapUriToGroups, extractGroups, applyAgents, 
+  applyDistributions, applyPrefLabel, applyPublishers, applySubjectOf } from "../utils/utils";
 import readline from "readline";
 import { extractDdc } from "../utils/ddc";
 import { applyLangMap } from "../utils/utils";
@@ -240,6 +241,9 @@ export function transformConceptSchemeToSolr(
     applyPublishers(doc, solrDoc);
   }
 
+  if (doc.subjectOf) {
+    applySubjectOf(doc, solrDoc);
+  }
 
   // type solr fields for labels are to be addressed separately as currently the soruce is a ndJson file
   const nKosConceptsDoc = nKosConceptsDocs.find(

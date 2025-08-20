@@ -57,9 +57,11 @@ Each field is configured with `indexed`, `stored`, and `multiValued` attributes 
 | `notation_ss`      | `array`  |   ✓    |    ✓   |     ✓     | Notational codes/identifiers from JSKOS notation |
 | `notation_examples_ss`| `array`  |   ✓    |    ✓   |     ✓     | Example notational codes from JSKOS notationExamples |
 | `notation_pattern_s`| `string`  |   x    |    ✓   |     x     |  Regex pattern from JSKOS notationPattern |
-| `publisher_uri_ss`     | `string` |    ✓    |    ✓   |    ✓      | Identifier URI of the publisher.                            |
-| `publisher_labels_ss`     | `string` |    ✓    |    ✓   |    ✓      | Aggregate of all prefered publisher labels                            |
+| `publisher_uri_ss`     | `string` |    ✓    |    ✓   |    ✓      | Identifier URI of the publisher.  |
+| `publisher_labels_ss`     | `string` |    ✓    |    ✓   |    ✓      | Aggregate of all prefered publisher labels   |
 | `pref_labels_ss`   | `string` |    ✓    |    ✓   |      ✓     | Aggregate of all preferred titles (trimmed, de-duplicated). |
+| `subject_of_url_ss`  | `string`     |    x    |    ✓   |   ✓   | Related resource URLs from JSKOS subjectOf  |
+| `subject_of_host_ss` | `lc_keyword` |    ✓    |    ✓   |   ✓   | Hostnames extracted from URLs coming from JSKOS subjectOf (case-insensitive exact match). |
 | `ddc_ss`           | `string` |    ✓    |    ✓   |     ✓     | Dewey Decimal Classification notations.                     |
 | `ddc_root_ss`      | `string` |    ✓    |    ✓   |     ✓     | Dewey Decimal Classification notations only at root level.  |
 | `modified_dt`      | `pdate`  |    ✓    |    ✓   |      x     | Last modification timestamp (ISO 8601).                     |
@@ -68,7 +70,6 @@ Each field is configured with `indexed`, `stored`, and `multiValued` attributes 
 | `title_sort`       | `string` |    ✓    |    ✓   |      x     | Sortable, un-analyzed title.                                |
 | `type_uri`         | `string` |    ✓    |    ✓   |     ✓     | SKOS/NKOS type URIs (e.g. ConceptScheme, thesaurus).        |
 | `title_search`     | `text`   |    ✓    |    ×   |     ✓     | Dedicated, multi-valued title field for title-only queries. |
-
 
 ### Dynamic Fields
 These patterns capture additional multilingual or unforeseen fields without changing the schema:
