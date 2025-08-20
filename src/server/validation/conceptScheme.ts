@@ -65,6 +65,7 @@ export const conceptSchemeZodSchema = z.object({
   identifier: jskosListSchema,
   languages: z.array(z.string()).optional(),
   namespace: z.string().url().optional(),
+  notation: z.array(z.string()).optional(),
   modified: z.string(),
   created: z.string(),
   partOf: z.array(z.object({uri: z.string().url(),}),).optional(),

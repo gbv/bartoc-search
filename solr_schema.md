@@ -54,6 +54,7 @@ Each field is configured with `indexed`, `stored`, and `multiValued` attributes 
 | `license_type_ss`  | `string` |    ✓    |    ✓   |     ✓     | A multivalued list of machine-readable license identifiers (URIs) under which the resource is released. |
 | `license_group_ss` | `string` |    ✓    |    ✓   |     ✓     | Canonical license category labels (e.g. “CC BY”, “CC BY-SA”, “Public Domain”, “WTFPL”) derived by mapping individual license URIs to a standardized group.|
 | `namespace_s`      | `string` |    ✓    |    ✓   |      x     | Namespace (URI prefix) of the Concept Scheme; corresponds to the JSKOS namespace field |
+| `notation_ss`      | `array`  |   ✓    |    ✓   |     ✓     | Notational codes/identifiers from JSKOS notation |
 | `publisher_label`  | `text`   |    ✓    |    ✓   |      x     | Name of the publishing organization (full-text).            |
 | `publisher_id`     | `string` |    ✓    |    ✓   |      x     | Identifier URI of the publisher.                            |
 | `ddc_ss`           | `string` |    ✓    |    ✓   |     ✓     | Dewey Decimal Classification notations.                     |
@@ -94,6 +95,7 @@ To enable both targeted and global search, we copy field values into broader cat
 | `contributor_*`   | `allfields`    |
 | `contributor_ss`  | `allfields`    |
 | `examples_ss`     | `allfields`    |
+| `notation_ss`     | `allfields`    |
 | `title_*`         | `allfields`    |
 | `description_*`   | `allfields`    |
 | `description_ss`  | `allfields`    |

@@ -55,10 +55,13 @@ export interface ConceptSchemeDocument {
   license?: Array<{
     uri: string;
   }>;
-
-  namespace?:string;
-
+  
   modified: string;
+
+  namespace?: string;
+
+  notation?: string[];
+  
 
   partOf?: Array<{
     uri: string;

@@ -188,6 +188,7 @@ export function transformConceptSchemeToSolr(
     listed_in_ss: doc.partOf?.map(l => l.uri) || [],        
     modified_dt: doc.modified,
     namespace_s: doc.namespace,
+    notation_ss: doc.notation ?? [],
     publisher_id: doc.publisher?.[0]?.uri,
     publisher_label: doc.publisher?.[0]?.prefLabel?.en,
     start_year_i: doc.startDate ? parseInt(doc.startDate) : undefined,

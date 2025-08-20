@@ -132,6 +132,9 @@
     <!-- languages field -->
     <field name="languages_ss" type="string" indexed="true" stored="true" multiValued="true"/>
 
+    <!-- notation field -->
+    <field name="notation_ss" type="lc_keyword" indexed="true" stored="true" multiValued="true"/>
+
     <!-- Multivalued publisher -->
     <field name="publisher_label" type="string" indexed="true" stored="true"/>
     <field name="publisher_id" type="string" indexed="true" stored="true" />

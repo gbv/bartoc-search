@@ -99,13 +99,13 @@ export interface SolrDocument
   contributor_ss?: string[];
   creator_ss?: string[];
   created_dt?: string;
+  ddc_ss: string[];
+  ddc_root_ss: string[];
   definition_ss?: string[];
   distributions_download_ss?: string[];
   distributions_format_ss?: string[];
   distributions_mimetype_ss?: string[];
   extent_s?: string;
-  ddc_ss: string[];
-  ddc_root_ss: string[];
   fullrecord: string;
   id: string;
   identifier_ss: string[];
@@ -115,6 +115,7 @@ export interface SolrDocument
   listed_in_ss?: string[];
   modified_dt?: string;
   namespace_s?: string;
+  notation_ss?: string[];
   publisher_id: string;
   publisher_label: string;
   subject_notation: string[];
