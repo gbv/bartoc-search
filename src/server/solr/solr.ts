@@ -15,7 +15,7 @@ import { writeFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { ConceptSchemeDocument, GroupEntry } from "../types/jskos";
-import { sleep, loadJSONFile, mapUriToGroups, extractGroups, applyAgents, applyDistributions, applyPrefLabel } from "../utils/utils";
+import { sleep, loadJSONFile, mapUriToGroups, extractGroups, applyAgents, applyDistributions, applyPrefLabel, applyPublishers } from "../utils/utils";
 import readline from "readline";
 import { extractDdc } from "../utils/ddc";
 import { applyLangMap } from "../utils/utils";
@@ -191,8 +191,6 @@ export function transformConceptSchemeToSolr(
     notation_ss: doc.notation ?? [],
     notation_examples_ss: doc.notationExamples ?? [],
     notation_pattern_s: doc.notationPattern,
-    publisher_id: doc.publisher?.[0]?.uri,
-    publisher_label: doc.publisher?.[0]?.prefLabel?.en,
     start_year_i: doc.startDate ? parseInt(doc.startDate) : undefined,
     subject_uri: doc.subject?.map((s) => s.uri) || [],
     subject_notation: doc.subject?.flatMap((s) => s.notation || []) || [],
@@ -236,6 +234,10 @@ export function transformConceptSchemeToSolr(
 
   if (doc.prefLabel) {
     applyPrefLabel(doc, solrDoc);
+  }
+
+  if (doc.publisher) {
+    applyPublishers(doc, solrDoc);
   }
 
 

@@ -266,7 +266,7 @@ export function applyDistributions(
 }
 
 // Output typing for prefLabel fields
-type PrefOut = DynamicOut<"prefLabel","pref_labels_ss">;
+type PrefOut = DynamicOut<"pref_label","pref_labels_ss">;
 
 /** Emit prefLabel_<lang> (dynamic) + pref_labels_ss (aggregate). */
 export function applyPrefLabel(
@@ -285,3 +285,22 @@ export function applyPrefLabel(
     applyLangMap(langMap, out, "pref_label", "pref_labels_ss");
   }
 }
+
+type PublisherOut =
+  DynamicOut<"publisher","publisher_labels_ss"> &
+  UriOut<"publisher_uri_ss">;
+
+export function applyPublishers(
+  src: { publisher?: { uri?: string; prefLabel?: Record<string, string[] | string> }[] },
+  out: PublisherOut
+) {
+  applyAgents(
+    src.publisher,
+    out,
+    "publisher",       
+    "publisher_labels_ss",   
+    "publisher_uri_ss"       
+  );
+}
+
+

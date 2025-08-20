@@ -13,7 +13,7 @@
       <option value="title_search">
         Title
       </option>
-      <option value="publisher_label">
+      <option value="publisher_en">
         Publisher
       </option>
     </select>

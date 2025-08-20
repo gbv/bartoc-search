@@ -9,8 +9,8 @@
       {{ shortDescription }}
     </p>
     <ul class="result-details">
-      <li v-if="doc.publisher_label">
-        <strong>Publisher:</strong> {{ doc.publisher_label }}
+      <li v-if="doc.publisher_labels_ss">
+        <strong>Publisher:</strong> {{ doc.publisher_labels_ss[0] }}
       </li>
       <li v-if="doc.languages_ss?.length">
         <strong>Languages:</strong> {{ doc.languages_ss.join(', ') }}

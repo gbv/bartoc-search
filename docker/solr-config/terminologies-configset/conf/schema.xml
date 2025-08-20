@@ -148,8 +148,8 @@
     <field name="pref_labels_ss" type="string" indexed="true" stored="true" multiValued="true"/>
     
     <!-- publisher field -->
-    <field name="publisher_label" type="string" indexed="true" stored="true"/>
-    <field name="publisher_id" type="string" indexed="true" stored="true" />
+    <field name="publisher_uri_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="publisher_labels_ss" type="lc_keyword" indexed="true" stored="true" multiValued="true"/>
 
     <!-- Multivalued Dewey Decimal Classifications -->
     <field name="ddc_ss" type="string" indexed="true" stored="true" multiValued="true"/>
@@ -197,6 +197,7 @@
   <dynamicField name="definition_*" type="text" indexed="true" stored="true" multiValued="true"/>
   <dynamicField name="description_*" type="text" indexed="true" stored="true"/>
   <dynamicField name="pref_label_*" type="text" indexed="true" stored="true" multiValued="true"/>
+  <dynamicField name="publisher_*" type="text" indexed="true" stored="true" multiValued="true"/>
   <dynamicField name="subject_*" type="text" indexed="true" stored="true" multiValued="true"/>
   <dynamicField name="title_*" type="text" indexed="true" stored="true"/>
   <dynamicField name="type_label_*" type="text" indexed="true" stored="true"/>
@@ -225,7 +226,8 @@
   <copyField source="description_*" dest="allfields"/>
   <copyField source="examples_ss" dest="allfields"/>
   <copyField source="notation_ss" dest="allfields"/>
-  <copyField source="publisher_label" dest="allfields"/>
+  <copyField source="publisher_label_*"   dest="allfields"/>
+  <copyField source="publisher_labels_ss" dest="allfields"/>
   <copyField source="prefLabel_*"    dest="allfields"/>
   <copyField source="pref_labels_ss" dest="allfields"/>
   <copyField source="subject_*" dest="allfields"/>

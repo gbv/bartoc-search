@@ -21,12 +21,17 @@ const displaySchema = z.object({
 
 const contributorSchema = z.object({
   uri: z.string().url(),
-  prefLabel: z.record(z.array(z.string().min(1))).optional(), // normalized to Record<string, string[]>
+  prefLabel: z.record(z.array(z.string().min(1))).optional(),
 });
 
 const creatorSchema = z.object({
   uri: z.string().url(),
-  prefLabel: z.record(z.array(z.string().min(1))).optional(), // normalized to Record<string, string[]>
+  prefLabel: z.record(z.array(z.string().min(1))).optional(), 
+});
+
+const publisherSchema = z.object({
+  uri: z.string().url(),
+  prefLabel: z.record(z.array(z.string().min(1))).optional(), 
 });
 
 export const DistributionsSchema = z.object({
@@ -72,14 +77,7 @@ export const conceptSchemeZodSchema = z.object({
   created: z.string(),
   partOf: z.array(z.object({uri: z.string().url(),}),).optional(),
   prefLabel: z.record(z.string()),
-  publisher: z
-    .array(
-      z.object({
-        prefLabel: z.object({ en: z.string().optional() }),
-        uri: z.string().url(),
-      }),
-    )
-    .optional(),
+  publisher: z.array(publisherSchema).optional(),
   startDate: z.string().optional(),
   subject: z
     .array(

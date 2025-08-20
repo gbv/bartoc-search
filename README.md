@@ -390,8 +390,7 @@ You can drive fine‐grained filtering by passing any of your multivalued facet 
 | └─ `ddc_ss`              | array   | Dewey Decimal Classification notations.                  |
 | └─ `ddc_root_ss`         | array   | Dewey Decimal Classification notations at root level.    |
 | └─ `pref_labels_ss`      | string  | Aggregate of all preferred titles. |
-| └─ `publisher_id`        | string  | Identifier URI of the publishing organization.           |
-| └─ `publisher_label`     | string  | Human‐readable label of the publishing organization.     |
+| └─ `publisher_uri_ss`     | string  | Identifier URI of the publishing organization.           |
 | └─ `subject_uri`         | array   | URIs of subject classifications.                         |
 | └─ `subject_notation`    | array   | Notation codes for subjects.                             |
 | └─ `subject_scheme`      | array   | URIs of subject schemes.                                 |
@@ -416,7 +415,7 @@ You can drive fine‐grained filtering by passing any of your multivalued facet 
 | `format_type_ss` | Machine-readable format URIs |
 | `format_group_ss` | Canonical format group labels (e.g. “PDF”, “HTML”, “Spreadsheet”) |
 | `address_country_s` | Country of origin |
-| `publisher_label` | Name of the publisher |
+| `publisher_labels_ss` | Name of the publisher |
 
 
 ##### “No value” Facet Bucket

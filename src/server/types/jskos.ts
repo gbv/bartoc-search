@@ -75,12 +75,7 @@ export interface ConceptSchemeDocument {
     [lang: string]: string;
   };
 
-  publisher?: Array<{
-    prefLabel: {
-      en?: string;
-    };
-    uri: string;
-  }>;
+  publisher?: Publisher[];
 
   startDate?: string;
 
@@ -176,6 +171,11 @@ export type Distributions = {
   mimetype?: string[];
 }
 
+export type Publisher = {
+  uri: string;
+  prefLabel?: Record<string, string[] | string>;
+};
+
 export type DisplaySettings = {
   hideNotation?: boolean;
   numericalNotation?: boolean;
@@ -192,7 +192,6 @@ export interface LicenseResult {
   key: string
   label: string
 }
-
 
 export interface GroupEntry {
   key: string

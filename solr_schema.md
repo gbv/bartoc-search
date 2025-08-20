@@ -57,8 +57,8 @@ Each field is configured with `indexed`, `stored`, and `multiValued` attributes 
 | `notation_ss`      | `array`  |   ✓    |    ✓   |     ✓     | Notational codes/identifiers from JSKOS notation |
 | `notation_examples_ss`| `array`  |   ✓    |    ✓   |     ✓     | Example notational codes from JSKOS notationExamples |
 | `notation_pattern_s`| `string`  |   x    |    ✓   |     x     |  Regex pattern from JSKOS notationPattern |
-| `publisher_label`  | `text`   |    ✓    |    ✓   |      x     | Name of the publishing organization (full-text).            |
-| `publisher_id`     | `string` |    ✓    |    ✓   |      x     | Identifier URI of the publisher.                            |
+| `publisher_uri_ss`     | `string` |    ✓    |    ✓   |    ✓      | Identifier URI of the publisher.                            |
+| `publisher_labels_ss`     | `string` |    ✓    |    ✓   |    ✓      | Aggregate of all prefered publisher labels                            |
 | `pref_labels_ss`   | `string` |    ✓    |    ✓   |      ✓     | Aggregate of all preferred titles (trimmed, de-duplicated). |
 | `ddc_ss`           | `string` |    ✓    |    ✓   |     ✓     | Dewey Decimal Classification notations.                     |
 | `ddc_root_ss`      | `string` |    ✓    |    ✓   |     ✓     | Dewey Decimal Classification notations only at root level.  |
@@ -81,6 +81,7 @@ These patterns capture additional multilingual or unforeseen fields without chan
 | `title_*`       | `text`   |    ✓    |    ✓   |      x     | Language-specific titles (`title_en`, `title_de`, etc.). |
 | `description_*` | `text`   |    ✓    |    ✓   |      x     | Language-specific descriptions.                          |
 | `prefLabel_*`   | `text`   |    ✓    |    ✓   |      ✓     | Per-language preferred titles (`*` = language code).        |
+| `publisher_*`   | `text`   |    ✓    |    ✓   |      ✓     | Per-language preferred titles (`*` = language code).        |
 | `subject_*`     | `text`   |    ✓    |    ✓   |      ✓     | Language-specific subject labels.                        |
 | `type_label_*`  | `text`   |    ✓    |    ✓   |      x     | Language-specific human-readable type labels.            |
 | `*_s`           | `string` |    ✓    |    ✓   |      x     | Arbitrary string fields following `_s` suffix.           |
