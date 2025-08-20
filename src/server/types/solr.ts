@@ -116,6 +116,7 @@ export interface SolrDocument
   modified_dt?: string;
   namespace_s?: string;
   notation_ss?: string[];
+  notation_examples_ss?: string[];
   publisher_id: string;
   publisher_label: string;
   subject_notation: string[];

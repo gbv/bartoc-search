@@ -384,6 +384,7 @@ You can drive fine‐grained filtering by passing any of your multivalued facet 
 | └─ `license_group_ss`    | array   | Canonical license category labels (e.g. “CC BY”, “CC BY-SA”, “Public Domain”, “WTFPL”) derived by mapping individual license URIs to a standardized group.|
 | └─ `namespace_s`         | string  | Namespace (URI prefix) of the Concept Scheme; corresponds to the JSKOS namespace field |
 | └─ `notation_ss`         | array  | Notational codes/identifiers from JSKOS notation |
+| └─ `notation_examples_ss`| array  | Example notational codes from JSKOS notationExamples |
 | └─ `listed_in_ss`        | array   | Registry URIs of the scheme(s) that include this vocabulary.|
 | └─ `ddc_ss`              | array   | Dewey Decimal Classification notations.                  |
 | └─ `ddc_root_ss`         | array   | Dewey Decimal Classification notations at root level.    |

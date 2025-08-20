@@ -135,6 +135,9 @@
     <!-- notation field -->
     <field name="notation_ss" type="lc_keyword" indexed="true" stored="true" multiValued="true"/>
 
+    <!-- notationExamples field -->
+    <field name="notation_examples_ss" type="lc_keyword" indexed="true" stored="true" multiValued="true"/>
+
     <!-- Multivalued publisher -->
     <field name="publisher_label" type="string" indexed="true" stored="true"/>
     <field name="publisher_id" type="string" indexed="true" stored="true" />
@@ -213,6 +216,7 @@
   <copyField source="defintion_*" dest="allfields"/>
   <copyField source="definition_ss" dest="allfields"/>
   <copyField source="examples_ss" dest="allfields"/>
+  <copyField source="notation_ss" dest="allfields"/>
   <copyField source="title_*" dest="allfields"/>
   <copyField source="title_*" dest="title_search"/>
   <copyField source="description_*" dest="allfields"/>
