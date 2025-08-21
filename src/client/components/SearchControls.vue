@@ -32,9 +32,9 @@ import LookupHint from "./LookupHint.vue"
 // Sort options 
 const options = [
   { key: "relevance",    label: "Relevance" },
-  { key: "created desc", label: "Created least" },
+  { key: "created desc", label: "Created latest" },
   { key: "created asc",  label: "Created first" },
-  { key: "modified desc",label: "Modified least" },
+  { key: "modified desc",label: "Modified latest" },
   { key: "modified asc", label: "Modified first" },
   { key: "title asc",    label: "Title (A–Z)" },
   { key: "title desc",   label: "Title (Z–A)" },
