@@ -1,7 +1,7 @@
 import { promises as fsPromises } from "fs";
 import * as path from "path";
-import {GroupEntry, GroupResult, Distributions } from "../types/jskos";
-import { DynamicOut, PerLangOut, FamilyKey, AggOut, UriOut, DistributionsOut } from "../types/solr";
+import {GroupEntry, GroupResult, Distributions, Subject } from "../types/jskos";
+import { DynamicOut, PerLangOut, FamilyKey, AggOut, UriOut, DistributionsOut, SolrDocument } from "../types/solr";
 import _ from "lodash";
 import {NO_VALUE} from "../conf/conf";
 
@@ -332,6 +332,81 @@ export function applySubjectOf(
       }}).filter(nonempty)
   );
   if (hosts.length) out.subject_of_host_ss = hosts;
+}
+
+type SubjectOut = DynamicOut<"subject_label","subject_labels_ss"> & Partial<SolrDocument> ;
+
+export function applySubject(
+  src: { subject?: Subject[] },
+  out: SubjectOut
+): void {
+  const list = src.subject ?? [];
+  if (!list.length) return;
+
+  const uris: string[] = [];
+  const notations: string[] = [];
+  const schemes: string[] = [];
+  const broaderUris: string[] = [];
+  const broaderNotations: string[] = [];
+  const topConceptOf: string[] = [];
+  const types: string[] = [];
+  const contexts: string[] = [];
+  const labelMap: Record<string, string[]> = {}; // lang -> labels
+
+  for (const s of list) {
+    // URIs & notations
+    const u = trimSafe(s.uri); if (u) uris.push(u);
+    (s.notation ?? []).forEach(n => { const v = trimSafe(n); if (v) notations.push(v); });
+
+    // Labels (collect all langs; if only 'en' exists, that's fine)
+    for (const [lang, val] of Object.entries(s.prefLabel ?? {})) {
+      const arr = Array.isArray(val) ? val : [val];
+      const cleaned = arr.map(trimSafe).filter(nonempty);
+      if (cleaned.length) labelMap[lang] = (labelMap[lang] ?? []).concat(cleaned);
+    }
+
+    // inScheme URIs
+    (s.inScheme ?? []).forEach(r => {
+      const v = trimSafe(r.uri); if (v) schemes.push(v);
+    });
+
+    // broader URIs & notations (immediate)
+    (s.broader ?? []).forEach(b => {
+      const bu = trimSafe(b.uri); if (bu) broaderUris.push(bu);
+      (b.notation ?? []).forEach(n => { const v = trimSafe(n); if (v) broaderNotations.push(v); });
+    });
+
+    // topConceptOf URIs
+    (s.topConceptOf ?? []).forEach(r => {
+      const v = trimSafe(r.uri); if (v) topConceptOf.push(v);
+    });
+
+    // RDF types
+    (s.type ?? []).forEach(t => { const v = trimSafe(t); if (v) types.push(v); });
+
+    // @context (optional; store-only)
+    const ctx = s["@context"];
+    if (typeof ctx === "string") {
+      const v = trimSafe(ctx); if (v) contexts.push(v);
+    } else if (Array.isArray(ctx)) {
+      ctx.map(trimSafe).filter(nonempty).forEach(v => contexts.push(v));
+    }
+  }
+
+  // Write fields (deduped)
+  if (uris.length)               out.subject_uri = uniq(uris);
+  if (notations.length)          out.subject_notation = uniq(notations);
+  if (schemes.length)            out.subject_scheme = uniq(schemes);
+  if (broaderUris.length)        out.subject_broader_uri_ss = uniq(broaderUris);
+  if (broaderNotations.length)   out.subject_broader_notation_ss = uniq(broaderNotations);
+  if (topConceptOf.length)       out.subject_topconceptof_ss = uniq(topConceptOf);
+  if (types.length)              out.subject_type_ss = uniq(types);
+  if (contexts.length)           out.subject_context_ss = uniq(contexts);
+
+  // Labels: subject_label_<lang> + subject_labels_ss
+  if (Object.keys(labelMap).length) {
+    applyLangMap(labelMap, out, "subject_label", "subject_labels_ss");
+  }
 }
 
 

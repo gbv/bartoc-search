@@ -392,9 +392,15 @@ You can drive fine‐grained filtering by passing any of your multivalued facet 
 | └─ `pref_labels_ss`      | string  | Aggregate of all preferred titles. |
 | └─ `publisher_uri_ss`    | string  | Identifier URI of the publishing organization.           |
 | └─ `start_date_i`        |  pint   | Start year (integer) of the classification.|
-| └─ `subject_uri`         | array   | URIs of subject classifications.                         |
-| └─ `subject_notation`    | array   | Notation codes for subjects.                             |
-| └─ `subject_scheme`      | array   | URIs of subject schemes.                                 |
+| └─ `subject_uri` | `string` | Subject concept URIs. |
+| └─ `subject_notation` | `lc_keyword` | Subject notations (codes). |
+| └─ `subject_scheme` | `string` | Subject scheme URIs (`inScheme[].uri`). |
+| └─ `subject_labels_ss` | `string` | Aggregate of all subject labels (trimmed, de-duplicated). |
+| └─ `subject_broader_uri_ss` | `string`|  Immediate broader concept URIs. |
+| └─`subject_broader_notation_ss` | `lc_keyword` | Immediate broader notations. |
+| └─ `subject_topconceptof_ss` | `string` | topConceptOf[].uri (schemes where it is a top concept). |
+| └─ `subject_type_ss`| `string` | RDF types of the subject (e.g., `skos:Concept`).                           |
+| └─ `subject_context_ss` | `string`| Stored `@context` URLs if present (display/debug).                         |
 | └─ `subject_of_url_ss`   | string  | Related resource URLs from JSKOS subjectOf  |
 | └─ `subject_of_host_ss` | lc_keyword | Hostnames extracted from URLs coming from JSKOS subjectOf (case-insensitive exact match). |
 | └─ `type_uri`            | array   | URIs indicating the resource’s SKOS/NKOS type(s).        |

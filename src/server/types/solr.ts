@@ -120,9 +120,14 @@ export interface SolrDocument
   notation_pattern_s?: string;
   pref_labels_ss?: string[];
   publisher_labels_ss: string[];
-  subject_notation: string[];
+  subject_notation?: string[];
   subject_uri: string[];
-  subject_scheme: string[];
+  subject_scheme?: string[];
+  subject_broader_uri_ss?: string[];
+  subject_broader_notation_ss?: string[]; 
+  subject_topconceptof_ss?: string[];
+  subject_type_ss?: string[];
+  subject_context_ss?: string[];    
   subject_of_url_ss?: string[];
   subject_of_host_ss?: string[];
   start_date_i?: number;

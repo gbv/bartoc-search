@@ -60,6 +60,15 @@ Each field is configured with `indexed`, `stored`, and `multiValued` attributes 
 | `publisher_uri_ss`     | `string` |    ✓    |    ✓   |    ✓      | Identifier URI of the publisher.  |
 | `publisher_labels_ss`     | `string` |    ✓    |    ✓   |    ✓      | Aggregate of all prefered publisher labels   |
 | `pref_labels_ss`   | `string` |    ✓    |    ✓   |      ✓     | Aggregate of all preferred titles (trimmed, de-duplicated). |
+| `subject_uri` | `string` |  ✓  |  ✓  |   ✓   | Subject concept URIs. |
+| `subject_notation` | `lc_keyword` |  ✓  |  ✓  |   ✓   | Subject notations (codes). |
+| `subject_scheme` | `string` |  ✓  |  ✓  |   ✓   | Subject scheme URIs (`inScheme[].uri`). |
+| `subject_labels_ss` | `string` |  ✓  |  ✓  |   ✓   | Aggregate of all subject labels (trimmed, de-duplicated). |
+| `subject_broader_uri_ss`      | `string`     |  ✓  |  ✓  |   ✓   | Immediate broader concept URIs. |
+| `subject_broader_notation_ss` | `lc_keyword` |  ✓  |  ✓  |   ✓   | Immediate broader notations. |
+| `subject_topconceptof_ss` | `string` |  ✓  |  ✓  |   ✓   | topConceptOf[].uri (schemes where it is a top concept). |
+| `subject_type_ss`| `string`     |  ✓  |  ✓  |   ✓   | RDF types of the subject (e.g., `skos:Concept`).                           |
+| `subject_context_ss` | `string`     |  ✗  |  ✓  |   ✓   | Stored `@context` URLs if present (display/debug).                         |
 | `subject_of_url_ss`  | `string`     |    x    |    ✓   |   ✓   | Related resource URLs from JSKOS subjectOf  |
 | `subject_of_host_ss` | `lc_keyword` |    ✓    |    ✓   |   ✓   | Hostnames extracted from URLs coming from JSKOS subjectOf (case-insensitive exact match). |
 | `ddc_ss`           | `string` |    ✓    |    ✓   |     ✓     | Dewey Decimal Classification notations.                     |
@@ -71,6 +80,7 @@ Each field is configured with `indexed`, `stored`, and `multiValued` attributes 
 | `type_uri`         | `string` |    ✓    |    ✓   |     ✓     | SKOS/NKOS type URIs (e.g. ConceptScheme, thesaurus).        |
 | `title_search`     | `text`   |    ✓    |    ×   |     ✓     | Dedicated, multi-valued title field for title-only queries. |
 
+
 ### Dynamic Fields
 These patterns capture additional multilingual or unforeseen fields without changing the schema:
 | Pattern         | Type     | Indexed | Stored | MultiValued | Description                                              |
@@ -81,9 +91,9 @@ These patterns capture additional multilingual or unforeseen fields without chan
 | `definition_*`  | `text`   |    ✓    |    ✓   |      x     | Language-specific definition labels (`definition_de`, `definition_en`, etc.). |
 | `title_*`       | `text`   |    ✓    |    ✓   |      x     | Language-specific titles (`title_en`, `title_de`, etc.). |
 | `description_*` | `text`   |    ✓    |    ✓   |      x     | Language-specific descriptions.                          |
-| `prefLabel_*`   | `text`   |    ✓    |    ✓   |      ✓     | Per-language preferred titles (`*` = language code).        |
-| `publisher_*`   | `text`   |    ✓    |    ✓   |      ✓     | Per-language preferred titles (`*` = language code).        |
-| `subject_*`     | `text`   |    ✓    |    ✓   |      ✓     | Language-specific subject labels.                        |
+| `prefLabel_*`   | `text`   |    ✓    |    ✓   |      ✓     | Per-language preferred titles (`*` = language code).     |
+| `publisher_*`   | `text`   |    ✓    |    ✓   |      ✓     | Per-language preferred titles (`*` = language code).     |
+| `subject_label_`| `text`   |    ✓    |    ✓   |      ✓     | Per-language subject labels (`prefLabel.*`).             |
 | `type_label_*`  | `text`   |    ✓    |    ✓   |      x     | Language-specific human-readable type labels.            |
 | `*_s`           | `string` |    ✓    |    ✓   |      x     | Arbitrary string fields following `_s` suffix.           |
 | `*_i`           | `pint`   |    ✓    |    ✓   |      x     | Arbitrary integer fields.                                |
@@ -106,7 +116,8 @@ To enable both targeted and global search, we copy field values into broader cat
 | `description_*`   | `allfields`    |
 | `description_ss`  | `allfields`    |
 | `publisher_label` | `allfields`    |
-| `subject_*`       | `allfields`    |
+| `subject_notation`| `allfields`    |
+| `subject_label_* `| `allfields`    |
 | `title_*`         | `title_search` |
 | `title_en`        | `title_sort`   |
 

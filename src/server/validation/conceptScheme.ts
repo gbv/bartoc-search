@@ -36,6 +36,26 @@ const publisherSchema = z.object({
 
 const SubjectOfSchema = z.object({ url: z.string().url().optional() }).strict();
 
+// 1) Single subject item
+const SubjectItemSchema = z.object({
+  uri: z.string().url(),
+  notation: z.array(z.string()).optional(),
+  prefLabel: z.record(z.string()).optional(),
+  inScheme: z.array(z.object({ uri: z.string().url() }).strict()).optional(),
+  broader: z.array(
+    z.object({
+      uri: z.string().url().optional(),
+      notation: z.array(z.string()).optional(),
+    }).strict()
+  ).optional(),
+  topConceptOf: z.array(z.object({ uri: z.string().url() }).strict()).optional(),
+  type: z.array(z.string()).optional(),
+  ["@context"]: z.union([z.string(), z.array(z.string())]).optional(),
+}).strict();
+
+// The subject field = array of items (OPTIONAL field, NOT optional items)
+const SubjectFieldSchema = z.array(SubjectItemSchema).optional();
+
 export const DistributionsSchema = z.object({
   download: z.array(z.string().min(1)).optional(),   
   format: z.array(z.string().min(1)).optional(),    
@@ -81,15 +101,7 @@ export const conceptSchemeZodSchema = z.object({
   prefLabel: z.record(z.string()),
   publisher: z.array(publisherSchema).optional(),
   startDate: z.string().optional(),
-  subject: z
-    .array(
-      z.object({
-        inScheme: z.array(z.object({ uri: z.string().url() })).optional(),
-        notation: z.array(z.string()).optional(),
-        uri: z.string().url(),
-      }),
-    )
-    .optional(),
+  subject: SubjectFieldSchema,
   subjectOf: z.array(SubjectOfSchema).optional(),
   type: z.array(z.string()),
   uri: z.string().url(),

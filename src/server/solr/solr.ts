@@ -16,7 +16,7 @@ import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { ConceptSchemeDocument, GroupEntry } from "../types/jskos";
 import { sleep, loadJSONFile, mapUriToGroups, extractGroups, applyAgents, 
-  applyDistributions, applyPrefLabel, applyPublishers, applySubjectOf } from "../utils/utils";
+  applyDistributions, applyPrefLabel, applyPublishers, applySubjectOf, applySubject } from "../utils/utils";
 import readline from "readline";
 import { extractDdc } from "../utils/ddc";
 import { applyLangMap } from "../utils/utils";
@@ -192,11 +192,7 @@ export function transformConceptSchemeToSolr(
     notation_ss: doc.notation ?? [],
     notation_examples_ss: doc.notationExamples ?? [],
     notation_pattern_s: doc.notationPattern,
-    start_date_i: doc.startDate ? parseInt(doc.startDate) : undefined,
-    subject_uri: doc.subject?.map((s) => s.uri) || [],
-    subject_notation: doc.subject?.flatMap((s) => s.notation || []) || [],
-    subject_scheme:
-      doc.subject?.flatMap((s) => s.inScheme?.map((i) => i.uri) || []) || [],
+    start_date_i: doc.startDate ? parseInt(doc.startDate) : undefined, 
     type_uri: doc.type,
     url_s: doc.url,
   };
@@ -243,6 +239,10 @@ export function transformConceptSchemeToSolr(
 
   if (doc.subjectOf) {
     applySubjectOf(doc, solrDoc);
+  }
+
+  if (doc.subject) {
+    applySubject(doc, solrDoc);
   }
 
   // type solr fields for labels are to be addressed separately as currently the soruce is a ndJson file

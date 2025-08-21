@@ -158,6 +158,17 @@
     <field name="subject_of_url_ss" type="string" indexed="false" stored="true" multiValued="true"/>
     <field name="subject_of_host_ss" type="lc_keyword" indexed="true" stored="true" multiValued="true"/>
 
+    <!-- subject field -->
+    <field name="subject_uri" type="string" indexed="false" stored="true" multiValued="true"/>
+    <field name="subject_notation" type="lc_keyword" indexed="true" stored="true" multiValued="true"/>
+    <field name="subject_scheme" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="subject_labels_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="subject_broader_uri_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="subject_broader_notation_ss" type="lc_keyword" indexed="true" stored="true" multiValued="true"/>
+    <field name="subject_topconceptof_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="subject_type_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="subject_context_ss" type="string" indexed="false" stored="true" multiValued="true"/>
+
     <!-- Multivalued Dewey Decimal Classifications -->
     <field name="ddc_ss" type="string" indexed="true" stored="true" multiValued="true"/>
     <field name="ddc_root_ss" type="string" indexed="true" stored="true" multiValued="true"/>
@@ -202,7 +213,7 @@
   <dynamicField name="description_*" type="text" indexed="true" stored="true"/>
   <dynamicField name="pref_label_*" type="text" indexed="true" stored="true" multiValued="true"/>
   <dynamicField name="publisher_*" type="text" indexed="true" stored="true" multiValued="true"/>
-  <dynamicField name="subject_*" type="text" indexed="true" stored="true" multiValued="true"/>
+  <dynamicField name="subject_label_*" type="text" indexed="true" stored="true" multiValued="true"/>
   <dynamicField name="title_*" type="text" indexed="true" stored="true"/>
   <dynamicField name="type_label_*" type="text" indexed="true" stored="true"/>
 
@@ -230,11 +241,12 @@
   <copyField source="description_*" dest="allfields"/>
   <copyField source="examples_ss" dest="allfields"/>
   <copyField source="notation_ss" dest="allfields"/>
-  <copyField source="publisher_label_*"   dest="allfields"/>
+  <copyField source="publisher_label_*" dest="allfields"/>
   <copyField source="publisher_labels_ss" dest="allfields"/>
-  <copyField source="prefLabel_*"    dest="allfields"/>
+  <copyField source="prefLabel_*" dest="allfields"/>
   <copyField source="pref_labels_ss" dest="allfields"/>
-  <copyField source="subject_*" dest="allfields"/>
+  <copyField source="subject_label_*" dest="allfields"/>
+  <copyField source="subject_notation" dest="allfields"/>
   <copyField source="title_*" dest="allfields"/>
   <copyField source="title_*" dest="title_search"/>
 

@@ -79,13 +79,7 @@ export interface ConceptSchemeDocument {
 
   startDate?: string;
 
-  subject?: Array<{
-    inScheme?: Array<{
-      uri: string;
-    }>;
-    notation?: string[];
-    uri: string;
-  }>;
+  subject?: Subject[];
 
   subjectOf?: Array<{
     url?: string;
@@ -180,11 +174,35 @@ export type Publisher = {
   prefLabel?: Record<string, string[] | string>;
 };
 
+export type Subject = {
+  uri: string;
+
+  // notation(s) of the concept
+  notation?: string[];
+
+  // preferred label(s) per language (JSKOS uses a single string per lang)
+  prefLabel?: Record<string, string>;
+
+  // the scheme(s) this concept belongs to
+  inScheme?: Array<{ uri: string }>;
+
+  // immediate broader concepts (uri + their notations if provided)
+  broader?: Array<{ uri?: string; notation?: string[] }>;
+
+  // schemes where this concept is a top concept
+  topConceptOf?: Array<{ uri: string }>;
+
+  // RDF types (e.g., skos:Concept)
+  type?: string[];
+
+  // optional JSON-LD context present on the subject
+  ["@context"]?: string | string[];
+};
+
 export type DisplaySettings = {
   hideNotation?: boolean;
   numericalNotation?: boolean;
 };
-
 
 export interface LicenseEntry {
   key: string
@@ -202,7 +220,6 @@ export interface GroupEntry {
   label: string
   uris: string[]
 }
-
 export interface GroupResult {
   key: string
   label: string
