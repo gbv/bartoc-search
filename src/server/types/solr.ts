@@ -1,34 +1,98 @@
 // types/solr.ts
 import { ConceptSchemeDocument } from "./jskos";
-import { SupportedLang } from "./lang";
 import { OperationType } from "./ws";
 
-type TitleFields = {
-  [K in SupportedLang as `title_${K}`]?: string;
-};
+export type TitleFields = Partial<Record<`title_${string}`, string>>;
 
-type DescriptionFields = {
-  [K in SupportedLang as `description_${K}`]?: string;
-};
+export type TypeLabelFields = Partial<Record<`type_label_${string}`, string>>;
 
-type TypeLabelFields = {
-  [K in SupportedLang as `type_label_${K}`]?: string;
+// Dynamic Solr field typing helpers
+
+/**
+ * Template for any per-language dynamic field emitted at ETL time.
+ * Example (family = "altLabel"): "altLabel_en", "altLabel_de", "altLabel_und".
+ * The resulting keys MUST match a Solr rule like:
+ *   <dynamicField name="<family>_*" ... />
+ */
+export type FamilyKey<F extends string> = `${F}_${string}`;
+
+/**
+ * Sparse object whose keys are per-language dynamic fields (<family>_<lang>)
+ * and whose values are the multi-valued strings written to Solr.
+ * Example keys: "altLabel_en", "creator_label_de".
+ */
+export type PerLangOut<F extends string> = Partial<Record<FamilyKey<F>, string[]>>;
+
+/**
+ * Language-agnostic aggregate field, typically a multiValued `string` used for
+ * facets, exact filters, and simple display (e.g., "alt_labels_ss").
+ */
+export type AggOut<A extends string> = Partial<Record<A, string[]>>;
+
+/**
+ * Convenience type that combines per-language dynamic fields with one aggregate
+ * field for the same family (e.g., altLabel_* + alt_labels_ss).
+ */
+export type DynamicOut<F extends string, A extends string> = PerLangOut<F> & AggOut<A>;
+
+/**
+ * Adds a concrete URI bucket to the output (e.g., "contributor_uri_ss").
+ * Value is a multi-valued list of canonical URIs.
+ */
+export type UriOut<U extends string> = { [K in U]?: string[] };
+
+
+// Family-specific output shapes
+
+/**
+ * Contributor fields:
+ * - `contributor_label_<lang>`  (dynamic, analyzed text; multi-valued)
+ * - `contributor_labels_ss`     (aggregate across languages; multi-valued string)
+ * - `contributor_uri_ss`        (URIs; multi-valued string)
+ */
+export type ContributorOut = DynamicOut<"contributor_label","contributor_labels_ss"> & UriOut<"contributor_uri_ss">;
+
+/**
+ * Creator fields:
+ * - `creator_label_<lang>`  (dynamic, analyzed text; multi-valued)
+ * - `creator_labels_ss`     (aggregate across languages; multi-valued string)
+ * - `creator_uri_ss`        (URIs; multi-valued string)
+ */
+export type CreatorOut = DynamicOut<"creator_label","creator_labels_ss"> & UriOut<"creator_uri_ss">;
+
+export type DistributionsOut = {
+  distributions_download_ss?: string[];
+  distributions_format_ss?: string[];
+  distributions_mimetype_ss?: string[];
 };
 
 export interface SolrDocument
-  extends TitleFields,
-    DescriptionFields,
-    TypeLabelFields {
+  extends TitleFields, TypeLabelFields {
   access_type_ss?: string[];
+  address_code_s?: string;
   address_country_s?: string;
-  alt_labels_ss: string[];
+  address_locality_s?: string;
+  address_region_s?: string;
+  address_street_s?: string;
   api_type_ss: string[];
   api_url_ss: string[];
-  created_dt?: string;
-  ddc_ss: string[];
-  ddc_root_ss: string[]
+  contact_email_s?: string;
+  display_hideNotation_b?: boolean;
+  display_numericalNotation_b?: boolean;
+  examples_ss?: string[];
   format_type_ss?: string[];
   format_group_ss?: string[];
+  alt_labels_ss?: string[];
+  contributor_ss?: string[];
+  creator_ss?: string[];
+  created_dt?: string;
+  ddc_ss: string[];
+  ddc_root_ss: string[];
+  definition_ss?: string[];
+  distributions_download_ss?: string[];
+  distributions_format_ss?: string[];
+  distributions_mimetype_ss?: string[];
+  extent_s?: string;
   fullrecord: string;
   id: string;
   identifier_ss: string[];
@@ -38,12 +102,22 @@ export interface SolrDocument
   listed_in_ss?: string[];
   modified_dt?: string;
   namespace_s?: string;
-  publisher_id: string;
-  publisher_label: string;
-  subject_notation: string[];
+  notation_ss?: string[];
+  notation_examples_ss?: string[];
+  notation_pattern_s?: string;
+  pref_labels_ss?: string[];
+  publisher_labels_ss: string[];
+  subject_notation?: string[];
   subject_uri: string[];
-  subject_scheme: string[];
-  start_year_i?: number;
+  subject_scheme?: string[];
+  subject_broader_uri_ss?: string[];
+  subject_broader_notation_ss?: string[]; 
+  subject_topconceptof_ss?: string[];
+  subject_type_ss?: string[];
+  subject_context_ss?: string[];    
+  subject_of_url_ss?: string[];
+  subject_of_host_ss?: string[];
+  start_date_i?: number;
   title_sort?: string;
   type_uri: string[];
   url_s?: string;

@@ -348,36 +348,64 @@ You can drive fine‐grained filtering by passing any of your multivalued facet 
 | `response.numFoundExact` | boolean | Indicates if `numFound` is an exact count.               |
 | `response.docs`          | array   | Array of document objects matching the query.            |
 | └─ `id`                  | string  | Unique document identifier (URI).                        |
+| └─ `access_type_ss`      | string  | URIs denoting the resource’s access policy (e.g. Freely available, Registration required, License required )|
+| └─ `address_code_s`      | lc_keyword | Postal/ZIP code (e.g., 00165) |
+| └─ `address_country_s`   | lc_keyword | Country name (verbatim; case-insensitive match) (e.g., Italy) |
+| └─ `address_locality_s`  | lc_keyword | City / locality (e.g., Rome) |
+| └─ `address_region_s`    | lc_keyword | Region / state / province (e.g., Lazio) |
+| └─ `address_street_s`    | lc_keyword | Street address line (e.g., via Monte del Gallo 47) |
+| └─ `api_type_ss`         | array   | One or more API-type identifiers (e.g. jskos, skosmos, sparql) denoting the service/interface protocols supported by the record.|
+| └─ `api_url_ss`          | array   | One or more fully qualified endpoint URLs corresponding to each api_type_ss entry.|
+| └─ `contact_email_s`     | string  | Email address of anyone in charge of the vocabulary |
+| └─ `display_hideNotation_b`  | boolean |  Hide notation it is only used as internal identifier  |
+| └─`display_numericalNotation_b`  | boolean |  Numerical notation concepts of the vocabulary will be sorted numerically when displayed as a list  |
+| └─ `examples_ss`         | lc_keyword |  Example sentences/snippets from JSKOS EXAMPLES field |
+| └─ `format_type_ss`      | array   | A multivalued list of machine-readable format identifiers (URIs) describing the available resource formats. |
+| └─ `format_group_ss`     | array   | Canonical format category labels (e.g. “PDF”, “HTML”, “Spreadsheet”) derived by mapping individual format URIs to standardized groups. |
 | └─ `title_en`            | string  | English title of the thesaurus or concept scheme.        |
 | └─ `title_sort`          | string  | Title normalized for sorting.                            |
 | └─ `title_und`           | string  | Title in the “undefined” (und) language.                 |
-| └─ `description_en`      | string  | Short English description or abstract.                   |
-| └─ `format_type_ss`      | array   | A multivalued list of machine-readable format identifiers (URIs) describing the available resource formats. |
-| └─ `format_group_ss`     | array   | Canonical format category labels (e.g. “PDF”, “HTML”, “Spreadsheet”) derived by mapping individual format URIs to standardized groups. |
 | └─ `fullrecord`          | string  | The complete, unextended JSKOS record (raw JSON) as a string. (multilingual).                       |
-| └─ `identifier_ss`       | array  | Additional identifiers of the resource; corresponds to the JSKOS identifier field (alternate URIs or local IDs).|
-| └─ `alt_labels_ss`       | array   | Alternative labels (multilingual).                       |
+| └─ `identifier_ss`       | array   | Additional identifiers of the resource; corresponds to the JSKOS identifier field (alternate URIs or local IDs).|
+| └─ `alt_labels_ss`       | array   | Language-agnostic aggregate of all altLabel values. Trimmed and de-duplicated across languages.
+| └─ `contributor_uri_ss`  | array   | Aggregate of all contributor uris|
+| └─ `contributor_ss` | array | Language-agnostic aggregate of all contributor prefLabel values. Trimmed and de-duplicated across languages.|
+| └─ `created_dt`          | string  | Creation timestamp (ISO-8601).                           |
+| └─ `creator_uri_ss`      | array  |  Aggregate of all creator uris|
+| └─ `creator_ss`   | array  |  Language-agnostic aggregate of all creator values. Trimmed and de-duplicated across languages.|
+| └─ `definition_ss`       | array   | Language-agnostic aggregate of all definition values. Trimmed and de-duplicated across languages.
+| └─ `distribution_download_ss`       | array   | Download URLs for the record’s distributions.
+| └─ `distribution_format_ss`       | lc_keyword   | Distribution format labels (case-insensitive exact match), e.g., CSV, JSON.
+| └─ `distribution_mimetype_ss`       | lc_keyword   | Distribution MIME types, e.g., text/csv, application/json.
+| └─ `extent_s`       | string   | Original extent string, as provided (display-only). |
 | └─ `languages_ss`        | array   | Languages available (ISO codes).                         |
 | └─ `license_type_ss`     | array   | A multivalued list of machine-readable license identifiers (URIs) under which the resource is released. |
 | └─ `license_group_ss`    | array   | Canonical license category labels (e.g. “CC BY”, “CC BY-SA”, “Public Domain”, “WTFPL”) derived by mapping individual license URIs to a standardized group.|
 | └─ `namespace_s`         | string  | Namespace (URI prefix) of the Concept Scheme; corresponds to the JSKOS namespace field |
-| └─ `access_type_ss`      | string  | URIs denoting the resource’s access policy (e.g. Freely available, Registration required, License required )|
-| └─ `address_country_s`   | string  | Country of origin                                        |
-| └─ `api_type_ss`         | array   | One or more API-type identifiers (e.g. jskos, skosmos, sparql) denoting the service/interface protocols supported by the record.|
-| └─ `api_url_ss`          | array   | One or more fully qualified endpoint URLs corresponding to each api_type_ss entry.|
-| └─ `listed_in_ss`        | array   | Registry URIs of the scheme(s) that include this vocabulary.|
+| └─ `notation_ss`         | array  | Notational codes/identifiers from JSKOS notation |
+| └─ `notation_examples_ss`| array  | Example notational codes from JSKOS notationExamples |
+| └─ `notation_pattern_s`| array  | Regex pattern from JSKOS notationPattern |
+| └─ `listed_in_ss`        | array   | Registry URIs of the scheme(s) that include this vocabulary, coming from JSKOS partOf.|
 | └─ `ddc_ss`              | array   | Dewey Decimal Classification notations.                  |
 | └─ `ddc_root_ss`         | array   | Dewey Decimal Classification notations at root level.    |
-| └─ `publisher_id`        | string  | Identifier URI of the publishing organization.           |
-| └─ `publisher_label`     | string  | Human‐readable label of the publishing organization.     |
-| └─ `subject_uri`         | array   | URIs of subject classifications.                         |
-| └─ `subject_notation`    | array   | Notation codes for subjects.                             |
-| └─ `subject_scheme`      | array   | URIs of subject schemes.                                 |
+| └─ `pref_labels_ss`      | string  | Aggregate of all preferred titles. |
+| └─ `publisher_uri_ss`    | string  | Identifier URI of the publishing organization.           |
+| └─ `start_date_i`        |  pint   | Start year (integer) of the classification.|
+| └─ `subject_uri` | `string` | Subject concept URIs. |
+| └─ `subject_notation` | `lc_keyword` | Subject notations (codes). |
+| └─ `subject_scheme` | `string` | Subject scheme URIs (`inScheme[].uri`). |
+| └─ `subject_labels_ss` | `string` | Aggregate of all subject labels (trimmed, de-duplicated). |
+| └─ `subject_broader_uri_ss` | `string`|  Immediate broader concept URIs. |
+| └─`subject_broader_notation_ss` | `lc_keyword` | Immediate broader notations. |
+| └─ `subject_topconceptof_ss` | `string` | topConceptOf[].uri (schemes where it is a top concept). |
+| └─ `subject_type_ss`| `string` | RDF types of the subject (e.g., `skos:Concept`).                           |
+| └─ `subject_context_ss` | `string`| Stored `@context` URLs if present (display/debug).                         |
+| └─ `subject_of_url_ss`   | string  | Related resource URLs from JSKOS subjectOf  |
+| └─ `subject_of_host_ss` | lc_keyword | Hostnames extracted from URLs coming from JSKOS subjectOf (case-insensitive exact match). |
 | └─ `type_uri`            | array   | URIs indicating the resource’s SKOS/NKOS type(s).        |
 | └─ `created_dt`          | string  | Creation timestamp (ISO-8601).                           |
 | └─ `modified_dt`         | string  | Last modification timestamp (ISO-8601).                  |
 | └─ `_version_`           | integer | Solr internal version number for optimistic concurrency. |
-
 
 
 #### Available Facet Fields
@@ -395,7 +423,7 @@ You can drive fine‐grained filtering by passing any of your multivalued facet 
 | `format_type_ss` | Machine-readable format URIs |
 | `format_group_ss` | Canonical format group labels (e.g. “PDF”, “HTML”, “Spreadsheet”) |
 | `address_country_s` | Country of origin |
-| `publisher_label` | Name of the publisher |
+| `publisher_labels_ss` | Name of the publisher |
 
 
 ##### “No value” Facet Bucket

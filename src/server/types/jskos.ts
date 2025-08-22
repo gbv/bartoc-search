@@ -18,6 +18,12 @@ export interface ConceptSchemeDocument {
     url: string;
   }>;
 
+  CONTACT?: string;
+
+  DISPLAY?: DisplaySettings;
+
+  EXAMPLES?: string[]
+
   FORMAT?: Array<{
     uri: string;
   }>;
@@ -26,27 +32,19 @@ export interface ConceptSchemeDocument {
     [lang: string]: string[];
   };
 
-  // From current data structure contributor prefLabel is always given in English
-  contributor?: Array<{
-    prefLabel: {
-      en?: string;
-    };
-    uri: string;
-  }>;
+  contributor?: Contributor[]
 
   created: string;
 
-  // From current data structure creator prefLabel is always given in English
-  creator?: Array<{
-    prefLabel: {
-      en?: string;
-    };
-    uri: string;
-  }>;
+  creator?: Creator[]
 
   definition?: {
     [lang: string]: string[];
   };
+
+  distributions?: Distributions[];
+
+  extent?: string;
 
   // https://gbv.github.io/jskos/#list
   identifier?: (string | null)[];
@@ -57,11 +55,18 @@ export interface ConceptSchemeDocument {
   license?: Array<{
     uri: string;
   }>;
-
-  namespace?:string;
-
+  
   modified: string;
 
+  namespace?: string;
+
+  notation?: string[];
+
+  notationExamples?: string[];
+
+  notationPattern?: string;
+  
+  // is used in solr as listed_in
   partOf?: Array<{
     uri: string;
   }>;
@@ -70,21 +75,14 @@ export interface ConceptSchemeDocument {
     [lang: string]: string;
   };
 
-  publisher?: Array<{
-    prefLabel: {
-      en?: string;
-    };
-    uri: string;
-  }>;
+  publisher?: Publisher[];
 
   startDate?: string;
 
-  subject?: Array<{
-    inScheme?: Array<{
-      uri: string;
-    }>;
-    notation?: string[];
-    uri: string;
+  subject?: Subject[];
+
+  subjectOf?: Array<{
+    url?: string;
   }>;
 
   type: string[];
@@ -150,6 +148,61 @@ export interface JskosSubject {
   uri: string;
 }
 
+/**
+ * Input shape of JKSOKS record about languages mapping
+ */
+export type LangMap = Record<string, string[]>;
+
+export type Contributor = {
+  uri?: string;
+  prefLabel?: LangMap;   // e.g. { en: "Foo Org", de: ["Foo Verein", "FV"] }
+};
+
+export type Creator = {
+  uri?: string;
+  prefLabel?: LangMap;   // e.g. { en: "Foo Org", de: ["Foo Verein", "FV"] }
+};
+
+export type Distributions = {
+  download?: string[];
+  format?: string[];
+  mimetype?: string[];
+}
+
+export type Publisher = {
+  uri: string;
+  prefLabel?: Record<string, string[] | string>;
+};
+
+export type Subject = {
+  uri: string;
+
+  // notation(s) of the concept
+  notation?: string[];
+
+  // preferred label(s) per language (JSKOS uses a single string per lang)
+  prefLabel?: Record<string, string>;
+
+  // the scheme(s) this concept belongs to
+  inScheme?: Array<{ uri: string }>;
+
+  // immediate broader concepts (uri + their notations if provided)
+  broader?: Array<{ uri?: string; notation?: string[] }>;
+
+  // schemes where this concept is a top concept
+  topConceptOf?: Array<{ uri: string }>;
+
+  // RDF types (e.g., skos:Concept)
+  type?: string[];
+
+  // optional JSON-LD context present on the subject
+  ["@context"]?: string | string[];
+};
+
+export type DisplaySettings = {
+  hideNotation?: boolean;
+  numericalNotation?: boolean;
+};
 
 export interface LicenseEntry {
   key: string
@@ -162,13 +215,11 @@ export interface LicenseResult {
   label: string
 }
 
-
 export interface GroupEntry {
   key: string
   label: string
   uris: string[]
 }
-
 export interface GroupResult {
   key: string
   label: string

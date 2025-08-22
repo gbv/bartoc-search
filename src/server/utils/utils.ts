@@ -1,6 +1,7 @@
 import { promises as fsPromises } from "fs";
 import * as path from "path";
-import { GroupEntry, GroupResult } from "../types/jskos";
+import {GroupEntry, GroupResult, Distributions, Subject } from "../types/jskos";
+import { DynamicOut, PerLangOut, FamilyKey, AggOut, UriOut, DistributionsOut, SolrDocument } from "../types/solr";
 import _ from "lodash";
 import {NO_VALUE} from "../conf/conf";
 
@@ -137,3 +138,307 @@ export function extractGroups(
   doc[targetField] = grouped.map((g) => g.label);
 
 }
+
+// Helpers
+/** Trims a value if it’s a string; returns "" for non-strings. */
+export const trimSafe = (s: unknown): string => (typeof s === "string" ? s.trim() : "");
+
+/** True if the string is non-empty. */
+export const nonempty = (s: string) => s.length > 0;
+
+/** Returns a new array with duplicates removed, preserving order. */
+export const uniq = <T,>(arr: T[]) => Array.from(new Set(arr));
+
+
+/**
+ * Emits per-language dynamic fields (<family>_<lang>) and a language-agnostic
+ * aggregate field. Overwrites existing values in `out`.
+ *
+ * Input:
+ *  - `langMap`: Record<string, string[]> (e.g., altLabel by language)
+ *  - `out`:     target object to mutate (e.g., your Solr doc)
+ *  - `family`:  dynamic family prefix (e.g., "altLabel")
+ *  - `aggregateField`: aggregate field name (e.g., "alt_labels_ss")
+ * 
+ */
+export function applyLangMap<F extends string, A extends string>(
+  langMap: Record<string, string[]>,
+  out: DynamicOut<F, A>,
+  family: F,
+  aggregateField: A
+): void {
+  const perLang: PerLangOut<F> = {};
+  const aggregate: string[] = [];
+
+  for (const [lang, values] of Object.entries(langMap)) {
+    // Clean and validate the values for this language
+    const cleaned = values.map(trimSafe).filter(nonempty);
+    if (!cleaned.length) continue;
+
+    // Field name for this language
+    const key = `${family}_${lang}` as FamilyKey<F>;
+
+    // Overwrite per-language field with de-duplicated values
+    perLang[key] = uniq(cleaned);
+
+     // Collect into aggregate. i.e. alt_labels_ss
+    aggregate.push(...cleaned);
+  }
+
+  Object.assign(out, perLang);
+  
+  // Overwrite aggregate field (de-duplicated)
+  if (aggregate.length) {
+    (out as AggOut<A>)[aggregateField] = uniq(aggregate); // overwrite aggregate
+  }
+
+}
+
+
+// Minimal JSKOS agent shape used by both contributor and creator
+type PrefLabelMap = Record<string, string[] | string>;
+
+// An Agent can be a contributor or a creator or whatever has a similar JSKOS structure to those properties
+type Agent = { uri?: string; prefLabel?: PrefLabelMap };
+
+/**
+ * Emit URIs + per-language labels + aggregate for a list of agents.
+ * Overwrites existing values in `out`.
+ */
+export function applyAgents<F extends string, A extends string, U extends string>(
+  agents: Agent[] | undefined,
+  out: (DynamicOut<F, A> & UriOut<U>),
+  family: F,
+  aggregateField: A,
+  uriField: U
+): void {
+  const list = agents ?? [];
+  if (!list.length) return;
+
+  // 1) URIs (trim + dedupe)
+  const uris = Array.from(new Set(list.map(a => trimSafe(a.uri)).filter(nonempty)));
+  if (uris.length) {
+    // Narrow to `UriOut<U>` for this write to avoid `never` from the intersection
+    const outUris: UriOut<U> = out;
+    outUris[uriField] = uris;
+  }
+
+  // 2) Build language map from all prefLabels
+  const langMap: Record<string, string[]> = {};
+  for (const a of list) {
+    if (!a.prefLabel) continue;
+    for (const [lang, vals] of Object.entries(a.prefLabel)) {
+      const arr = (Array.isArray(vals) ? vals : [vals])
+        .map(trimSafe)
+        .filter(nonempty);
+      if (arr.length) langMap[lang] = (langMap[lang] ?? []).concat(arr);
+    }
+  }
+
+  // 3) Emit <family>_<lang> + aggregate (overwrite)
+  if (Object.keys(langMap).length) {
+    applyLangMap(langMap, out, family, aggregateField);
+  }
+}
+
+export function applyDistributions(
+  src: { distributions?: Distributions[] },
+  out: DistributionsOut
+): void {
+  const list = src.distributions ?? [];
+  if (!list.length) return;
+
+  const downloads = uniq(
+    list.map(d => trimSafe(d.download)).filter(nonempty)
+  );
+  if (downloads.length) out.distributions_download_ss = downloads;
+
+  const formats = uniq(
+    list.map(d => trimSafe(d.format)).filter(nonempty)
+  );
+  if (formats.length) out.distributions_format_ss = formats;
+
+  const mimes = uniq(
+    list.map(d => trimSafe(d.mimetype).toLowerCase())
+        .filter(nonempty)
+  );
+  if (mimes.length) out.distributions_mimetype_ss = mimes;
+}
+
+// Output typing for prefLabel fields
+type PrefOut = DynamicOut<"pref_label","pref_labels_ss">;
+
+/** Emit prefLabel_<lang> (dynamic) + pref_labels_ss (aggregate). */
+export function applyPrefLabel(
+  src: { prefLabel?: Record<string, string> },
+  out: PrefOut
+): void {
+  const map = src.prefLabel ?? {};
+  const langMap: Record<string, string[]> = {};
+
+  for (const [lang, val] of Object.entries(map)) {
+    const s = trimSafe(val);
+    if (s) (langMap[lang] ??= []).push(s);
+  }
+
+  if (Object.keys(langMap).length) {
+    applyLangMap(langMap, out, "pref_label", "pref_labels_ss");
+  }
+}
+
+type PublisherOut =
+  DynamicOut<"publisher","publisher_labels_ss"> &
+  UriOut<"publisher_uri_ss">;
+
+export function applyPublishers(
+  src: { publisher?: { uri?: string; prefLabel?: Record<string, string[] | string> }[] },
+  out: PublisherOut
+) {
+  applyAgents(
+    src.publisher,
+    out,
+    "publisher",       
+    "publisher_labels_ss",   
+    "publisher_uri_ss"
+  );
+}
+
+type SubjectOf = { url?: string };
+type SubjectOfOut = {
+  subject_of_url_ss?: string[];
+  subject_of_host_ss?: string[];
+};
+
+
+export function applySubjectOf(
+  src: { subjectOf?: SubjectOf[] },
+  out: SubjectOfOut
+): void {
+  const list = src.subjectOf ?? [];
+  if (!list.length) return;
+
+  const urls = uniq(
+    list.map(x => trimSafe(x.url))
+        .filter(u => /^https?:\/\//i.test(u)) // keep http(s) only
+  );
+  if (urls.length) out.subject_of_url_ss = urls;
+
+  const hosts = uniq(
+    urls.map(u => {
+      try { 
+        return new URL(u).hostname.toLowerCase(); 
+      } catch { 
+        return ""; 
+      }}).filter(nonempty)
+  );
+  if (hosts.length) out.subject_of_host_ss = hosts;
+}
+
+type SubjectOut = DynamicOut<"subject_label","subject_labels_ss"> & Partial<SolrDocument> ;
+
+export function applySubject(
+  src: { subject?: Subject[] },
+  out: SubjectOut
+): void {
+  const list = src.subject ?? [];
+  if (!list.length) return;
+
+  const uris: string[] = [];
+  const notations: string[] = [];
+  const schemes: string[] = [];
+  const broaderUris: string[] = [];
+  const broaderNotations: string[] = [];
+  const topConceptOf: string[] = [];
+  const types: string[] = [];
+  const contexts: string[] = [];
+  const labelMap: Record<string, string[]> = {}; // lang -> labels
+
+  for (const s of list) {
+    // URIs & notations
+    const u = trimSafe(s.uri); if (u) uris.push(u);
+    (s.notation ?? []).forEach(n => { const v = trimSafe(n); if (v) notations.push(v); });
+
+    // Labels (collect all langs; if only 'en' exists, that's fine)
+    for (const [lang, val] of Object.entries(s.prefLabel ?? {})) {
+      const arr = Array.isArray(val) ? val : [val];
+      const cleaned = arr.map(trimSafe).filter(nonempty);
+      if (cleaned.length) labelMap[lang] = (labelMap[lang] ?? []).concat(cleaned);
+    }
+
+    // inScheme URIs
+    (s.inScheme ?? []).forEach(r => {
+      const v = trimSafe(r.uri); if (v) schemes.push(v);
+    });
+
+    // broader URIs & notations (immediate)
+    (s.broader ?? []).forEach(b => {
+      const bu = trimSafe(b.uri); if (bu) broaderUris.push(bu);
+      (b.notation ?? []).forEach(n => { const v = trimSafe(n); if (v) broaderNotations.push(v); });
+    });
+
+    // topConceptOf URIs
+    (s.topConceptOf ?? []).forEach(r => {
+      const v = trimSafe(r.uri); if (v) topConceptOf.push(v);
+    });
+
+    // RDF types
+    (s.type ?? []).forEach(t => { const v = trimSafe(t); if (v) types.push(v); });
+
+    // @context (optional; store-only)
+    const ctx = s["@context"];
+    if (typeof ctx === "string") {
+      const v = trimSafe(ctx); if (v) contexts.push(v);
+    } else if (Array.isArray(ctx)) {
+      ctx.map(trimSafe).filter(nonempty).forEach(v => contexts.push(v));
+    }
+  }
+
+  // Write fields (deduped)
+  if (uris.length)               out.subject_uri = uniq(uris);
+  if (notations.length)          out.subject_notation = uniq(notations);
+  if (schemes.length)            out.subject_scheme = uniq(schemes);
+  if (broaderUris.length)        out.subject_broader_uri_ss = uniq(broaderUris);
+  if (broaderNotations.length)   out.subject_broader_notation_ss = uniq(broaderNotations);
+  if (topConceptOf.length)       out.subject_topconceptof_ss = uniq(topConceptOf);
+  if (types.length)              out.subject_type_ss = uniq(types);
+  if (contexts.length)           out.subject_context_ss = uniq(contexts);
+
+  // Labels: subject_label_<lang> + subject_labels_ss
+  if (Object.keys(labelMap).length) {
+    applyLangMap(labelMap, out, "subject_label", "subject_labels_ss");
+  }
+}
+
+// Configure once (put the preferred order here)
+const TITLE_LANG_PRIORITY = ["en", "und", "de", "it", "fr", "es"];
+
+/** Choose a single, stable sort title. */
+export function pickTitleSort(prefLabel?: Record<string, string>, altLabel?: Record<string, string[]>) {
+  // 1) Try priority languages
+  if (prefLabel) {
+    for (const lang of TITLE_LANG_PRIORITY) {
+      const v = prefLabel[lang]?.trim();
+      if (v) return { value: v, lang };
+    }
+    // 2) Otherwise: first available language in deterministic order
+    for (const lang of Object.keys(prefLabel).sort()) {
+      const v = prefLabel[lang]?.trim();
+      if (v) return { value: v, lang };
+    }
+  }
+
+  // 3) Fallback to any altLabel value if present
+  if (altLabel) {
+    // deterministic: sort language keys so order is stable
+    for (const lang of Object.keys(altLabel).sort()) {
+      const v = altLabel[lang]?.find(s => !!s?.trim())?.trim();
+      if (v) return { value: v, lang: lang as string };
+    }
+  }
+
+  // 4) Last resort handled by caller (e.g., URI)
+  return undefined;
+}
+
+
+

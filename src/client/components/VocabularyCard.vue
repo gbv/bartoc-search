@@ -9,8 +9,8 @@
       {{ shortDescription }}
     </p>
     <ul class="result-details">
-      <li v-if="doc.publisher_label">
-        <strong>Publisher:</strong> {{ doc.publisher_label }}
+      <li v-if="doc.publisher_labels_ss">
+        <strong>Publisher:</strong> {{ doc.publisher_labels_ss[0] }}
       </li>
       <li v-if="doc.languages_ss?.length">
         <strong>Languages:</strong> {{ doc.languages_ss.join(', ') }}
@@ -77,8 +77,12 @@ const rawDoc = props.doc || {}
 
 // Computed values for display
 const title = computed(() => rawDoc[`title_${props.lang ?? "en"}`] || rawDoc.id)
+// Showing the english description by default
+// TODO: searching for the description available, in not in english? 
 const description = computed(
-  () => rawDoc[`description_${props.lang ?? "en"}`] || "No description available.",
+  () => rawDoc[`definition_${props.lang ?? "en"}`] ? 
+    rawDoc[`definition_${props.lang ?? "en"}`][0] : 
+    "No description available.",
 )
 const typeLabel = computed(() => {
   const key = `type_label_${props.lang ?? "en"}`

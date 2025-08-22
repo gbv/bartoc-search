@@ -2,8 +2,7 @@
 import axios from "axios";
 import config from "../conf/conf";
 import { SolrClient } from "./SolrClient";
-import { PingResponse, SolrDocument } from "../types/solr";
-import { SupportedLang } from "../types/lang";
+import { ContributorOut, CreatorOut, PingResponse, SolrDocument } from "../types/solr";
 import { ConceptZodType } from "../validation/concept";
 import {
   SolrResponse,
@@ -15,16 +14,20 @@ import { writeFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { ConceptSchemeDocument, GroupEntry } from "../types/jskos";
-import { sleep, loadJSONFile, mapUriToGroups, extractGroups } from "../utils/utils";
+import { sleep, loadJSONFile, mapUriToGroups, extractGroups, applyAgents, 
+  applyDistributions, applyPrefLabel, applyPublishers, applySubjectOf, applySubject, pickTitleSort } from "../utils/utils";
 import readline from "readline";
 import { extractDdc } from "../utils/ddc";
+import { applyLangMap } from "../utils/utils";
+import { getNkosConcepts, loadNkosConcepts } from "../utils/nskosService";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const LAST_INDEX_FILE = join(__dirname, "../../../data/lastIndexedAt.txt");
 const LICENSE_GROUPS: GroupEntry[] = await loadJSONFile<GroupEntry[]>("/data/license-groups.json");
 const FORMAT_GROUPS: GroupEntry[] = await loadJSONFile<GroupEntry[]>("/data/format-groups.json");
-
+await loadNkosConcepts();
+const nKosConceptsDocs = getNkosConcepts();
 
 const solr = new SolrClient();
 
@@ -103,7 +106,7 @@ export async function bootstrapIndexSolr() {
       continue;
     }
     // 3) Transform into Solr shape
-    const solrDoc = transformConceptSchemeToSolr(obj, []);
+    const solrDoc = transformConceptSchemeToSolr(obj, nKosConceptsDocs);
     docs.push(solrDoc);
   }
 
@@ -164,10 +167,18 @@ export function transformConceptSchemeToSolr(
 ): SolrDocument {
   const solrDoc: Partial<SolrDocument> = {
     access_type_ss: doc.ACCESS?.map(a => a.uri) || [],
-    address_country_s: doc.ADDRESS?.country, 
-    alt_labels_ss: doc.altLabel?.und || [],
+    address_code_s: doc.ADDRESS?.code,
+    address_country_s: doc.ADDRESS?.country,
+    address_locality_s: doc.ADDRESS?.locality,
+    address_region_s: doc.ADDRESS?.region,
+    address_street_s: doc.ADDRESS?.street,
     api_type_ss: doc.API?.map(a => a.type),
     api_url_ss:  doc.API?.map(a => a.url),
+    contact_email_s: doc.CONTACT,
+    display_hideNotation_b: doc.DISPLAY?.hideNotation,
+    display_numericalNotation_b: doc.DISPLAY?.numericalNotation,
+    examples_ss: doc.EXAMPLES?.map(s => (typeof s === "string" ? s.trim() : "")).filter(Boolean) ?? [],
+    extent_s: doc.extent,
     ddc_ss: extractDdc(doc.subject, { rootLevel: false }),
     ddc_root_ss: extractDdc(doc.subject, { rootLevel: true }),
     format_type_ss: doc.FORMAT?.map(f => f.uri) || [],
@@ -179,55 +190,92 @@ export function transformConceptSchemeToSolr(
     listed_in_ss: doc.partOf?.map(l => l.uri) || [],        
     modified_dt: doc.modified,
     namespace_s: doc.namespace,
-    publisher_id: doc.publisher?.[0]?.uri,
-    publisher_label: doc.publisher?.[0]?.prefLabel?.en,
-    start_year_i: doc.startDate ? parseInt(doc.startDate) : undefined,
-    subject_uri: doc.subject?.map((s) => s.uri) || [],
-    subject_notation: doc.subject?.flatMap((s) => s.notation || []) || [],
-    subject_scheme:
-      doc.subject?.flatMap((s) => s.inScheme?.map((i) => i.uri) || []) || [],
+    notation_ss: doc.notation ?? [],
+    notation_examples_ss: doc.notationExamples ?? [],
+    notation_pattern_s: doc.notationPattern,
+    start_date_i: doc.startDate ? parseInt(doc.startDate) : undefined, 
     type_uri: doc.type,
     url_s: doc.url,
   };
 
   // Extracting License groups
   extractGroups(solrDoc, "license_type_ss", "license_group_ss", LICENSE_GROUPS, mapUriToGroups);
+  
   // Extracting Format groups
   extractGroups(solrDoc, "format_type_ss",  "format_group_ss",  FORMAT_GROUPS,  mapUriToGroups);
 
+  // Adding altLabel data to solr
+  if (doc.altLabel) {
+   applyLangMap(doc.altLabel ?? {}, solrDoc, "alt_label", "alt_labels_ss");
+  }
+
+  // Adding contributor data to solr
+  if (doc.contributor) {
+    // applyContributors(doc, solrDoc);
+    applyAgents(doc.contributor, solrDoc as ContributorOut, "contributor", "contributor_ss", "contributor_uri_ss");
+  }
+
+  // Adding creator data to solr
+  if (doc.creator) {
+    // applyContributors(doc, solrDoc);
+    applyAgents(doc.creator, solrDoc as CreatorOut, "creator", "creator_ss", "creator_uri_ss");
+  }
+
+  // Adding definition data to solr
+  if (doc.definition) {
+   applyLangMap(doc.definition ?? {}, solrDoc, "definition", "definition_ss");
+  }
+
+  if (doc.distributions) {
+    applyDistributions(doc, solrDoc);
+  }
+
+  if (doc.prefLabel) {
+    applyPrefLabel(doc, solrDoc);
+  }
+
+  if (doc.publisher) {
+    applyPublishers(doc, solrDoc);
+  }
+
+  if (doc.subjectOf) {
+    applySubjectOf(doc, solrDoc);
+  }
+
+  if (doc.subject) {
+    applySubject(doc, solrDoc);
+  }
+
+  // Adding definition data to solr
+  if (doc.definition) {
+   applyLangMap(doc.definition ?? {}, solrDoc, "definition", "definition_ss");
+  }
 
   // type solr fields for labels are to be addressed separately as currently the soruce is a ndJson file
   const nKosConceptsDoc = nKosConceptsDocs.find(
     (nKos) => nKos.uri === solrDoc.type_uri?.[1],
   );
-
-  // Dynamic fields for title, description, type_label
-  for (const lang of Object.values(SupportedLang)) {
-    // title
-    const title = doc.prefLabel?.[lang];
-    if (title) {
-      solrDoc[`title_${lang}` as `title_${SupportedLang}`] = title;
+  
+  // type_label, we consider prelabel present in the source file
+  if (nKosConceptsDoc) {
+    for (const label of Object.keys(nKosConceptsDoc.prefLabel)) {
+      solrDoc[`type_label_${label}`] = nKosConceptsDoc.prefLabel?.[label];
     }
+  }
 
-    // title_sort,
-    // TODO Find a better approach, order might be affected if there is no
-    // title_en and it could return a bad UX
-    solrDoc.title_sort = solrDoc.title_en ?? "";
-
-    // description
-    const description = doc.definition?.[lang];
-    if (description) {
-      solrDoc[`description_${lang}` as `description_${SupportedLang}`] =
-        description[0];
+  // Adding title_en, title_de based on actually indexed prefLabels
+  if (doc.prefLabel) {
+    for (const label of Object.keys(doc.prefLabel)) {
+       solrDoc[`title_${label}`] = doc.prefLabel[label];
     }
+  }
 
-    // type_label
-    const type_label = nKosConceptsDoc && nKosConceptsDoc.prefLabel?.[lang];
-    if (type_label) {
-      solrDoc[`type_label_${lang}` as `type_label_${SupportedLang}`] =
-        type_label;
-    }
-
+  const picked = pickTitleSort(doc.prefLabel, doc.altLabel);
+  if (picked) {
+    solrDoc.title_sort = picked.value;              // single value → stable sorting
+  } else {
+    // Final fallback to ensure the field exists (avoid nulls in sort)
+    solrDoc.title_sort = doc.uri ?? "";
   }
 
   // Full record as JSON string. This is useful for displaying the full record in the UI

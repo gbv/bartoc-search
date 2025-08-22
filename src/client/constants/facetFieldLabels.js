@@ -49,7 +49,7 @@ export const FACET_FIELD_LABELS = {
     label: "Country",
     values: {}, 
   },
-  publisher_label: {
+  publisher_labels_ss: {
     label: "Publisher",
     values: {},
   },

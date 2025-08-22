@@ -7,6 +7,7 @@
     <!-- A non-tokenized string: used for IDs and keywords -->
     <fieldType name="string" class="solr.StrField" sortMissingLast="true" />
     <fieldType name="long" class="solr.LongPointField" positionIncrementGap="0"/>
+    <fieldType name="boolean" class="solr.BoolField"/>
 
     <fieldType name="text" class="solr.TextField" positionIncrementGap="100" termVectors="true">
       <analyzer type="index">
@@ -49,6 +50,13 @@
       </analyzer>
     </fieldType>
 
+    <!-- Case-insensitive, untokenized keyword -->
+    <fieldType name="lc_keyword" class="solr.TextField" positionIncrementGap="100">
+      <analyzer>
+        <tokenizer class="solr.KeywordTokenizerFactory"/>
+        <filter class="solr.LowerCaseFilterFactory"/>
+      </analyzer>
+    </fieldType>
 
     <!-- Date type: based on ISO 8601 -->
     <fieldType name="pdate" class="solr.TrieDateField" precisionStep="0" positionIncrementGap="0"/>
@@ -67,59 +75,121 @@
     <!-- Unique Identifier -->
     <field name="id" type="string" indexed="true" stored="true" required="true"/>
 
-    <!-- Multivalued language field -->
+    <!-- ACCESS uri  -->
+    <field name="access_type_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+
+    <!-- ADDRESS field  -->
+    <!-- Exact keywords, facet/filter friendly (case-insensitive) -->
+    <field name="address_code_s"     type="lc_keyword" indexed="true" stored="true"/>
+    <field name="address_country_s"  type="lc_keyword" indexed="true" stored="true"/>
+    <field name="address_locality_s" type="lc_keyword" indexed="true" stored="true"/>
+    <field name="address_region_s"   type="lc_keyword" indexed="true" stored="true"/>
+    <field name="address_street_s"   type="lc_keyword" indexed="true" stored="true"/>
+
+    <!-- API field  -->
+    <field name="api_type_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="api_url_ss"  type="string" indexed="false" stored="true" multiValued="true"/>
+
+    <!-- CONTACT field  -->
+    <field name="contact_email_s" type="lc_keyword" indexed="true" stored="true"/>
+
+    <!-- DISPLAY field -->
+    <field name="display_hideNotation_b"      type="boolean" indexed="true" stored="true"/>
+    <field name="display_numericalNotation_b" type="boolean" indexed="true" stored="true"/>
+
+    <!-- EXAMPLES field -->
+    <field name="examples_ss" type="lc_keyword" indexed="true" stored="true" multiValued="true"/>
+
+    <!-- FORMAT field  -->
+    <field name="format_type_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="format_group_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+
+    <!-- altlLabel field -->
+    <field name="alt_labels_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+
+    <!-- contributor field -->
+    <field name="contributor_uri_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="contributor_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+
+    <!-- created field-->
+    <field name="created_dt" type="pdate" indexed="true" stored="true"/>
+
+    <!-- creator field-->
+    <field name="creator_uri_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="creator_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+
+    <!-- definition field -->
+    <field name="definition_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+
+    <!-- distributions field -->
+    <field name="distributions_download_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="distributions_format_ss" type="lc_keyword" indexed="true" stored="true" multiValued="true"/>
+    <field name="distributions_mimetype_ss" type="lc_keyword" indexed="true" stored="true" multiValued="true"/>
+
+    <!-- extent field -->
+    <field name="extent_s" type="string" indexed="true" stored="true" multiValued="false"/>
+
+    <!-- languages field -->
     <field name="languages_ss" type="string" indexed="true" stored="true" multiValued="true"/>
 
-    <!-- Multivalued publisher -->
-    <field name="publisher_label" type="string" indexed="true" stored="true"/>
-    <field name="publisher_id" type="string" indexed="true" stored="true" />
+    <!-- notation field -->
+    <field name="notation_ss" type="lc_keyword" indexed="true" stored="true" multiValued="true"/>
 
-    <!-- Multivalued alternative labels -->
-    <field name="alt_labels_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+    <!-- notationExamples field -->
+    <field name="notation_examples_ss" type="lc_keyword" indexed="true" stored="true" multiValued="true"/>
+
+    <!-- notationPattern field -->
+    <field name="notation_pattern_s" type="string" indexed="false" stored="true" multiValued="false"/>
+
+    <!-- partOf field -->
+    <field name="listed_in_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+
+    <!-- prefLabel field -->
+    <field name="pref_labels_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+    
+    <!-- publisher field -->
+    <field name="publisher_uri_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="publisher_labels_ss" type="lc_keyword" indexed="true" stored="true" multiValued="true"/>
+
+    <!-- startDate field -->
+    <field name="start_date_i" type="pint" indexed="true" stored="true"/>
+
+    <!-- subjectOf field -->
+    <field name="subject_of_url_ss" type="string" indexed="false" stored="true" multiValued="true"/>
+    <field name="subject_of_host_ss" type="lc_keyword" indexed="true" stored="true" multiValued="true"/>
+
+    <!-- subject field -->
+    <field name="subject_uri" type="string" indexed="false" stored="true" multiValued="true"/>
+    <field name="subject_notation" type="lc_keyword" indexed="true" stored="true" multiValued="true"/>
+    <field name="subject_scheme" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="subject_labels_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="subject_broader_uri_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="subject_broader_notation_ss" type="lc_keyword" indexed="true" stored="true" multiValued="true"/>
+    <field name="subject_topconceptof_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="subject_type_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+    <field name="subject_context_ss" type="string" indexed="false" stored="true" multiValued="true"/>
 
     <!-- Multivalued Dewey Decimal Classifications -->
     <field name="ddc_ss" type="string" indexed="true" stored="true" multiValued="true"/>
     <field name="ddc_root_ss" type="string" indexed="true" stored="true" multiValued="true"/>
 
-
-    <!-- Date fields -->
-    <field name="created_dt" type="pdate" indexed="true" stored="true"/>
+    <!-- modified field -->
     <field name="modified_dt" type="pdate" indexed="true" stored="true"/>
-
-    <!-- Start Year as integer -->
-    <field name="start_year_i" type="pint" indexed="true" stored="true"/>
 
     <!-- URL field -->
     <field name="url_s" type="string" indexed="false" stored="true"/>
 
     <!-- Title sorting -->
-    <field name="title_sort" type="string" indexed="true" stored="true"/>
+    <field name="title_sort" type="lc_keyword" indexed="true" stored="true"/>
 
     <!-- Multivalued type field -->
     <field name="type_uri" type="string" indexed="true" stored="true" multiValued="true"/>
 
     <field name="title_search" type="text" indexed="true" stored="false" multiValued="true"/>
 
-    <!-- Multivalued Listed in field -->
-    <field name="listed_in_ss" type="string" indexed="true" stored="true" multiValued="true"/>
-
-    <!-- Multivalued Api types  -->
-    <field name="api_type_ss" type="string" indexed="true" stored="true" multiValued="true"/>
-    <field name="api_url_ss"  type="string" indexed="false" stored="true" multiValued="true"/>
-
-    <!-- Access type  -->
-    <field name="access_type_ss" type="string" indexed="true" stored="true" multiValued="true"/>
-
     <!-- License type  -->
     <field name="license_type_ss" type="string" indexed="true" stored="true" multiValued="true"/>
     <field name="license_group_ss" type="string" indexed="true" stored="true" multiValued="true"/>
-
-    <!-- ADDRESS fields  -->
-    <field name="address_country_s" type="string" indexed="true" stored="true"/>
-
-    <!-- FORMAT type  -->
-    <field name="format_type_ss" type="string" indexed="true" stored="true" multiValued="true"/>
-    <field name="format_group_ss" type="string" indexed="true" stored="true" multiValued="true"/>
 
     <!-- Full record -->
     <field name="fullrecord" type="string" indexed="false" stored="true" multiValued="false"/>
@@ -136,9 +206,14 @@
   <!-- ================================================
        Dynamic Field Definitions
        ================================================ -->
+  <dynamicField name="alt_label_*" type="text" indexed="true" stored="true" multiValued="true"/>
+  <dynamicField name="contributor_*" type="text" indexed="true"  stored="true" multiValued="true"/>
+  <dynamicField name="creator_*" type="text"   indexed="true" stored="true" multiValued="true"/>
+  <dynamicField name="definition_*" type="text" indexed="true" stored="true" multiValued="true"/>
+  <dynamicField name="pref_label_*" type="text" indexed="true" stored="true" multiValued="true"/>
+  <dynamicField name="publisher_*" type="text" indexed="true" stored="true" multiValued="true"/>
+  <dynamicField name="subject_label_*" type="text" indexed="true" stored="true" multiValued="true"/>
   <dynamicField name="title_*" type="text" indexed="true" stored="true"/>
-  <dynamicField name="description_*" type="text" indexed="true" stored="true"/>
-  <dynamicField name="subject_*" type="text" indexed="true" stored="true" multiValued="true"/>
   <dynamicField name="type_label_*" type="text" indexed="true" stored="true"/>
 
   <dynamicField name="*_s" type="string" indexed="true" stored="true"/>
@@ -152,12 +227,28 @@
   <field name="allfields" type="text" indexed="true" stored="false" multiValued="true"/>
 
   <!-- Copy several fields into the catch-all field -->
+  <!-- Make address searchable without affecting facet buckets -->
+  <copyField source="address_*" dest="allfields"/>
+  <copyField source="alt_label_*" dest="allfields"/>
+  <copyField source="alt_labels_ss" dest="allfields"/>
+  <copyField source="contributor_*" dest="allfields"/>
+  <copyField source="contributor_ss" dest="allfields"/>
+  <copyField source="creator_*" dest="allfields"/>
+  <copyField source="creator_ss" dest="allfields"/>
+  <copyField source="defintion_*" dest="allfields"/>
+  <copyField source="definition_ss" dest="allfields"/>
+  <copyField source="examples_ss" dest="allfields"/>
+  <copyField source="notation_ss" dest="allfields"/>
+  <copyField source="publisher_label_*" dest="allfields"/>
+  <copyField source="publisher_labels_ss" dest="allfields"/>
+  <copyField source="prefLabel_*" dest="allfields"/>
+  <copyField source="pref_labels_ss" dest="allfields"/>
+  <copyField source="subject_label_*" dest="allfields"/>
+  <copyField source="subject_notation" dest="allfields"/>
   <copyField source="title_*" dest="allfields"/>
   <copyField source="title_*" dest="title_search"/>
-  <copyField source="description_*" dest="allfields"/>
-  <copyField source="publisher_label" dest="allfields"/>
-  <copyField source="subject_*" dest="allfields"/>
-  <copyField source="alt_labels_ss" dest="allfields"/>
+  <copyField source="type_label_*" dest="allfields"/>
+
 
   <!-- ================================================
        Schema Configuration

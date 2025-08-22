@@ -14,6 +14,54 @@ const jskosListSchema = z
     }
   );
 
+const displaySchema = z.object({
+  hideNotation: z.boolean().optional(),
+  numericalNotation: z.boolean().optional(),
+}).strict();
+
+const contributorSchema = z.object({
+  uri: z.string().url(),
+  prefLabel: z.record(z.array(z.string().min(1))).optional(),
+});
+
+const creatorSchema = z.object({
+  uri: z.string().url(),
+  prefLabel: z.record(z.array(z.string().min(1))).optional(), 
+});
+
+const publisherSchema = z.object({
+  uri: z.string().url(),
+  prefLabel: z.record(z.array(z.string().min(1))).optional(), 
+});
+
+const SubjectOfSchema = z.object({ url: z.string().url().optional() }).strict();
+
+// 1) Single subject item
+const SubjectItemSchema = z.object({
+  uri: z.string().url(),
+  notation: z.array(z.string()).optional(),
+  prefLabel: z.record(z.string()).optional(),
+  inScheme: z.array(z.object({ uri: z.string().url() }).strict()).optional(),
+  broader: z.array(
+    z.object({
+      uri: z.string().url().optional(),
+      notation: z.array(z.string()).optional(),
+    }).strict()
+  ).optional(),
+  topConceptOf: z.array(z.object({ uri: z.string().url() }).strict()).optional(),
+  type: z.array(z.string()).optional(),
+  ["@context"]: z.union([z.string(), z.array(z.string())]).optional(),
+}).strict();
+
+// The subject field = array of items (OPTIONAL field, NOT optional items)
+const SubjectFieldSchema = z.array(SubjectItemSchema).optional();
+
+export const DistributionsSchema = z.object({
+  download: z.array(z.string().min(1)).optional(),   
+  format: z.array(z.string().min(1)).optional(),    
+  mimetype: z.array(z.string().min(1)).optional(),    
+});
+
 export const conceptSchemeZodSchema = z.object({
   "@context": z.string(),
   ACCESS: z.array(z.object({ uri: z.string().url() })).optional(),
@@ -31,50 +79,30 @@ export const conceptSchemeZodSchema = z.object({
     url: z.string().url(),
   }))
     .optional(),
+  CONTACT: z.string().email().optional(),
+  DISPLAY: displaySchema.optional(),
+  EXAMPLES: z.array(z.string()).optional(),
   FORMAT: z.array(z.object({ uri: z.string().url() })).optional(),
   altLabel: z.record(z.array(z.string())).optional(),
-  contributor: z
-    .array(
-      z.object({
-        prefLabel: z.object({ en: z.string().optional() }),
-        uri: z.string().url(),
-      }),
-    )
-    .optional(),
-  creator: z
-    .array(
-      z.object({
-        prefLabel: z.object({ en: z.string().optional() }),
-        uri: z.string().url(),
-      }),
-    )
-    .optional(),
+  contributor: z.array(contributorSchema).optional(),
+  creator: z.array(creatorSchema).optional(),
   definition: z.record(z.array(z.string())).optional(),
+  distributions: z.array(DistributionsSchema).optional(),
+  extent: z.string().optional(),
   identifier: jskosListSchema,
   languages: z.array(z.string()).optional(),
   namespace: z.string().url().optional(),
+  notation: z.array(z.string()).optional(),
+  notationExamples: z.array(z.string()).optional(),
+  notationPattern: z.string().optional(),
   modified: z.string(),
   created: z.string(),
   partOf: z.array(z.object({uri: z.string().url(),}),).optional(),
   prefLabel: z.record(z.string()),
-  publisher: z
-    .array(
-      z.object({
-        prefLabel: z.object({ en: z.string().optional() }),
-        uri: z.string().url(),
-      }),
-    )
-    .optional(),
+  publisher: z.array(publisherSchema).optional(),
   startDate: z.string().optional(),
-  subject: z
-    .array(
-      z.object({
-        inScheme: z.array(z.object({ uri: z.string().url() })).optional(),
-        notation: z.array(z.string()).optional(),
-        uri: z.string().url(),
-      }),
-    )
-    .optional(),
+  subject: SubjectFieldSchema,
+  subjectOf: z.array(SubjectOfSchema).optional(),
   type: z.array(z.string()),
   uri: z.string().url(),
   url: z.string().url().optional(),
