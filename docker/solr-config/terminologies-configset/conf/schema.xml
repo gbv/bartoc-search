@@ -237,7 +237,6 @@
   <copyField source="creator_ss" dest="allfields"/>
   <copyField source="defintion_*" dest="allfields"/>
   <copyField source="definition_ss" dest="allfields"/>
-  <copyField source="description_*" dest="allfields"/>
   <copyField source="examples_ss" dest="allfields"/>
   <copyField source="notation_ss" dest="allfields"/>
   <copyField source="publisher_label_*" dest="allfields"/>

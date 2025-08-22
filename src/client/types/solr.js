@@ -16,6 +16,6 @@
  * @property {number} [start_date_i]
  * @property {string} [url_s]
  * @property {Object.<string, any>} [title_xx]
- * @property {Object.<string, any>} [description_xx]
+ * @property {Object.<string, any>} [definition_xx]
  * @property {Object.<string, any>} [type_label_xx]
  */
