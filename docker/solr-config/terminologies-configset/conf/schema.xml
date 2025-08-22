@@ -180,7 +180,7 @@
     <field name="url_s" type="string" indexed="false" stored="true"/>
 
     <!-- Title sorting -->
-    <field name="title_sort" type="string" indexed="true" stored="true"/>
+    <field name="title_sort" type="lc_keyword" indexed="true" stored="true"/>
 
     <!-- Multivalued type field -->
     <field name="type_uri" type="string" indexed="true" stored="true" multiValued="true"/>

@@ -409,4 +409,36 @@ export function applySubject(
   }
 }
 
+// Configure once (put the preferred order here)
+const TITLE_LANG_PRIORITY = ["en", "und", "de", "it", "fr", "es"];
+
+/** Choose a single, stable sort title. */
+export function pickTitleSort(prefLabel?: Record<string, string>, altLabel?: Record<string, string[]>) {
+  // 1) Try priority languages
+  if (prefLabel) {
+    for (const lang of TITLE_LANG_PRIORITY) {
+      const v = prefLabel[lang]?.trim();
+      if (v) return { value: v, lang };
+    }
+    // 2) Otherwise: first available language in deterministic order
+    for (const lang of Object.keys(prefLabel).sort()) {
+      const v = prefLabel[lang]?.trim();
+      if (v) return { value: v, lang };
+    }
+  }
+
+  // 3) Fallback to any altLabel value if present
+  if (altLabel) {
+    // deterministic: sort language keys so order is stable
+    for (const lang of Object.keys(altLabel).sort()) {
+      const v = altLabel[lang]?.find(s => !!s?.trim())?.trim();
+      if (v) return { value: v, lang: lang as string };
+    }
+  }
+
+  // 4) Last resort handled by caller (e.g., URI)
+  return undefined;
+}
+
+
 

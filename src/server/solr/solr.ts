@@ -3,7 +3,6 @@ import axios from "axios";
 import config from "../conf/conf";
 import { SolrClient } from "./SolrClient";
 import { ContributorOut, CreatorOut, PingResponse, SolrDocument } from "../types/solr";
-import { SupportedLang } from "../types/lang";
 import { ConceptZodType } from "../validation/concept";
 import {
   SolrResponse,
@@ -16,7 +15,7 @@ import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { ConceptSchemeDocument, GroupEntry } from "../types/jskos";
 import { sleep, loadJSONFile, mapUriToGroups, extractGroups, applyAgents, 
-  applyDistributions, applyPrefLabel, applyPublishers, applySubjectOf, applySubject } from "../utils/utils";
+  applyDistributions, applyPrefLabel, applyPublishers, applySubjectOf, applySubject, pickTitleSort } from "../utils/utils";
 import readline from "readline";
 import { extractDdc } from "../utils/ddc";
 import { applyLangMap } from "../utils/utils";
@@ -264,19 +263,19 @@ export function transformConceptSchemeToSolr(
     }
   }
 
-  // Dynamic fields for title, type_label
-  for (const lang of Object.values(SupportedLang)) {
-    // title
-    const title = doc.prefLabel?.[lang];
-    if (title) {
-      solrDoc[`title_${lang}` as `title_${SupportedLang}`] = title;
+  // Adding title_en, title_de based on actually indexed prefLabels
+  if (doc.prefLabel) {
+    for (const label of Object.keys(doc.prefLabel)) {
+       solrDoc[`title_${label}`] = doc.prefLabel[label];
     }
+  }
 
-    // title_sort,
-    // TODO Find a better approach, order might be affected if there is no
-    // title_en and it could return a bad UX
-    solrDoc.title_sort = solrDoc.title_en ?? "";
-
+  const picked = pickTitleSort(doc.prefLabel, doc.altLabel);
+  if (picked) {
+    solrDoc.title_sort = picked.value;              // single value → stable sorting
+  } else {
+    // Final fallback to ensure the field exists (avoid nulls in sort)
+    solrDoc.title_sort = doc.uri ?? "";
   }
 
   // Full record as JSON string. This is useful for displaying the full record in the UI

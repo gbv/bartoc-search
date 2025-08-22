@@ -1,17 +1,10 @@
 // types/solr.ts
 import { ConceptSchemeDocument } from "./jskos";
-import { SupportedLang } from "./lang";
 import { OperationType } from "./ws";
 
-type TitleFields = {
-  [K in SupportedLang as `title_${K}`]?: string;
-};
-
-
+export type TitleFields = Partial<Record<`title_${string}`, string>>;
 
 export type TypeLabelFields = Partial<Record<`type_label_${string}`, string>>;
-
-
 
 // Dynamic Solr field typing helpers
 
