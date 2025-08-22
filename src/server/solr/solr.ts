@@ -20,13 +20,15 @@ import { sleep, loadJSONFile, mapUriToGroups, extractGroups, applyAgents,
 import readline from "readline";
 import { extractDdc } from "../utils/ddc";
 import { applyLangMap } from "../utils/utils";
+import { getNkosConcepts, loadNkosConcepts } from "../utils/nskosService";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const LAST_INDEX_FILE = join(__dirname, "../../../data/lastIndexedAt.txt");
 const LICENSE_GROUPS: GroupEntry[] = await loadJSONFile<GroupEntry[]>("/data/license-groups.json");
 const FORMAT_GROUPS: GroupEntry[] = await loadJSONFile<GroupEntry[]>("/data/format-groups.json");
-
+await loadNkosConcepts();
+const nKosConceptsDocs = getNkosConcepts();
 
 const solr = new SolrClient();
 
@@ -105,7 +107,7 @@ export async function bootstrapIndexSolr() {
       continue;
     }
     // 3) Transform into Solr shape
-    const solrDoc = transformConceptSchemeToSolr(obj, []);
+    const solrDoc = transformConceptSchemeToSolr(obj, nKosConceptsDocs);
     docs.push(solrDoc);
   }
 
@@ -254,6 +256,13 @@ export function transformConceptSchemeToSolr(
   const nKosConceptsDoc = nKosConceptsDocs.find(
     (nKos) => nKos.uri === solrDoc.type_uri?.[1],
   );
+  
+  // type_label, we consider prelabel present in the source file
+  if (nKosConceptsDoc) {
+    for (const label of Object.keys(nKosConceptsDoc.prefLabel)) {
+      solrDoc[`type_label_${label}`] = nKosConceptsDoc.prefLabel?.[label];
+    }
+  }
 
   // Dynamic fields for title, type_label
   for (const lang of Object.values(SupportedLang)) {
@@ -267,13 +276,6 @@ export function transformConceptSchemeToSolr(
     // TODO Find a better approach, order might be affected if there is no
     // title_en and it could return a bad UX
     solrDoc.title_sort = solrDoc.title_en ?? "";
-
-    // type_label
-    const type_label = nKosConceptsDoc && nKosConceptsDoc.prefLabel?.[lang];
-    if (type_label) {
-      solrDoc[`type_label_${lang}` as `type_label_${SupportedLang}`] =
-        type_label;
-    }
 
   }
 

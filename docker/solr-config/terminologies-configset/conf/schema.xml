@@ -247,6 +247,8 @@
   <copyField source="subject_notation" dest="allfields"/>
   <copyField source="title_*" dest="allfields"/>
   <copyField source="title_*" dest="title_search"/>
+  <copyField source="type_label_*" dest="allfields"/>
+
 
   <!-- ================================================
        Schema Configuration

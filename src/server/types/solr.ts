@@ -9,9 +9,7 @@ type TitleFields = {
 
 
 
-type TypeLabelFields = {
-  [K in SupportedLang as `type_label_${K}`]?: string;
-};
+export type TypeLabelFields = Partial<Record<`type_label_${string}`, string>>;
 
 
 
@@ -76,8 +74,7 @@ export type DistributionsOut = {
 };
 
 export interface SolrDocument
-  extends TitleFields,
-    TypeLabelFields {
+  extends TitleFields, TypeLabelFields {
   access_type_ss?: string[];
   address_code_s?: string;
   address_country_s?: string;

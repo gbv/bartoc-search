@@ -80,7 +80,9 @@ const title = computed(() => rawDoc[`title_${props.lang ?? "en"}`] || rawDoc.id)
 // Showing the english description by default
 // TODO: searching for the description available, in not in english? 
 const description = computed(
-  () => rawDoc[`definition_${props.lang ?? "en"}`][0] || "No english description available.",
+  () => rawDoc[`definition_${props.lang ?? "en"}`] ? 
+    rawDoc[`definition_${props.lang ?? "en"}`][0] : 
+    "No description available.",
 )
 const typeLabel = computed(() => {
   const key = `type_label_${props.lang ?? "en"}`

@@ -116,6 +116,7 @@ To enable both targeted and global search, we copy field values into broader cat
 | `publisher_label` | `allfields`    |
 | `subject_notation`| `allfields`    |
 | `subject_label_* `| `allfields`    |
+| `type_label_* `| `allfields`    |
 | `title_*`         | `title_search` |
 | `title_en`        | `title_sort`   |
 
