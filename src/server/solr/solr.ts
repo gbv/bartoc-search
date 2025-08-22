@@ -245,12 +245,17 @@ export function transformConceptSchemeToSolr(
     applySubject(doc, solrDoc);
   }
 
+  // Adding definition data to solr
+  if (doc.definition) {
+   applyLangMap(doc.definition ?? {}, solrDoc, "definition", "definition_ss");
+  }
+
   // type solr fields for labels are to be addressed separately as currently the soruce is a ndJson file
   const nKosConceptsDoc = nKosConceptsDocs.find(
     (nKos) => nKos.uri === solrDoc.type_uri?.[1],
   );
 
-  // Dynamic fields for title, description, type_label
+  // Dynamic fields for title, type_label
   for (const lang of Object.values(SupportedLang)) {
     // title
     const title = doc.prefLabel?.[lang];
@@ -262,13 +267,6 @@ export function transformConceptSchemeToSolr(
     // TODO Find a better approach, order might be affected if there is no
     // title_en and it could return a bad UX
     solrDoc.title_sort = solrDoc.title_en ?? "";
-
-    // description
-    const description = doc.definition?.[lang];
-    if (description) {
-      solrDoc[`description_${lang}` as `description_${SupportedLang}`] =
-        description[0];
-    }
 
     // type_label
     const type_label = nKosConceptsDoc && nKosConceptsDoc.prefLabel?.[lang];

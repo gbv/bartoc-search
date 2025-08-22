@@ -90,7 +90,6 @@ These patterns capture additional multilingual or unforeseen fields without chan
 | `creator_*`     | `text`   |    ✓    |    ✓   |      x     | Language-specific creator labels (`creator_de`, `creator_en`, etc.). |
 | `definition_*`  | `text`   |    ✓    |    ✓   |      x     | Language-specific definition labels (`definition_de`, `definition_en`, etc.). |
 | `title_*`       | `text`   |    ✓    |    ✓   |      x     | Language-specific titles (`title_en`, `title_de`, etc.). |
-| `description_*` | `text`   |    ✓    |    ✓   |      x     | Language-specific descriptions.                          |
 | `prefLabel_*`   | `text`   |    ✓    |    ✓   |      ✓     | Per-language preferred titles (`*` = language code).     |
 | `publisher_*`   | `text`   |    ✓    |    ✓   |      ✓     | Per-language preferred titles (`*` = language code).     |
 | `subject_label_`| `text`   |    ✓    |    ✓   |      ✓     | Per-language subject labels (`prefLabel.*`).             |
@@ -113,8 +112,7 @@ To enable both targeted and global search, we copy field values into broader cat
 | `examples_ss`     | `allfields`    |
 | `notation_ss`     | `allfields`    |
 | `title_*`         | `allfields`    |
-| `description_*`   | `allfields`    |
-| `description_ss`  | `allfields`    |
+| `definition_ss`   | `allfields`    |
 | `publisher_label` | `allfields`    |
 | `subject_notation`| `allfields`    |
 | `subject_label_* `| `allfields`    |

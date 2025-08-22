@@ -7,9 +7,7 @@ type TitleFields = {
   [K in SupportedLang as `title_${K}`]?: string;
 };
 
-type DescriptionFields = {
-  [K in SupportedLang as `description_${K}`]?: string;
-};
+
 
 type TypeLabelFields = {
   [K in SupportedLang as `type_label_${K}`]?: string;
@@ -79,7 +77,6 @@ export type DistributionsOut = {
 
 export interface SolrDocument
   extends TitleFields,
-    DescriptionFields,
     TypeLabelFields {
   access_type_ss?: string[];
   address_code_s?: string;

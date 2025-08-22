@@ -365,7 +365,6 @@ You can drive fine‐grained filtering by passing any of your multivalued facet 
 | └─ `title_en`            | string  | English title of the thesaurus or concept scheme.        |
 | └─ `title_sort`          | string  | Title normalized for sorting.                            |
 | └─ `title_und`           | string  | Title in the “undefined” (und) language.                 |
-| └─ `description_en`      | string  | Short English description or abstract.                   |
 | └─ `fullrecord`          | string  | The complete, unextended JSKOS record (raw JSON) as a string. (multilingual).                       |
 | └─ `identifier_ss`       | array   | Additional identifiers of the resource; corresponds to the JSKOS identifier field (alternate URIs or local IDs).|
 | └─ `alt_labels_ss`       | array   | Language-agnostic aggregate of all altLabel values. Trimmed and de-duplicated across languages.

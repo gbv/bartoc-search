@@ -210,7 +210,6 @@
   <dynamicField name="contributor_*" type="text" indexed="true"  stored="true" multiValued="true"/>
   <dynamicField name="creator_*" type="text"   indexed="true" stored="true" multiValued="true"/>
   <dynamicField name="definition_*" type="text" indexed="true" stored="true" multiValued="true"/>
-  <dynamicField name="description_*" type="text" indexed="true" stored="true"/>
   <dynamicField name="pref_label_*" type="text" indexed="true" stored="true" multiValued="true"/>
   <dynamicField name="publisher_*" type="text" indexed="true" stored="true" multiValued="true"/>
   <dynamicField name="subject_label_*" type="text" indexed="true" stored="true" multiValued="true"/>
