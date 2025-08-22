@@ -17,11 +17,15 @@
       class="search-view-results__no-results">
       No results.
     </div>
-    <VocabularyCard
-      v-for="doc in results.docs"
-      :key="doc.id"
-      :doc="doc" 
-      :sort="sortBy" />
+    <div
+      v-for="(doc, idx) in results.docs"
+      :ref="cardEl => setItemRef(cardEl, idx)"
+      :key="doc.id">
+      <VocabularyCard  
+        :doc="doc" 
+        :sort="sortBy" />
+    </div>
+    
     <!-- Load more button -->
     <button
       v-if="results.docs.length < results.numFound && !loading" 
@@ -34,7 +38,7 @@
 
 
 <script setup>
-import { toRefs } from "vue"
+import { toRefs, ref, watch, nextTick } from "vue"
 import VocabularyCard from "../components/VocabularyCard.vue"
 
 const props = defineProps({
@@ -47,8 +51,32 @@ const props = defineProps({
 // unwrap props into reactive refs
 const { results, loading, errorMessage, sort: sortBy } = toRefs(props)
 
+
 // Declare emits for load more event
 defineEmits([ "load-more" ])
+
+// store DOM nodes for each rendered card
+const cardElements = ref([]) // HTMLElement[]
+
+function setItemRef (el, i) {
+  if (el) {
+    cardElements.value[i] = el
+  }
+}
+
+// when more results are appended, scroll to the first new one
+watch(
+  () => results.value.docs.length,
+  async (newLen, oldLen) => {
+    if (!oldLen || newLen <= oldLen) {
+      return
+    }
+    await nextTick()
+    const firstNewCard = cardElements.value[oldLen-1]
+    firstNewCard?.scrollIntoView({ behavior: "smooth", block: "start" })
+  },
+  { flush: "post" },
+)
 
 </script>
 
