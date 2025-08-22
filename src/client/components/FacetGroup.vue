@@ -20,12 +20,16 @@
           class="options-list">
           <li
             v-for="facet in values"
-            :key="facet.value">
+            :key="facet.value"
+            @click="onRow(facet.value)"
+            @keydown.enter.prevent="onRowClick(facet.value)"
+            @keydown.space.prevent="onRowClick(facet.value)">
             <input
               type="checkbox"
               :value="facet.value"
               :checked="selected.includes(facet.value)"
-              @change="onCheck">
+              @change="onCheckbox"
+              @click.stop>
             <span class="facet-value">{{ facetValues[facet.value] ?? facet.value }}</span>
             <span class="facet-count">{{ facet.count }}</span>
           </li>
@@ -64,13 +68,25 @@ function toggleOpen() {
   }
 }
 
-function onCheck(e) {
-  const val = e.target.value
-  const newSel = e.target.checked
-    ? [...selected.value, val]
-    : selected.value.filter(v => v !== val)
+function toggleValue(value, nextState) {
+  const isSelected = selected.value.includes(value)
+  const willBeSelected = nextState ?? !isSelected
+  const newSel = willBeSelected
+    ? [...selected.value, value]
+    : selected.value.filter(v => v !== value)
   emit("change", newSel)
 }
+
+// Selecting the checkbox
+function onCheckbox(e) {
+  toggleValue(e.target.value, e.target.checked)
+}
+
+// Clicking on the entire row
+function onRow(value) {
+  toggleValue(value)
+}
+
 </script>
 
 <style scoped>
