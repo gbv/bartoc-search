@@ -10,7 +10,7 @@ import {
   SolrErrorResponse,
 } from "../types/solr";
 import { AxiosError } from "axios";
-import { writeFileSync } from "fs";
+import { createReadStream, existsSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { ConceptSchemeDocument, GroupEntry } from "../types/jskos";
@@ -20,6 +20,8 @@ import readline from "readline";
 import { extractDdc } from "../utils/ddc";
 import { applyLangMap } from "../utils/utils";
 import { getNkosConcepts, loadNkosConcepts } from "../utils/nskosService";
+import { ensureSnapshotForIndexing } from "../utils/updateFromBartoc";
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -82,46 +84,70 @@ export async function connectToSolr(): Promise<void> {
 // Initializes the Solr core with daily dump data from Database even if that is not empty
 export async function bootstrapIndexSolr() {
   config.log?.("📦 Proceeding with initial indexing...");
+  const REMOTE_URL = "https://bartoc.org/data/dumps/latest.ndjson";
 
-  const url = "https://bartoc.org/data/dumps/latest.ndjson";
+  // 1) Pick input stream: local snapshot (preferred) or remote fallback
+  let input: NodeJS.ReadableStream;
+  let source: string;
 
-  // 1) Fetch the NDJSON as a stream
-  const response = await axios.get(url, { responseType: "stream" });
-  const stream = response.data as NodeJS.ReadableStream;
+  try {
+      const meta = await ensureSnapshotForIndexing(); // returns { snapshotPath, ... } or throws
+      if (meta?.snapshotPath && existsSync(meta.snapshotPath)) {
+        source = meta.snapshotPath;
+        input = createReadStream(meta.snapshotPath);
+        config.log?.(`📄 Using local snapshot: ${source}`);
+      } else {
+        throw new Error("No local snapshot available.");
+      }
+    } catch {
+    // Fallback: stream from remote
+    const res = await axios.get(REMOTE_URL, {
+      responseType: "stream",
+      headers: { "User-Agent": "bartoc-solr-bootstrap/1.0", Connection: "close" },
+    });
+    input = res.data as NodeJS.ReadableStream;
+    source = REMOTE_URL;
+    config.log?.(`Using remote NDJSON: ${REMOTE_URL}`);
+  }
+   
+  // 2) Stream line-by-line → transform → batch to Solr
+  const rl = readline.createInterface({ input, crlfDelay: Infinity });
 
-  // 2) Read it line-by-line
-  const rl = readline.createInterface({ input: stream, crlfDelay: Infinity });
+  const BATCH_SIZE = config.solr.batchSize ?? 500;
+  let buffer: SolrDocument[] = [];
+  let total = 0;
 
-  const docs: SolrDocument[] = [];
+  async function flush() {
+    if (buffer.length === 0) return;
+    await addDocuments(config.solr.coreName, buffer);
+    total += buffer.length;
+    buffer = [];
+    if (total % (BATCH_SIZE * 4) === 0) config.log?.(`Indexed ${total} documents so far`);
+  }
 
   for await (const line of rl) {
-    if (!line.trim()) {
-      continue;
-    }
+    const t = line.trim();
+    if (!t) continue;
+
     let obj: ConceptSchemeDocument;
     try {
-      obj = JSON.parse(line);
-    } catch (e) {
-      console.warn("Skipping invalid JSON line:", e);
+      obj = JSON.parse(t);
+    } catch {
+      console.warn("Skipping invalid JSON line");
       continue;
     }
-    // 3) Transform into Solr shape
+
     const solrDoc = transformConceptSchemeToSolr(obj, nKosConceptsDocs);
-    docs.push(solrDoc);
-  }
+    buffer.push(solrDoc);
 
-  config.log?.(`📦 Read ${docs.length} documents from the stream.`);
-
-  // 4) Add to Solr
-  const BATCH_SIZE = config.solr.batchSize ?? 500;
-  if (docs.length > 0) {
-    for (let i = 0; i < docs.length; i += BATCH_SIZE) {
-      const batch = docs.slice(i, i + BATCH_SIZE);
-      await addDocuments(config.solr.coreName, batch);
+    if (buffer.length >= BATCH_SIZE) {
+      await flush();
     }
   }
+  await flush();
+  rl.close();
 
-  config.log?.(`✅ Bootstrapped ${docs.length} documents from ${url}`);
+  config.log?.(`✅ Indexed ${total} documents from ${source}`);
 }
 
 export async function solrStatus(): Promise<SolrResponse> {

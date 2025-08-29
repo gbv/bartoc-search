@@ -8,6 +8,7 @@ import { SolrSearchResponse,  SortField, SortOrder, SearchParams } from "./types
 import { LuceneQuery } from "./solr/search/LuceneQuery";
 import type { ViteDevServer } from "vite";
 import fs from "node:fs/promises";
+import path from "node:path";
 import { getStatus } from "./routes/status.js";
 import { startVocChangesListener } from "./composables/useVocChanges";
 import expressWs from "express-ws";
@@ -250,6 +251,10 @@ getTerminologiesQueue().then((terminologiesQueue) => {
 
 // 3) Mount the router
 app.use("/admin/queues", serverAdapter.getRouter());
+
+// Serving data folder with artifacts
+const DATA_DIR = process.env.DATA_DIR ?? "data";
+app.use("/data", express.static(path.join(DATA_DIR, "artifacts", "current")));
 
 // ==========================
 // Serve HTML
