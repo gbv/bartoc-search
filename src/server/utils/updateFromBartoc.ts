@@ -18,17 +18,16 @@ import { KEEP_LANGS } from "./helpers";
 /** Base configuration with sensible defaults */
 const DATA_DIR = process.env.DATA_DIR ?? "data";
 const ART_DIR = path.join(DATA_DIR, "artifacts");
-const META_PATH = path.join(ART_DIR, "last.json"); // metadata persisted between runs
+const META_PATH = path.join(ART_DIR, "vocs.last.json"); // metadata persisted between runs
 
 type Source = {
-  key: "vocs" | "registries" | "formats";
+  key: "vocs" | "registries" | "formats" | "apiTypes" | "accessTypes" | "ddcConcepts";
   url: string;
   kind: "ndjson" | "json";
   snapDir: string;
   metaPath: string;
   ext: ".ndjson" | ".json";
 };
-
 
 const SOURCES: Record<Source["key"], Source> = {
   vocs: {
@@ -55,6 +54,30 @@ const SOURCES: Record<Source["key"], Source> = {
     metaPath: path.join(DATA_DIR, "artifacts", "formats.last.json"),
     ext: ".json",
   },
+  apiTypes: {
+    key: "apiTypes",
+    url: "https://bartoc.org/api/voc/top?uri=http://bartoc.org/en/node/20002",
+    kind: "json",
+    snapDir: path.join(DATA_DIR, "snapshots", "apiTypes"),
+    metaPath: path.join(DATA_DIR, "artifacts", "apiTypes.last.json"),
+    ext: ".json",
+  },
+  accessTypes: {
+    key: "accessTypes",
+    url: "https://bartoc.org/api/voc/top?uri=http://bartoc.org/en/node/20001",
+    kind: "json",
+    snapDir: path.join(DATA_DIR, "snapshots", "accessTypes"),
+    metaPath: path.join(DATA_DIR, "artifacts", "accessTypes.last.json"),
+    ext: ".json",
+  },
+  ddcConcepts: {
+    key: "ddcConcepts",
+    url: "https://bartoc.org/api/voc/concepts?uri=http://bartoc.org/en/node/241&limit=1500",
+    kind: "json",
+    snapDir: path.join(DATA_DIR, "snapshots", "ddcConcepts"),
+    metaPath: path.join(DATA_DIR, "artifacts", "ddcConcepts.last.json"),
+    ext: ".json",
+  }
 };
 
 /** Metadata persisted to support conditional requests on the next run */
@@ -189,10 +212,16 @@ async function main(): Promise<void> {
   // fetch both sources (independently tracked)
   const [{ meta: vocsMeta, notModified: notModifiedVocs }, 
     { meta: regMeta, notModified: notModifiedRegs },
-    { meta: formatsMeta, notModified: notModifiedFormats }] = await Promise.all([
-    timed("Fetch vocs", () => fetchSnapshotFor(SOURCES.vocs)),
-    timed("Fetch registries", () => fetchSnapshotFor(SOURCES.registries)),
-    timed("Fetch formats", () => fetchSnapshotFor(SOURCES.formats)),
+    { meta: formatsMeta, notModified: notModifiedFormats },
+    { meta: apiTypesMeta, notModified: notModifiedApitypes}, 
+    { meta: accessTypesMeta, notModified: notModifiedAccesstypes},
+    { meta: ddcConceptsMeta, notModified: notModifiedDdcConcepts}, ] = await Promise.all([
+    timed("Fetching vocs", () => fetchSnapshotFor(SOURCES.vocs)),
+    timed("Fetching registries", () => fetchSnapshotFor(SOURCES.registries)),
+    timed("Fetching formats", () => fetchSnapshotFor(SOURCES.formats)),
+    timed("Fetching api types", () => fetchSnapshotFor(SOURCES.apiTypes)),
+    timed("Fetching access types", () => fetchSnapshotFor(SOURCES.accessTypes)),
+    timed("Fetching DDC 100 Concepts", () => fetchSnapshotFor(SOURCES.ddcConcepts)),
   ]);
 
   const parts: string[] = [];
@@ -205,6 +234,15 @@ async function main(): Promise<void> {
   if (formatsMeta?.snapshotPath) parts.push(
     path.basename(formatsMeta.snapshotPath, 
     path.extname(formatsMeta.snapshotPath)));
+  if (apiTypesMeta?.snapshotPath) parts.push(
+    path.basename(apiTypesMeta.snapshotPath, 
+    path.extname(apiTypesMeta.snapshotPath)));
+  if (accessTypesMeta?.snapshotPath) parts.push(
+    path.basename(accessTypesMeta.snapshotPath, 
+    path.extname(accessTypesMeta.snapshotPath)));
+  if (ddcConceptsMeta?.snapshotPath) parts.push(
+    path.basename(ddcConceptsMeta.snapshotPath, 
+    path.extname(ddcConceptsMeta.snapshotPath)));
 
   const versionName = parts.join("__") // e.g. 2025-08-28_W-7779d9__2025-08-28_regX
     .replace(/[^A-Za-z0-9._-]+/g, "-") // sanitize
@@ -221,12 +259,12 @@ async function main(): Promise<void> {
 
   // Build access_type.json in streaming mode
   await timed("Build access_type.json", () =>
-    buildAccessType(vocsMeta.snapshotPath, tempDir)
+    buildAccessType(accessTypesMeta.snapshotPath, tempDir)
   );
 
   // Build ddc-labels.json in streaming mode
   await timed("Build ddc-labels.json", () =>
-    buildDDCLabels("data/ddc100.concepts.ndjson", tempDir)
+    buildDDCLabels(ddcConceptsMeta.snapshotPath, tempDir)
   );
 
   // Build listed_in.json labels in streaming mode
@@ -236,13 +274,15 @@ async function main(): Promise<void> {
 
   // Build listed_in.json labels in streaming mode
    await timed("Build bartoc-api-types-labels.json", () =>
-    buildBartocApiLabels("data/bartoc-api-types.concepts.ndjson", tempDir)
+    buildBartocApiLabels(apiTypesMeta.snapshotPath, tempDir)
   );
 
   // Build format-groups.json
   await timed("Build format-groups.json", () =>
     buildFormatsLabels(formatsMeta.snapshotPath, tempDir)
   );
+
+
 
   // EARLY EXIT: snapshot unchanged and artifacts already published → do nothing
   if (notModifiedVocs) {
@@ -255,6 +295,18 @@ async function main(): Promise<void> {
 
   if (notModifiedFormats) {
     console.log("Formats Snapshot unchanged — nothing to do.");  
+  }
+
+  if (notModifiedApitypes) {
+    console.log("Api types Snapshot unchanged — nothing to do.");  
+  }
+
+  if (notModifiedAccesstypes) {
+    console.log("Access types Snapshot unchanged — nothing to do.");
+  }
+
+  if (notModifiedDdcConcepts) {
+    console.log("DDC 100 concepts Snapshot unchanged — nothing to do.");
   }
 
   // Write artifact metadata (useful for healthchecks and debugging)

@@ -1,11 +1,19 @@
-import { createReadStream } from "node:fs";
 import fs from "node:fs/promises";
-import * as readline from "node:readline";
 import path from "node:path";
-import { ConceptSchemeDocument } from "../types/jskos";
+import { ConceptDocument } from "../types/jskos";
+
 
 export interface ApiTypeLabelsMap {
   [type: string]: string
+}
+
+export async function loadApiTypesConcepts(filePath: string): Promise<ConceptDocument[]> {
+  const text = await fs.readFile(filePath, "utf8");
+  const data = JSON.parse(text);
+  if (!data || typeof data !== "object") {
+    throw new Error("Invalid registry index JSON");
+  }
+  return data as ConceptDocument[];
 }
 
 /**
@@ -19,30 +27,12 @@ export async function buildBartocApiLabels(
   const finalPath = path.join(outDir, "bartoc-api-types-labels.json");
   const tmpPath = finalPath + ".tmp";
   
-  // 1) create stream with encoding + error handlers
-  const rs = createReadStream(snapshotPath, { encoding: "utf8" });
-  rs.on("error", (e) => console.error("read error:", e));
-  
-  const rl = readline.createInterface({ input: rs, crlfDelay: Infinity });
-  rl.on("error", (e) => console.error("readline error:", e));
-
+  const concepts = await loadApiTypesConcepts(snapshotPath);
   const map: ApiTypeLabelsMap = {};
 
-  for await (const line of rl) {
-    if (!line.trim()) continue;
-    try {
-      const jskosRecord: ConceptSchemeDocument = JSON.parse(line);
-      // pick the primary notation code
-      const uri = jskosRecord.uri;
-      const labels = jskosRecord.prefLabel["en"];
-      if (typeof uri === "string" && labels && typeof labels === "string") {
-        map[uri] = labels;
-      }
-    } catch (e) {
-      console.log(e);
-    }
-  }
-  rl.close();
+  concepts.forEach(concept => {
+    map[concept.uri] = concept.prefLabel.en;
+  });
 
   await fs.writeFile(tmpPath, JSON.stringify(map, null, 2), "utf8");
   await fs.rename(tmpPath, finalPath);
