@@ -33,8 +33,7 @@ const resolvedUri = computed(() => {
     <span class="lookup-message__name">
       <a
         :href="resolvedUri || '#'"
-        target="_blank"
-        :class="{ disabled: !resolvedUri }">
+        target="_blank">
         {{ name }}
       </a>
     </span>
@@ -55,10 +54,5 @@ const resolvedUri = computed(() => {
 .lookup-message__name {
   font-weight: bold;
   margin-left: 5px;
-}
-a.disabled {
-  pointer-events: none;
-  color: gray;
-  text-decoration: line-through;
 }
 </style>
