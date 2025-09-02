@@ -337,6 +337,9 @@ function isDirectExec(metaUrl: string): boolean {
   return metaUrl === entry;
 }
 
+
+export { main as runUpdateOnce };
+
 if (isDirectExec(import.meta.url)) {
   // Only runs when invoked like: `tsx src/server/utils/updateFromBartoc.ts`
   // Will NOT run when the module is imported

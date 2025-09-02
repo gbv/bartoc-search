@@ -19,4 +19,4 @@ EXPOSE 3883
 
 # Start: run updater once, then dev server.
 # Alpine uses /bin/sh; chaining is via -lc.
-CMD ["/bin/sh","-lc","npm run update-data && npm run dev"]
+CMD ["npm", "run" , "dev"]
