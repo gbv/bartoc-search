@@ -1,10 +1,15 @@
 let _entriesPromise = null
 
+function dataUrl(file) {
+  const base = import.meta.env.BASE_URL || "/"
+  return `${base}data/${file}`
+}
+
 async function loadLookupEntries() {
   if (_entriesPromise) {
     return _entriesPromise
   }
-  _entriesPromise = fetch("/data/lookup_entries.json", { cache: "force-cache" })
+  _entriesPromise = fetch(dataUrl("lookup_entries.json"), { cache: "force-cache" })
     .then((r) => {
       if (!r.ok) {
         throw new Error("Failed to fetch /data/lookup_entries.json")
