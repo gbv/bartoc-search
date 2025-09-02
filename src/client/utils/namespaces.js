@@ -33,16 +33,11 @@ export async function getURIperIdentifierOrNamespace(input) {
 
   const LOOKUP_ENTRIES = await loadLookupEntries()
 
-  for (const entry of LOOKUP_ENTRIES) {
-    if (entry?.uri === value) {
-      return entry.uri
-    }
-    if (entry?.namespace && entry.namespace === value) {
-      return entry.uri
-    }
-    if (Array.isArray(entry?.identifier) && entry.identifier.includes(value)) {
-      return entry.uri
-    }
-  }
-  return null
+  const match = LOOKUP_ENTRIES.find((entry) =>
+    entry?.uri === value ||
+    entry?.namespace === value ||
+    (Array.isArray(entry?.identifier) && entry.identifier.includes(value)),
+  )
+
+  return match ?? null
 }
