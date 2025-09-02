@@ -47,11 +47,14 @@ export const FACET_FIELD_LABELS = {
   ...dynamicFacets,
 }
 
+
+const baseUrl = import.meta.env.BASE_URL || "/"
+
 // Client-only: load each dynamic JSON once and merge into the same object reference.
 if (typeof window !== "undefined") {
   for (const [facet, cfg] of Object.entries(DYNAMIC_FACETS)) {
     const target = FACET_FIELD_LABELS[facet].values // stable reference used in UI
-    ensureLabels(facet, `/data/${cfg.file}`).then(obj => {
+    ensureLabels(facet, `${baseUrl}data/${cfg.file}`).then(obj => {
       Object.assign(target, obj || {}) // mutate in place → no need to replace references
     })
   }

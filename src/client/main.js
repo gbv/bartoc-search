@@ -28,7 +28,7 @@ export function createApp(url = "/", isClient = false) {
     if (!window.__namespacesPopulated) {
       (async () => {
         try {
-          const res = await fetch(`${baseUrl}/data/lookup_entries.json`, {
+          const res = await fetch(`${baseUrl}data/lookup_entries.json`, {
             // rely on browser cache/ETag; change to "no-cache" if you want a revalidate
             cache: "force-cache",
           })
