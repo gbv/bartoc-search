@@ -193,7 +193,6 @@ function onFilterChange(filters) {
 
 function onInspect(raw) {
   lookupUri.value = !_.isEmpty(raw) ? raw : undefined
-  console.log("lookupUri.value ", lookupUri.value)
 }
 
 </script>

@@ -8,6 +8,7 @@ import { SolrSearchResponse,  SortField, SortOrder, SearchParams } from "./types
 import { LuceneQuery } from "./solr/search/LuceneQuery";
 import type { ViteDevServer } from "vite";
 import fs from "node:fs/promises";
+import path from "node:path";
 import { getStatus } from "./routes/status.js";
 import { startVocChangesListener } from "./composables/useVocChanges";
 import expressWs from "express-ws";
@@ -19,6 +20,9 @@ import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
 import { parseFacetFields } from "./utils/utils.js";
 import { SearchFilter } from "./solr/search/SearchFilter.js";
 import _ from "lodash";
+import { runUpdateOnce } from "./utils/updateFromBartoc";
+import fsPromises from "node:fs/promises";
+
 
 const isProduction = process.env.NODE_ENV === "production";
 const base = process.env.VIRTUAL_PATH || "/";
@@ -251,6 +255,32 @@ getTerminologiesQueue().then((terminologiesQueue) => {
 // 3) Mount the router
 app.use("/admin/queues", serverAdapter.getRouter());
 
+// Serving data folder with artifacts
+const DATA_DIR = process.env.DATA_DIR ?? "data";
+app.use("/data", express.static(path.join(DATA_DIR, "artifacts", "current")));
+
+async function fileExists(p: string) {
+  try { await fsPromises.access(p); return true; } catch { return false; }
+}
+
+async function ensureArtifactsAtBoot() {
+  const currentDir = path.join(DATA_DIR, "artifacts", "current");
+  const metaFile   = path.join(currentDir, "artifacts.meta.json");
+  const haveArtifacts = await fileExists(metaFile);
+
+  if (!haveArtifacts) return;
+
+  const promise = runUpdateOnce();
+  if (!haveArtifacts) {
+    console.log("No artifacts found — running updater before starting server…");
+    await promise;
+    console.log("Artifacts ready.");
+  } else {
+    console.log("Kicking updater in background (artifacts already present).");
+    promise.catch((e) => console.warn("Updater failed in background:", e));
+  }
+}
+
 // ==========================
 // Serve HTML
 // ==========================
@@ -306,6 +336,9 @@ app.use("*all", async (req, res) => {
 // Start server
 // ==========================
 export const startServer = async () => {
+  // Ensure artifacts (run updater if needed)
+  await ensureArtifactsAtBoot();
+
   if (config.env == "test") {
     portfinder.basePort = config.port;
     config.port = await portfinder.getPortPromise();

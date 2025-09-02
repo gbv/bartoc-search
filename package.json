@@ -12,6 +12,7 @@
     "fix": "eslint --fix",
     "lint:server": "tsc --noEmit --project tsconfig.json && eslint --fix \"src/server/**/*.{js,ts}\" --config src/server/eslint.config.mjs",
     "live:seed": "npx ts-node ./src/data/seedTerminologies.ts",
+    "update-data": "tsx ./src/server/utils/updateFromBartoc.ts",
     "prepare": "husky || true"
   },
   "keywords": [],

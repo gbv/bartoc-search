@@ -40,5 +40,8 @@ config/config.json
 .DS_Store
 Thumbs.db
 
-
+# Data
+data/snapshots/
+data/artifacts/
+!data/README.md
 data/lastIndexedAt.txt

@@ -17,5 +17,6 @@ COPY . .
 # Expose to port 3883
 EXPOSE 3883
 
-# Command to run
+# Start: run updater once, then dev server.
+# Alpine uses /bin/sh; chaining is via -lc.
 CMD ["npm", "run" , "dev"]

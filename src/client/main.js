@@ -4,7 +4,6 @@ import { createRouterInstance } from "./router/router"
 import * as JSKOSVue from "jskos-vue"
 import "jskos-vue/dist/style.css"
 import { Namespaces } from "namespace-lookup" 
-import LOOKUP_ENTRIES from "../../data/lookup_entries.json"
 
 // SSR requires a fresh app instance per request, therefore we export a function
 // that creates a fresh app instance. If using Vuex, we'd also be creating a
@@ -20,33 +19,59 @@ export function createApp(url = "/", isClient = false) {
   // Client-only: init a singleton Namespaces registry for URI lookup,
   // cache it on window to survive HMR, and provide it app-wide.
   if (isClient && typeof window !== "undefined") {
-    let namespaces = window.__namespaces
-    if (!namespaces) {
-      namespaces = new Namespaces()
-      
-      // Adding data from lookup_entries.json
-      for (const entry of LOOKUP_ENTRIES) {
-        const label = entry.prefLabel?.en ?? entry.prefLabel?.de ?? entry.prefLabel?.und ?? ""
+    // Reuse across HMR
+    const namespaces = (window.__namespaces ??= new Namespaces())
 
-        // Add main uri
-        if (entry.uri) {
-          namespaces.add(entry.uri, label)
-        }
-
-        // Add identifiers
-        if (Array.isArray(entry.identifier)) {
-          for (const id of entry.identifier) {
-            namespaces.add(id, label)
+    // Populate once per page load
+    if (!window.__namespacesPopulated) {
+      (async () => {
+        try {
+          const res = await fetch("/data/lookup_entries.json", {
+            // rely on browser cache/ETag; change to "no-cache" if you want a revalidate
+            cache: "force-cache",
+          })
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`)
           }
-        }
+          const entries = await res.json()
 
-        // Add namespace
-        if (entry.namespace) {
-          namespaces.add(entry.namespace.trim(), label)
+          for (const entry of entries) {
+            const label =
+              entry?.prefLabel?.en ??
+              entry?.prefLabel?.de ??
+              entry?.prefLabel?.und ??
+              ""
+
+            // main uri
+            if (entry?.uri) {
+              namespaces.add(entry.uri, label)
+            }
+
+            // identifiers (filter null/empty)
+            if (Array.isArray(entry?.identifier)) {
+              for (const id of entry.identifier) {
+                if (id && typeof id === "string" && id.trim()) {
+                  namespaces.add(id, label)
+                }
+              }
+            }
+
+            // namespace
+            if (entry?.namespace && typeof entry.namespace === "string") {
+              const ns = entry.namespace.trim()
+              if (ns) {
+                namespaces.add(ns, label)
+              }
+            }
+          }
+
+          window.__namespacesPopulated = true
+        } catch (e) {
+          console.warn("Failed to load /data/lookup_entries.json:", e)
         }
-      }
-      window.__namespaces = namespaces // cache for HMR
+      })()
     }
+
     app.provide("namespaces", namespaces)
     app.config.globalProperties.$namespaces = namespaces
   }
