@@ -2,15 +2,14 @@
 
 ### Purpose
 
-* Download BARTOC NDJSON (`latest.ndjson`) with **ETag/Last-Modified** to leverage `304 Not Modified`.
-* Build derived artifacts **streaming** (e.g., `lookup_entries.json`).
-* **Publish atomically** to `data/artifacts/current/`.
+- Download BARTOC NDJSON (`latest.ndjson`) with **ETag/Last-Modified** to leverage `304 Not Modified`.
+- Build derived artifacts **streaming** (e.g., `lookup_entries.json`).
+- **Publish atomically** to `data/artifacts/current/`.
 
 ### Rationale
 
-* One local **canonical snapshot** feeds all artifacts.
+* Canonical snapshots feed all artifacts.
 * No data in Git—only scripts/docs.
-* Streaming = **O(1) memory**, good for large datasets.
 * Atomic rename prevents serving **partial files**.
 
 ### Environment variables (optional)
@@ -25,146 +24,60 @@ All files use UTF-8.
 ```
 data/
 ├── artifacts
+│   ├── accessTypes.last.json
+│   ├── apiTypes.last.json
 │   ├── current
+│   │   ├── access_type.json
 │   │   ├── artifacts.meta.json
-│   │   ├── lookup_entries.json OK
-│   │   ├── access_type.json OK
-│   │   ├── ddc-labels.json OK
-│   └── last.json
-├── snapshots
-│   └── 2025-08-26_W-777a7d-198e4886e01_b0c3edaaa837.ndjson
-├── bartoc-access.concepts.ndjson
-├── bartoc-api-types.concepts.ndjson
-├── bartoc-api-types-labels.json
-├── ddc100.concepts.ndjson
-├── format-groups.json
-├── identifiers_entries.json
-├── latest.ndjson
+│   │   ├── bartoc-api-types-labels.json
+│   │   ├── ddc-labels.json
+│   │   ├── format-groups.json
+│   │   ├── listed_in.json
+│   │   └── lookup_entries.json
+│   ├── ddcConcepts.last.json
+│   ├── formats.last.json
+│   ├── registries.last.json
+│   └── vocs.last.json
 ├── license-groups.json
-├── listedIn.json
 ├── nkostype.concepts.ndjson
-├── one_record.ndjson
 ├── README.md
-├── registries.ndjson
+├── snapshots
+│   ├── accessTypes
+│   │   ├── 2025-09-01_noetag_4da288051e9c.json
+│   │   └── 2025-09-02_noetag_4da288051e9c.json
+│   ├── apiTypes
+│   │   ├── 2025-09-01_noetag_86ca48db1cf3.json
+│   │   └── 2025-09-02_noetag_86ca48db1cf3.json
+│   ├── ddcConcepts
+│   │   ├── 2025-09-01_noetag_025dbe41a62f.json
+│   │   ├── 2025-09-01_noetag_ebf3a904e967.json
+│   │   └── 2025-09-02_noetag_ebf3a904e967.json
+│   ├── formats
+│   │   ├── 2025-09-01_noetag_8b8a8615962b.json
+│   │   └── 2025-09-02_noetag_8b8a8615962b.json
+│   ├── registries
+│   │   └── 2025-09-01_W-289a7-o7JZIkS1ruxmbGhHhwmNx8zBspw_6497d5f035b0.json
+│   └── vocs
+│       ├── 2025-09-01_W-7787db-199036e97b5_a912b74760d9.ndjson
+│       └── 2025-09-02_W-7787db-1990894f5de_a912b74760d9.ndjson
 └── supported_languages.json
 
 ```
 
-##
+### How the updater works (quick overview)
+
+1. Fetch each source with conditional GET (ETag + Last-Modified) → saves a versioned file in `data/snapshots/<source>/YYYY-MM-DD_<etag>_<sha12>.(ndjson|json)`.
+2. Build artifacts into a versioned temp directory (e.g., `data/artifacts/<versionName>__tmp/`).
+3. Write `artifacts.meta.json` with timestamps, keep-langs, and the source snapshot metadata.
+4. Atomically publish by renaming the temp dir to `data/artifacts/current/`.
+
+If a server returns **304 Not Modified**, the previous snapshot is reused and only the publish step runs.
 
 
 
-## `access_type.json`
+### Snapshots
 
-**Purpose:** Local mapping for BARTOC “Access” types (e.g., Free, Restricted).  
-**Format:** JSON object (string → string).  
-**Shape:**
-
-```json
-{
-  {
-  "http://bartoc.org/en/Access/Free": "Freely available",
-  "http://bartoc.org/en/Access/Registered": "Registration required",
-  "http://bartoc.org/en/Access/Licensed": "License required"
-}
-}
-```
-
-**Used by:** Facets/labels for access types.
-
----
-
-## `bartoc-access.concepts.ndjson`
-
-**Purpose:** Access concept records from BARTOC (as JSKOS Concepts).  
-**Format:** NDJSON 
-**Typical fields per line:** `uri`, `prefLabel`, `notation?`, `inScheme`.  
-**Example:**
-
-```json
-{"uri":"http://bartoc.org/en/Access/Free","notation":["Free"],"inScheme":[{"uri":"http://bartoc.org/en/node/20001"}],"prefLabel":{"en":"freely available"},"topConceptOf":[{"uri":"http://bartoc.org/en/node/20001"}]}
-```
-
----
-
-## `bartoc-api-types.concepts.ndjson`
-
-**Purpose:** API type concepts (e.g., JSKOS API, webservice).  
-**Format:** NDJSON.  
-**Typical fields per line:** `uri`, `prefLabel`, `notation`, `inScheme`, `scopeNote`, `topConceptOf`.  
-**Example:**
-
-```json
-{"uri":"http://bartoc.org/api-type/jskos","notation":["jskos"],"inScheme":[{"uri":"http://bartoc.org/en/node/20002"}],"prefLabel":{"en":"JSKOS API"},"scopeNote":{"en":["Base URL of a JSKOS Server instance or another service following its semantics"]},"topConceptOf":[{"uri":"http://bartoc.org/en/node/20002"}]}
-```
-
-**Used by:** “API type” facet / display.
-
----
-
-## `bartoc-api-types-labels.json`
-
-**Purpose:** Quick label map for API types.  
-**Format:** JSON object (URI → Display name).  
-**Example:**
-
-```json
- "http://bartoc.org/api-type/jskos": "JSKOS API",
-```
-
----
-
-## `ddc100.concepts.ndjson`
-
-**Purpose:** Subset of DDC (top 100 classes or core set) as Concepts.  
-**Format:** NDJSON.  
-**Example:**
-
-```json
-{"uri":"http://dewey.info/class/0/e23/","notation":["0"],"inScheme":[{"uri":"http://bartoc.org/en/node/241"}],"prefLabel":{"en":"Computer science, information & general works"},"topConceptOf":[{"uri":"http://bartoc.org/en/node/241"}]}
-```
-
-**Used by:** Subject hints/mapping.
-
----
-
-## `ddc-labels.json`
-
-**Purpose:** Label lookup for top-level DDC classes (0–9). .  
-**Format:**JSON object mapping a single digit (as a string) to its English label. 
-**Example:**
-
-```json
- "0": "Computer science, information & general works",
-```
-
----
-
-## `format-groups.json`
-
-**Purpose:** **Purpose:** Normalize raw format URIs into UI-friendly buckets (e.g., “Online”, “PDF”, “SKOS”). 
-**Format:** JSON **array** of objects.
-**Example:**
-
-```json
-[
-  {
-    "key": "online",
-    "label": "Online",
-    "uris": ["http://bartoc.org/en/Format/Online"]
-  },
-  {
-    "key": "pdf",
-    "label": "PDF",
-    "uris": ["http://bartoc.org/en/Format/PDF"]
-  },
-  ...
-]
-```
-
----
-
-## `latest.ndjson`
+#### `vocs`
 
 **Purpose:** Database dump of Concept Schemes (BARTOC) used for indexing purposes.  
 **Format:** NDJSON (one JSKOS **ConceptScheme** per line).  
@@ -177,14 +90,376 @@ data/
  "namespace":"http://uri.gbv.de/terminology/bk/",
  "prefLabel":{"en":"Basic Classification","de":"Basisklassifikation"}}
 ```
+---
+
+#### `registries`
+
+**Purpose:** Registry/collection records (things a scheme can be “listed in”), used for badges and links in the UI.  
+**Format:** JSON.  
+**Key fields:**
+
+- `uri` — canonical BARTOC node URI for the registry
+- `prefLabel` — language map with the registry’s name
+- `definition?` — short description (lang map, arrays of strings)
+- `url?` — external website of the registry
+- `type` — usually `http://purl.org/cld/cdtype/CatalogueOrIndex`
+
+**Example:**
+
+```json
+{"http://bartoc.org/en/node/18927": {
+    "definition": {
+      "en": [
+        "This Agrisemantics Map of Data Standards is the continuation of the VEST Registry started on the FAO AIMS website (now superseded by tis Map) and it includes metadata from the AgroPortal ontology repository managed by University of Montpelier and Stanford University.\n"
+      ]
+    },
+    "prefLabel": {
+      "en": "VEST Registry"
+    },
+    "type": [
+      "http://purl.org/cld/cdtype/CatalogueOrIndex"
+    ],
+    "uri": "http://bartoc.org/en/node/18927",
+    "url": "http://aims.fao.org/vest-registry"
+  },}
+```
+
+#### `accessTypes`
+
+**Purpose:** Access concept records from BARTOC (as JSKOS Concepts).  
+**Format:** NDJSON  
+**Typical fields per line:** `uri`, `prefLabel`, `notation?`, `inScheme`.  
+**Example:**
+
+```json
+{ "uri": "http://bartoc.org/en/Access/Free",
+    "notation": [
+      "Free"
+    ],
+    "inScheme": [
+      {
+        "uri": "http://bartoc.org/en/node/20001"
+      }
+    ],
+    "prefLabel": {
+      "en": "freely available"
+    },
+    "topConceptOf": [
+      {
+        "uri": "http://bartoc.org/en/node/20001"
+      }
+    ],
+    "narrower": [],
+    "@context": "https://gbv.github.io/jskos/context.json",
+    "type": [
+      "http://www.w3.org/2004/02/skos/core#Concept"
+    ]}
+```
 
 ---
 
-## `license-groups.json`
+#### `apiTypes`
 
-**Purpose:** Normalize raw license URIs into UI-friendly buckets (e.g., “CC BY”, “CC BY-SA”).
-**Format:** JSON **array** of objects.
+**Purpose:** API type concepts (e.g., JSKOS API, webservice).  
+**Format:** NDJSON.  
+**Typical fields per line:** `uri`, `prefLabel`, `notation`, `inScheme`, `scopeNote`, `topConceptOf`.  
+**Example:**
+
+```json
+{"uri": "http://bartoc.org/api-type/jskos",
+    "notation": [
+      "jskos"
+    ],
+    "inScheme": [
+      {
+        "uri": "http://bartoc.org/en/node/20002"
+      }
+    ],
+    "prefLabel": {
+      "en": "JSKOS API"
+    },
+    "scopeNote": {
+      "en": [
+        "Base URL of a JSKOS Server instance or another service following its semantics"
+      ]
+    },
+    "topConceptOf": [
+      {
+        "uri": "http://bartoc.org/en/node/20002"
+      }
+    ],
+    "narrower": [],
+    "@context": "https://gbv.github.io/jskos/context.json",
+    "type": [
+      "http://www.w3.org/2004/02/skos/core#Concept"
+    ]}
+```
+
+**Used by:** “API type” facet / display.
+
+---
+
+### `ddcConcepts`
+
+**Purpose:** Subset of DDC (top 100 classes or core set) as Concepts.  
+**Format:** NDJSON.  
+**Example:**
+
+```json
+ "uri": "http://dewey.info/class/0/e23/",
+    "notation": [
+      "0"
+    ],
+    "inScheme": [
+      {
+        "uri": "http://bartoc.org/en/node/241"
+      }
+    ],
+    "prefLabel": {
+      "en": "Computer science, information & general works"
+    },
+    "topConceptOf": [
+      {
+        "uri": "http://bartoc.org/en/node/241"
+      }
+    ],
+    "narrower": [
+      null
+    ],
+    "@context": "https://gbv.github.io/jskos/context.json",
+    "type": [
+      "http://www.w3.org/2004/02/skos/core#Concept"
+    ]}
+```
+
+**Used by:** Subject hints/mapping.
+
+---
+
+
+### `formats`
+
+**Purpose:** Format types as Concepts.  
+**Format:** JSON.  
+**Example:**
+
+```json
+{"uri": "http://bartoc.org/en/Format/Online",
+    "notation": [
+      "Online"
+    ],
+    "inScheme": [
+      {
+        "uri": "http://bartoc.org/en/node/20000"
+      }
+    ],
+    "prefLabel": {
+      "en": "Online"
+    },
+    "topConceptOf": [
+      {
+        "uri": "http://bartoc.org/en/node/20000"
+      }
+    ],
+    "narrower": [],
+    "@context": "https://gbv.github.io/jskos/context.json",
+    "type": [
+      "http://www.w3.org/2004/02/skos/core#Concept"
+    ]
+    ...}
+```
+
+**Used by:** Subject hints/mapping.
+
+
+### Artifacts
+
+#### `access_type.json`
+
+**Purpose:** Local mapping for BARTOC “Access” types (e.g., Free, Restricted).  
+**Format:** JSON object (string → string).  
+**Shape:**
+
+```json
+{
+  "http://bartoc.org/en/Access/Free": "Freely available",
+  "http://bartoc.org/en/Access/Registered": "Registration required",
+  "http://bartoc.org/en/Access/Licensed": "License required"
+}
+```
+
+**Used by:** Facets/labels for access types.
+
+---
+
+#### `bartoc-api-types-labels.json`
+
+**Purpose:** Quick label map for API types.  
+**Format:** JSON object (URI → Display name).  
+**Example:**
+
+```json
+{
+  "http://bartoc.org/api-type/jskos": "JSKOS API",
+  "http://bartoc.org/api-type/skosmos": "Skosmos API",
+  "http://bartoc.org/api-type/reconciliation": "Reconciliation",
+  "http://bartoc.org/api-type/loc": "Library of Congress",
+  "http://bartoc.org/api-type/lod": "Linked Open Data (LOD)",
+  "http://bartoc.org/api-type/skohub": "Skohub",
+  "http://bartoc.org/api-type/sparql": "SPARQL endpoint",
+  "http://bartoc.org/api-type/tematres": "TemaTres API",
+  "http://bartoc.org/api-type/ols": "Ontology Lookup Service (OLS)",
+  "http://bartoc.org/api-type/ontoportal": "OntoPortal",
+  "http://bartoc.org/api-type/opentheso": "Opentheso",
+  "http://bartoc.org/api-type/sru": "Search/Retrieve via URL (SRU)",
+  "http://bartoc.org/api-type/oaipmh": "OAI-PMH",
+  "http://bartoc.org/api-type/rss": "RSS",
+  "http://bartoc.org/api-type/mycore": "MyCoRE Classification API",
+  "http://bartoc.org/api-type/graphql": "GraphQL",
+  "http://bartoc.org/api-type/noterms": "Network of Terms",
+  "http://bartoc.org/api-type/lobid-gnd": "Lobid GND API",
+  "http://bartoc.org/api-type/webservice": "Unspecified Webservice",
+  "http://bartoc.org/api-type/xtree": "xTree API"
+}
+```
+
+---
+
+### `ddc-labels.json`
+
+**Purpose:** Label lookup for top-level DDC classes (0–9).  
+**Format:** JSON object mapping a single digit (as a string) to its English label.  
+**Example:**
+
+```json
+{
+  "0": "Computer science, information & general works",
+  "1": "Philosophy & psychology",
+  "2": "Religion",
+  "3": "Social sciences",
+  "4": "Language",
+  "5": "Science",
+  "6": "Technology",
+  "7": "Arts & recreation",
+  "8": "Literature",
+  "9": "History & geography",
+  "10": "Philosophy",
+  ...
+}
+```
+
+---
+
+### `format-groups.json`
+
+**Purpose:** Normalize raw format URIs into UI-friendly buckets (e.g., “Online”, “PDF”, “SKOS”).  
+**Format:** JSON array of objects.  
 **Shape / Example:**
+
+```json
+[
+  { "key": "online", "label": "Online", "uris": ["http://bartoc.org/en/Format/Online"] },
+  { "key": "pdf", "label": "PDF", "uris": ["http://bartoc.org/en/Format/PDF"] },
+  {
+    "key": "rdf",
+    "label": "RDF",
+    "uris": [
+      "http://bartoc.org/en/Format/RDF",
+      "http://bartoc.org/en/Format/Turtle",
+      "http://bartoc.org/en/Format/N-Quads",
+      "http://bartoc.org/en/Format/N-Triples",
+      "http://bartoc.org/en/Format/N3",
+      "http://bartoc.org/en/Format/TriX",
+      "http://bartoc.org/en/Format/TriG"
+    ]
+  }
+]
+```
+
+---
+
+### `listed_in.json`
+
+**Purpose:** Lookup table for registry/collection names by their BARTOC node URI (used to render “Listed in …” badges).  
+**Format:** JSON object mapping, registry URI → label (string).  
+**Example:**
+
+```json
+{
+  "http://bartoc.org/en/node/18927": "VEST Registry",
+  "http://bartoc.org/en/node/18926": "coli-conc KOS Registry",
+  "http://bartoc.org/en/node/19999": "DANTE",
+  "http://bartoc.org/en/node/18925": "FAIRSharing",
+  "http://bartoc.org/en/node/1737": "The OBO Foundry",
+  "http://bartoc.org/en/node/18923": "Getty Vocabularies",
+  "http://bartoc.org/en/node/18922": "EU Vocabularies",
+  "http://bartoc.org/en/node/18921": "Conservation controlled vocabularies",
+  "http://bartoc.org/en/node/18784": "European Register of Marine Species (ERMS)",
+  "http://bartoc.org/en/node/18735": "Metadata registry of the German Network for Educational Research Data",
+  "http://bartoc.org/en/node/18714": "onomy.org",
+  "http://bartoc.org/en/node/18696": "Loterre",
+  "http://bartoc.org/en/node/18669": "PoolParty Vocabulary Hub",
+  "http://bartoc.org/en/node/18662": "legivoc",
+  "http://bartoc.org/en/node/18629": "SIFR BioPortal",
+  "http://bartoc.org/en/node/18616": "Linked ISPRA",
+}
+```
+
+---
+
+### `lookup_entries.json`
+
+**Purpose:** Prebuilt entries to power client-side URI detection (e.g., with `namespace-lookup`). Each item ties a Concept Scheme (`uri`) to its namespace prefix, labels and identifiers.  
+**Format:** JSON array of objects.  
+**Shape:**
+
+```json
+[
+  {
+    "uri": "http://bartoc.org/en/node/18514",
+    "identifier": [
+      "http://purl.org/heritagedata/schemes/eh_period",
+      "http://purl.org/heritagedata/schemes/eh_period/concepts/"
+    ],
+    "prefLabel": { "en": "Historic England Periods Authority File" },
+    "namespace": "http://purl.org/heritagedata/schemes/eh_period/"
+  }
+]
+```
+
+**Used by:** Client-side detection: “It is likely a URI from …”.
+
+
+
+### Static files 
+
+#### `supported_languages.json`
+
+**Purpose:** Map language codes to display names used in the UI (filters, labels, i18n hints).  
+**Format:** JSON object mapping language code → English name.  
+**Notes:** Mostly ISO 639-1 (2-letter) codes; some entries may use 3-letter codes where no 2-letter exists (TODO) (e.g., `ceb`).
+
+**Shape / Example:**
+
+```json
+{
+  "af": "Afrikaans",
+  "ar": "Arabic",
+  "az": "Azerbaijani",
+  "be": "Belarusian",
+  "bg": "Bulgarian",
+  ...
+}
+```
+
+---
+
+#### `license-groups.json`
+
+**Purpose:** Normalize raw license URIs into UI-friendly buckets (e.g., “CC BY”, “CC BY-SA”).  
+**Format:** JSON array of objects.  
+**Shape / Example:**
+
 ```json
 [
   {
@@ -210,65 +485,18 @@ data/
       "http://creativecommons.org/licenses/by-sa/3.0/",
       "http://creativecommons.org/licenses/by-sa/4.0/"
     ]
-  }
-]
-```
-
----
-
-## `listedIn.json`
-
-**Purpose:** Lookup table for registry/collection names by their BARTOC node URI (used to render “Listed in …” badges).
-**Format:** JSON object mapping,  registry URI → label (string).
-
-**Example (array of objects):**
-
-```json
-[
-  {
-  "http://bartoc.org/en/node/18927": "VEST Registry",
-  "http://bartoc.org/en/node/18926": "coli-conc KOS Registry",
-  "http://bartoc.org/en/node/19999": "DANTE",
-  ...
-}
-]
-```
-
----
-
-## `lookup_entries.json`
-
-**Purpose:** Prebuilt entries to power client-side URI detection (e.g., with `namespace-lookup`). Each item ties a Concept Scheme (`uri`) to its namespace prefix, labels and identifiers. 
-
-**Format:** JSON array of objects.
-**Shape:**
-
-```json
-[
-  {
-    "uri": "http://bartoc.org/en/node/18514",
-    "identifier": [
-      "http://purl.org/heritagedata/schemes/eh_period",
-      "http://purl.org/heritagedata/schemes/eh_period/concepts/"
-    ],
-    "prefLabel": {
-      "en": "Historic England Periods Authority File"
-    },
-    "namespace": "http://purl.org/heritagedata/schemes/eh_period/"
-  }
+  },
   ...
 ]
 ```
 
-**Used by:** Client-side detection: “It is likely a URI from …”.
-
 ---
 
-## `nkostype.concepts.ndjson`
+#### `nkostype.concepts.ndjson`
 
 **Purpose:** NKOS Type Vocabulary as JSKOS Concept (e.g., thesaurus, classification schema, gazetteer).  
-**Format:** NDJSON, one JSKOS Concept per line.
-**Key fields:** `uri`, `type`, `notation`, `prefLabel`, `altLabel?`, `scopeNote?`, `inScheme`, `topConceptOf?`.
+**Format:** NDJSON, one JSKOS Concept per line.  
+**Key fields:** `uri`, `type`, `notation`, `prefLabel`, `altLabel?`, `scopeNote?`, `inScheme`, `topConceptOf?`.  
 **Example:**
 
 ```json
@@ -285,41 +513,13 @@ data/
  "scopeNote":{"en":["geospatial dictionary of named and typed places"]},
  "topConceptOf":[{"uri":"http://w3id.org/nkos/nkostype"}]}
 ```
+
 ---
 
-## `registries.ndjson`
+### CLI
 
-**Purpose:** Registry/collection records (things a scheme can be “listed in”), used for badges and links in the UI.
-**Format:** NDJSON  — one object per line.
-**Key fields:**  
-- `uri` — canonical BARTOC node URI for the registry  
-- `prefLabel` — language map with the registry’s name  
-- `definition?` — short description (lang map, arrays of strings)  
-- `url?` — external website of the registry  
-- `type` — usually `http://purl.org/cld/cdtype/CatalogueOrIndex`
+Run the updater directly locally:
 
-**Example:**
-
-```json
-{"definition":{"en":["This Agrisemantics Map of Data Standards is the continuation of the VEST Registry started on the FAO AIMS website (now superseded by tis Map) and it includes metadata from the AgroPortal ontology repository managed by University of Montpelier and Stanford University.\n"]},"prefLabel":{"en":"VEST Registry"},"type":["http://purl.org/cld/cdtype/CatalogueOrIndex"],"uri":"http://bartoc.org/en/node/18927","url":"http://aims.fao.org/vest-registry"}
+```bash
+npm run update-data
 ```
-
----
-
-## `supported_languages.json`
-
-**Purpose:** Map language codes to display names used in the UI (filters, labels, i18n hints).
-**Format:** JSON **object** mapping language code → English name.  
-**Notes:** Mostly ISO 639-1 (2-letter) codes; some entries may use 3-letter codes where no 2-letter exists (TODO) (e.g., `ceb`).
-
-**Shape / Example:**
-```json
-{
-  "af": "Afrikaans",
-  "ar": "Arabic",
-  "az": "Azerbaijani",
-  "be": "Belarusian",
-  "bg": "Bulgarian",
-```
-
----
