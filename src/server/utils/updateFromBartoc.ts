@@ -11,7 +11,6 @@ import { buildAccessType } from "./buildAccessType";
 import { buildDDCLabels } from "./buildDDCLabels";
 import { buildListedInLabels } from "./buildListedInLabels";
 import { buildBartocApiLabels } from "./buildBartocApiLabels";
-import { buildFormatsLabels } from "./buildFormatsLabels";
 import { KEEP_LANGS } from "./helpers";
 
 
@@ -21,7 +20,7 @@ const ART_DIR = path.join(DATA_DIR, "artifacts");
 const META_PATH = path.join(ART_DIR, "vocs.last.json"); // metadata persisted between runs
 
 type Source = {
-  key: "vocs" | "registries" | "formats" | "apiTypes" | "accessTypes" | "ddcConcepts";
+  key: "vocs" | "registries" | "apiTypes" | "accessTypes" | "ddcConcepts";
   url: string;
   kind: "ndjson" | "json";
   snapDir: string;
@@ -44,14 +43,6 @@ const SOURCES: Record<Source["key"], Source> = {
     kind: "json",
     snapDir: path.join(DATA_DIR, "snapshots", "registries"),
     metaPath: path.join(DATA_DIR, "artifacts", "registries.last.json"),
-    ext: ".json",
-  },
-  formats: {
-    key: "formats",
-    url: "https://bartoc.org/api/voc/top?uri=http://bartoc.org/en/node/20000",
-    kind: "json",
-    snapDir: path.join(DATA_DIR, "snapshots", "formats"),
-    metaPath: path.join(DATA_DIR, "artifacts", "formats.last.json"),
     ext: ".json",
   },
   apiTypes: {
@@ -212,13 +203,11 @@ async function main(): Promise<void> {
   // fetch both sources (independently tracked)
   const [{ meta: vocsMeta, notModified: notModifiedVocs }, 
     { meta: regMeta, notModified: notModifiedRegs },
-    { meta: formatsMeta, notModified: notModifiedFormats },
     { meta: apiTypesMeta, notModified: notModifiedApitypes}, 
     { meta: accessTypesMeta, notModified: notModifiedAccesstypes},
     { meta: ddcConceptsMeta, notModified: notModifiedDdcConcepts}, ] = await Promise.all([
     timed("Fetching vocs", () => fetchSnapshotFor(SOURCES.vocs)),
     timed("Fetching registries", () => fetchSnapshotFor(SOURCES.registries)),
-    timed("Fetching formats", () => fetchSnapshotFor(SOURCES.formats)),
     timed("Fetching api types", () => fetchSnapshotFor(SOURCES.apiTypes)),
     timed("Fetching access types", () => fetchSnapshotFor(SOURCES.accessTypes)),
     timed("Fetching DDC 100 Concepts", () => fetchSnapshotFor(SOURCES.ddcConcepts)),
@@ -231,9 +220,6 @@ async function main(): Promise<void> {
   if (regMeta?.snapshotPath) parts.push(
     path.basename(regMeta.snapshotPath, 
     path.extname(regMeta.snapshotPath)));
-  if (formatsMeta?.snapshotPath) parts.push(
-    path.basename(formatsMeta.snapshotPath, 
-    path.extname(formatsMeta.snapshotPath)));
   if (apiTypesMeta?.snapshotPath) parts.push(
     path.basename(apiTypesMeta.snapshotPath, 
     path.extname(apiTypesMeta.snapshotPath)));
@@ -277,13 +263,6 @@ async function main(): Promise<void> {
     buildBartocApiLabels(apiTypesMeta.snapshotPath, tempDir)
   );
 
-  // Build format-groups.json
-  await timed("Build format-groups.json", () =>
-    buildFormatsLabels(formatsMeta.snapshotPath, tempDir)
-  );
-
-
-
   // EARLY EXIT: snapshot unchanged and artifacts already published → do nothing
   if (notModifiedVocs) {
     console.log("Vocs Snapshot unchanged — nothing to do.");
@@ -291,10 +270,6 @@ async function main(): Promise<void> {
 
   if (notModifiedRegs) {
     console.log("Registries Snapshot unchanged — nothing to do.");  
-  }
-
-  if (notModifiedFormats) {
-    console.log("Formats Snapshot unchanged — nothing to do.");  
   }
 
   if (notModifiedApitypes) {

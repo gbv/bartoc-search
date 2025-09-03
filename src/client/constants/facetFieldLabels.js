@@ -11,7 +11,6 @@ const DYNAMIC_FACETS = {
   ddc_root_ss: { file: "ddc-labels.json", label: "Dewey Decimal Classification" },
   listed_in_ss: { file: "listed_in.json", label: "Listed In" },
   api_type_ss: { file: "bartoc-api-types-labels.json", label: "Api Type" },
-  format_group_ss: { file: "format-groups.json", label: "Format Group" },
 }
 
 const dynamicFacets = {}
@@ -31,6 +30,10 @@ export const FACET_FIELD_LABELS = {
   languages_ss:  {
     label: "Language",
     values: SUPPORTED_LANGUAGES,
+  },
+  format_group_ss: {
+    label: "Format Group",
+    values: {},
   },
   license_group_ss: {
     label: "License Group",

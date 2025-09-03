@@ -31,7 +31,6 @@ data/
 │   │   ├── artifacts.meta.json
 │   │   ├── bartoc-api-types-labels.json
 │   │   ├── ddc-labels.json
-│   │   ├── format-groups.json
 │   │   ├── listed_in.json
 │   │   └── lookup_entries.json
 │   ├── ddcConcepts.last.json
@@ -39,6 +38,7 @@ data/
 │   ├── registries.last.json
 │   └── vocs.last.json
 ├── license-groups.json
+├── format-groups.json
 ├── nkostype.concepts.ndjson
 ├── README.md
 ├── snapshots
@@ -52,9 +52,6 @@ data/
 │   │   ├── 2025-09-01_noetag_025dbe41a62f.json
 │   │   ├── 2025-09-01_noetag_ebf3a904e967.json
 │   │   └── 2025-09-02_noetag_ebf3a904e967.json
-│   ├── formats
-│   │   ├── 2025-09-01_noetag_8b8a8615962b.json
-│   │   └── 2025-09-02_noetag_8b8a8615962b.json
 │   ├── registries
 │   │   └── 2025-09-01_W-289a7-o7JZIkS1ruxmbGhHhwmNx8zBspw_6497d5f035b0.json
 │   └── vocs
@@ -350,34 +347,6 @@ If a server returns **304 Not Modified**, the previous snapshot is reused and on
 
 ---
 
-### `format-groups.json`
-
-**Purpose:** Normalize raw format URIs into UI-friendly buckets (e.g., “Online”, “PDF”, “SKOS”).  
-**Format:** JSON array of objects.  
-**Shape / Example:**
-
-```json
-[
-  { "key": "online", "label": "Online", "uris": ["http://bartoc.org/en/Format/Online"] },
-  { "key": "pdf", "label": "PDF", "uris": ["http://bartoc.org/en/Format/PDF"] },
-  {
-    "key": "rdf",
-    "label": "RDF",
-    "uris": [
-      "http://bartoc.org/en/Format/RDF",
-      "http://bartoc.org/en/Format/Turtle",
-      "http://bartoc.org/en/Format/N-Quads",
-      "http://bartoc.org/en/Format/N-Triples",
-      "http://bartoc.org/en/Format/N3",
-      "http://bartoc.org/en/Format/TriX",
-      "http://bartoc.org/en/Format/TriG"
-    ]
-  }
-]
-```
-
----
-
 ### `listed_in.json`
 
 **Purpose:** Lookup table for registry/collection names by their BARTOC node URI (used to render “Listed in …” badges).  
@@ -487,6 +456,34 @@ If a server returns **304 Not Modified**, the previous snapshot is reused and on
     ]
   },
   ...
+]
+```
+
+---
+
+### `format-groups.json`
+
+**Purpose:** Normalize raw format URIs into UI-friendly buckets (e.g., “Online”, “PDF”, “SKOS”).  
+**Format:** JSON array of objects.  
+**Shape / Example:**
+
+```json
+[
+  { "key": "online", "label": "Online", "uris": ["http://bartoc.org/en/Format/Online"] },
+  { "key": "pdf", "label": "PDF", "uris": ["http://bartoc.org/en/Format/PDF"] },
+  {
+    "key": "rdf",
+    "label": "RDF",
+    "uris": [
+      "http://bartoc.org/en/Format/RDF",
+      "http://bartoc.org/en/Format/Turtle",
+      "http://bartoc.org/en/Format/N-Quads",
+      "http://bartoc.org/en/Format/N-Triples",
+      "http://bartoc.org/en/Format/N3",
+      "http://bartoc.org/en/Format/TriX",
+      "http://bartoc.org/en/Format/TriG"
+    ]
+  }
 ]
 ```
 

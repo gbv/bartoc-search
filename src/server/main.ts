@@ -268,7 +268,7 @@ async function ensureArtifactsAtBoot() {
   const metaFile   = path.join(currentDir, "artifacts.meta.json");
   const haveArtifacts = await fileExists(metaFile);
 
-  if (!haveArtifacts) return;
+  if (haveArtifacts) return;
 
   const promise = runUpdateOnce();
   if (!haveArtifacts) {

@@ -88,4 +88,12 @@ config.error = (...args: unknown[]) => {
   }
 };
 
+// Set baseUrl to localhost if not set
+if (!config.baseUrl) {
+  config.baseUrl = `http://localhost:${config.port}/`;
+}
+if (!config.baseUrl.endsWith("/")) {
+  config.baseUrl += "/";
+}
+
 export default config;
