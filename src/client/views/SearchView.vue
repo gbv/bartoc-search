@@ -39,7 +39,9 @@ import SearchControls from "../components/SearchControls.vue"
 import SearchResults from "../components/SearchResults.vue"
 import SearchSidebar from "../components/SearchSidebar.vue"
 import _ from "lodash"
-import { state, setFilters, resetFiltersRequested, clearFilters, resetOpenGroups } from "../stores/filters.js"
+import { state, setFilters, resetFiltersRequested, 
+  clearFilters, resetOpenGroups, requestBucketFor, 
+  buildRepeatableFiltersFromState, filtersToRepeatableForUrl } from "../stores/filters.js"
 
 // Router hooks
 const router = useRouter()
@@ -76,29 +78,43 @@ const sortKey = computed(() => {
   return `${s} ${o}`
 })
 
-function cleanQuery(query) {
-  const { filters, ...newQuery } = query
-
-  const parsed = filters ? JSON.parse(filters) : {}
-
-  const kept = _.pickBy(parsed, v => _.isArray(v) && v.length > 0)
-
-  return _.isEmpty(kept)
-    ? newQuery
-    : { ...newQuery, filters: JSON.stringify(kept) }
-}
-
 async function fetchResults(query) {
   loading.value = true
   errorMessage.value = null
 
   try {
-    const params = new URLSearchParams({
-      ...query,
-      start: 0,
-      rows: String(limit.value),
-    })
+    
+    // 1) derive short URL filters from store (values only; no empties)
+    const urlFilters = filtersToRepeatableForUrl()
 
+    const { filter, ...rest } = query || {}
+    const base = { ...rest }
+
+    // 2) update the address bar (SHORT)
+    const urlQuery = {
+      ...base,
+      limit: String(limit.value),
+      ...(urlFilters.length ? { filter: urlFilters } : {}),
+    }
+
+    router.replace({ name: route.name, query: urlQuery })
+
+    // 3) build API params (repeatable)
+    const params = new URLSearchParams()
+    Object.entries(base).forEach(([k, v]) => {
+      if (v !== undefined && v !== null && v !== "") {
+        params.set(k, String(v))
+      }
+    })
+    params.set("start", "0")
+    params.set("rows", String(limit.value))
+
+    // Prefer filters provided by caller (may include empties),
+    // else fall back to SHORT ones (no empties).
+    const apiFilterList = Array.isArray(filter) ? filter : filter ? [filter] : urlFilters
+    apiFilterList.forEach(f => params.append("filter", f))
+
+    // 4) fetch
     const res = await fetch(`${import.meta.env.BASE_URL}api/search?${params}`)
 
     if (!res.ok) {
@@ -113,7 +129,6 @@ async function fetchResults(query) {
       ? response.docs.filter(doc => doc && typeof doc === "object")
       : []
 
-
     const numFound = response?.numFound || 0
     const facets = data?.facets || {}
     
@@ -121,18 +136,6 @@ async function fetchResults(query) {
     results.value.docs      = docs
     results.value.numFound  = numFound
     results.value.facets = facets
-
-    // Clean up query filters
-    const cleanedQuery = cleanQuery(query)
-
-    // sync the URL
-    router.replace({
-      name: route.name,
-      query: { 
-        ...cleanedQuery,
-        limit: String(limit.value),
-      },
-    })
 
   } catch (error) {
     errorMessage.value = `Search failed: ${error.message}`
@@ -149,16 +152,18 @@ function onSearch(query) {
   fetchResults(query, { append: false })
 }
 
-function onSort({ sort, order }) {
+function onSort({ sort, order }, opts = {}) {
   sortBy.value = sort
-  
+
+  const filterParams = buildRepeatableFiltersFromState(opts)
+
   // merge sort/order into whatever the user is currently searching for
   const baseQuery = { ...route.query }
   const newQuery = {
     ...baseQuery,
     sort,
     order,
-    filters: JSON.stringify(activeFilters),
+    ...(filterParams.length ? { filter: filterParams } : {}),
   }
 
   router.push({ name: "search", query: newQuery })
@@ -166,7 +171,7 @@ function onSort({ sort, order }) {
 }
 
 // Load more results by increasing visible results
-function loadMore() {
+function loadMore(opts = {}) {
 
   let newLimit = limit.value += pageSize
 
@@ -174,20 +179,46 @@ function loadMore() {
     newLimit = results.value.numFound
   }
 
+  const filterParams = buildRepeatableFiltersFromState(opts)
+
   const baseQuery = { ...route.query }
   const newQuery = {
     ...baseQuery,
     limit: newLimit,
-    filters: JSON.stringify(activeFilters),
+    ...(filterParams.length ? { filter: filterParams } : {}),
   }
+
   router.push({ name: "search", query: newQuery })
   fetchResults(newQuery)
 }
 
-function onFilterChange(filters) {
+
+// Accepts:
+// - filters: { internalField: ["v1","v2"], ... }  (values update)
+// - opts.bucketFor: "language" | "languages_ss"   (request full bucket)
+function onFilterChange(filters, opts = {}) {
   limit.value = pageSize
+
+  // 1) update selected values
   setFilters({ ...activeFilters, ...filters })
-  const newQuery = { ...route.query, filters: JSON.stringify(activeFilters)}
+
+  // 2) if this call is a "bucket open" for a facet, remember it
+  if (opts.bucketFor) {
+    requestBucketFor(opts.bucketFor)
+  }
+
+  // 3) build final repeatable params from *both* selected values + bucket facets
+  const filterParams = buildRepeatableFiltersFromState(opts)
+
+
+  // 4) update URL + fetch
+  const base = { ...route.query }
+  const newQuery = {
+    ...base,
+    limit: String(pageSize),
+    ...(filterParams.length ? { filter: filterParams } : {}),
+  }
+
   fetchResults(newQuery)
 }
 

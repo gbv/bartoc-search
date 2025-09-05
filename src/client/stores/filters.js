@@ -1,34 +1,177 @@
 // store about filters
 import { reactive } from "vue"
 
+/**
+ * Public <-> Internal mapping
+ * Keep activeFilters in INTERNAL (Solr) field names.
+ */
+export const INTERNAL_TO_PUBLIC = {
+  type_uri: "type",
+  ddc_root_ss: "ddc",
+  languages_ss: "language",
+  listed_in_ss: "in",
+  api_type_ss: "api",
+  access_type_ss: "access",
+  license_group_ss: "license",
+  format_group_ss: "format",
+  address_country_s: "country",
+  publisher_labels_ss: "publisher",
+}
+
+
+export const PUBLIC_TO_INTERNAL = Object.fromEntries(
+  Object.entries(INTERNAL_TO_PUBLIC).map(([internal, pub]) => [pub, internal]),
+)
+
 export const state = reactive({
-  activeFilters: {},
-  filtersRequested: {}, 
-  openGroups: {},
+  activeFilters: {},     // internal -> string[]
+  filtersRequested: {},  // filters flagging
+  openGroups: {},        // UI state
+  bucketFacets: {},      // <-- internal -> true (request full bucket)
 })
 
+// ---------- internal helpers ----------
 
-// replace the entire filter map
+/**
+ * Normalize array-ish values to unique, trimmed strings.
+ */
+function normalizeValues(values) {
+  const arr = Array.isArray(values) ? values : []
+  return Array.from(new Set(arr.map(v => String(v).trim()).filter(Boolean)))
+}
+
+/**
+ * Flatten current (or given) internal activeFilters into repeatable filter= strings.
+ * - Values containing commas are skipped (format doesn't support them).
+ * - The special no-value token "-" is treated as a normal value.
+ * - Optionally include *empty* filters (e.g. "language:") for facets where
+ *   we want the server to return the *entire bucket*.
+ *
+ * @param {Record<string,string[]>} filters   internal -> values (defaults to store)
+ * @param {Object} options
+ * @param {string[]} [options.includeEmptyFor]  list of facet keys (public or internal)
+ *                                             for which to emit an empty filter (`key:`)
+ * @returns {string[]} e.g. ["language:en,de", "api:-"] or ["language:"]
+ */
+export function filtersToRepeatable(filters = state.activeFilters, options = {}) {
+  const parts = []
+  const includeEmptyFor = new Set(
+    (options.includeEmptyFor || []).map(k => PUBLIC_TO_INTERNAL?.[k] || k), // accept public or internal
+  )
+
+
+  // Emit filters for fields present in `filters`
+  for (const [internal, valuesRaw] of Object.entries(filters || {})) {
+    const publicKey = INTERNAL_TO_PUBLIC[internal]
+    if (!publicKey) {
+      continue
+    }
+
+    const values = normalizeValues(valuesRaw).filter(v => !v.includes(","))
+
+    if (values.length > 0) {
+      parts.push(`${publicKey}:${values.join(",")}`)
+    } else if (includeEmptyFor.has(internal)) {
+      // explicit request for full bucket of this facet
+      parts.push(`${publicKey}:`)
+      includeEmptyFor.delete(internal) // handled
+    }
+  }
+
+
+
+  // Also allow requesting buckets for facets not yet present in `filters`
+  for (const internal of includeEmptyFor) {
+    const publicKey = INTERNAL_TO_PUBLIC[internal]
+    if (publicKey) {
+      parts.push(`${publicKey}:`)
+    }
+  }
+
+  return parts
+}
+
+export function buildRepeatableFiltersFromState(extra = {}) {
+  // collect all facets that should return full buckets
+  const include = new Set(
+    Object.entries(state.bucketFacets)
+      .filter(([, on]) => on)
+      .map(([internal]) => internal),
+  )
+  if (extra.bucketFor) {
+    include.add(PUBLIC_TO_INTERNAL[extra.bucketFor] || extra.bucketFor)
+  }
+
+  return filtersToRepeatable(state.activeFilters, { includeEmptyFor: Array.from(include) })
+}
+
+
+// Short URL: only facets with values (and "-" if used). NO empties.
+export function filtersToRepeatableForUrl(filters = state.activeFilters) {
+  const parts = []
+  for (const [internal, valuesRaw] of Object.entries(filters || {})) {
+    const publicKey = INTERNAL_TO_PUBLIC[internal]
+    if (!publicKey) {
+      continue
+    }
+    const values = normalizeValues(valuesRaw).filter(v => !v.includes(","))
+    if (values.length > 0) {
+      parts.push(`${publicKey}:${values.join(",")}`)
+    }
+  }
+  return parts
+}
+
+
+///--------------- mutators ------------------
+
+// mark/unmark full-bucket requests (accept public or internal keys)
+
+export function requestBucketFor(key) {
+  const internal = PUBLIC_TO_INTERNAL[key] || key
+  state.bucketFacets[internal] = true
+}
+
+export function clearBucketFor(key) {
+  const internal = PUBLIC_TO_INTERNAL[key] || key
+  delete state.bucketFacets[internal]
+}
+
+export function clearAllBuckets() {
+  Object.keys(state.bucketFacets).forEach(k => delete state.bucketFacets[k])
+}
+
+// set/clear active filters (internal keys)
 export function setFilters(filters) {
   // clear out old keys
   Object.keys(state.activeFilters).forEach(k => {
-    delete state.activeFilters[k] 
+    delete state.activeFilters[k]
   })
-  // assign new ones
-  Object.entries(filters).forEach(([k, vals]) => {
-    state.activeFilters[k] = Array.isArray(vals) ? [...vals] : []
+  // assign new ones (normalize)
+  Object.entries(filters || {}).forEach(([k, vals]) => {
+    state.activeFilters[k] = normalizeValues(vals)
   })
 }
 
-// update only one field
 export function updateFilter(field, values) {
-  state.activeFilters[field] = Array.isArray(values) ? [...values] : []
+  state.activeFilters[field] = normalizeValues(values)
 }
 
-// remove all filters
+// handy toggle (optional, but useful in UIs)
+export function toggleFilterValue(field, value) {
+  const v = String(value)
+  const cur = new Set(state.activeFilters[field] || [])
+  if (cur.has(v)) {
+    cur.delete(v)
+  } else {
+    cur.add(v)
+  }
+  state.activeFilters[field] = Array.from(cur)
+}
+
 export function clearFilters() {
   Object.keys(state.activeFilters).forEach(k => {
-    delete state.activeFilters[k] 
+    delete state.activeFilters[k]
   })
 }
 
@@ -42,37 +185,26 @@ export function markFilterRequested(field) {
   }
 }
 
-/** 
- * When the user does a new search (or sort), you want
- * to treat *all* facets as “not yet requested.” 
- */
+/** Treat *all* facets as “not yet requested.” */
 export function resetFiltersRequested() {
   Object.keys(state.filtersRequested).forEach(k => {
     delete state.filtersRequested[k]
   })
 }
 
-/**
- * Toggle a group open/closed
- */
+/** Toggle a group open/closed */
 export function toggleGroup(field) {
   state.openGroups[field] = !state.openGroups[field]
 }
 
-/**
- * Explicitly set a group open or closed
- */
+/** Explicitly set a group open or closed */
 export function setGroupOpen(field, isOpen) {
   state.openGroups[field] = isOpen
 }
 
-/**
- * Collapse all groups (e.g. on a new search or sort)
- */
+/** Collapse all groups (e.g. on a new search or sort) */
 export function resetOpenGroups() {
   Object.keys(state.openGroups).forEach(f => {
     delete state.openGroups[f]
   })
 }
-
-

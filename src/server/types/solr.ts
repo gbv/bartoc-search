@@ -220,7 +220,7 @@ export interface SearchParams {
   limit?: number; // rows= sent to Solr
   sort?: SortField;
   order?: SortOrder;
-  filters?: string;
+  filter?: string[];
   format?: string; // e.g. "jskos",
   uri?: string
 }

@@ -15,7 +15,7 @@ const configFilePath = path.resolve(process.cwd(), configFile);
 const defaultFilePath = path.resolve(process.cwd(), defaultFile);
 const dataFilePath = path.resolve(process.cwd(), ndJsonFile);
 export const infoPackage = packageInfo;
-export const NO_VALUE: string = "no value";
+export const NO_VALUE: string = "-";
 
 
 // If file doesn't exist, create it with an empty object

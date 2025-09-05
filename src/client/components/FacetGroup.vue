@@ -30,7 +30,7 @@
               :checked="selected.includes(facet.value)"
               @change="onCheckbox"
               @click.stop>
-            <span class="facet-value">{{ facetValues[facet.value] ?? facet.value }}</span>
+            <span class="facet-value">{{ facetValues[facet.value] ?? (facet.value === '-' ? 'no value' : facet.value) }}</span>
             <span class="facet-count">{{ facet.count }}</span>
           </li>
         </ul>

@@ -22,6 +22,7 @@ import { SearchFilter } from "./solr/search/SearchFilter.js";
 import _ from "lodash";
 import { runUpdateOnce } from "./utils/updateFromBartoc";
 import fsPromises from "node:fs/promises";
+import { parseRepeatableFilters } from "./utils/filters.ts";
 
 
 const isProduction = process.env.NODE_ENV === "production";
@@ -77,35 +78,31 @@ app.get("/api/status", getStatus);
 // ==========================
 // Search endpoint
 // ==========================
+
 app.get("/api/search", async (req: Request, res: Response): Promise<void> => {
   const { search = "", 
     field = "allfields", 
     limit = 10, 
     sort = SortField.RELEVANCE, 
     order = SortOrder.ASC , 
-    filters = "{}",
     format = "",
     uri = ""
-  } = req.query as SearchParams;
+  } = req.query as Partial<SearchParams>;
 
   // Building the query
   const query = LuceneQuery.fromText(search, field, 3, 2).operator("OR");
 
   // Parse the filters field into an object
-  let parsedFilters: Record<string,string[]> = {};
-  try {
-    parsedFilters = JSON.parse(filters);
-    // e.g. parsed filters object: { languages_ss: ["en"] }
-  } catch (e) {
-    // TODO return a proper error here
-    config.error?.("Failed to parse filters JSON:", filters, "with error " + e);
-  }
+ 
+  const parsedFilters: Record<string, string[]> =
+    parseRepeatableFilters(req.query.filter as string | string[] | undefined);
 
+  // Prepare the Solr query
   try {
     const solrQueryBuilder = new SolrClient()
       .searchOperation;
 
-    const op = await solrQueryBuilder
+    const op = solrQueryBuilder
       .prepareSelect(config.solr.coreName)
       .for(query)
       .sort(sort, order)
@@ -119,7 +116,7 @@ app.get("/api/search", async (req: Request, res: Response): Promise<void> => {
    
     
     // Dynamically register each facet field
-    Object.keys(parsedFilters).forEach((facetName) => {
+    for (const facetName of Object.keys(parsedFilters)) {
 
       op.facetOnField(facetName);
       let facetValues = (parsedFilters[facetName] ?? [])
@@ -128,7 +125,7 @@ app.get("/api/search", async (req: Request, res: Response): Promise<void> => {
 
       // If nothing left and “no value” wasn’t requested, skip entirely
       if (facetValues.length === 0 && !parsedFilters[facetName].includes(NO_VALUE)) {
-        return;
+        continue;
       }
 
       // If the user selected the “no value” bucket, add a missing‐field filter
@@ -138,22 +135,22 @@ app.get("/api/search", async (req: Request, res: Response): Promise<void> => {
           new SearchFilter(facetName)
             .raw(`-${facetName}:[* TO *]`)
         );
+        continue;
       }
 
       facetValues = facetValues.filter(v => v !== NO_VALUE);
 
-      if (facetValues.length == 1) {
+      if (facetValues.length == 1 && !facetValues.includes(NO_VALUE)) {
         op.filter(
           new SearchFilter(facetName)
             .equals(facetValues[0])    
         );
       } else {
         op.filter(
-          new SearchFilter(facetName)
-            .ors(facetValues) 
+          new SearchFilter(facetName).raw(`{!terms f=${facetName}}${facetValues.join(",")}`)
         );
       }
-    });
+    }
 
     // Execute query
     //

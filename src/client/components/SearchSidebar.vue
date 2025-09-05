@@ -36,8 +36,17 @@ const emit = defineEmits(["update-filters"])
 const { facets, loading, errorMessage } = toRefs(props)
 
 function updateFilters(field, values) {
+  // optional: let the parent be the single source of truth; remove this line if you prefer lifting state
   updateFilter(field, values)
-  emit("update-filters", { [field]: values })
+
+  const hasValues = Array.isArray(values) && values.length > 0
+  if (hasValues) {
+    // values selected → normal filter update
+    emit("update-filters", { [field]: values })
+  } else {
+    // no values → ask backend for full bucket of this facet
+    emit("update-filters", {}, { bucketFor: field })
+  }
 }
 
 </script>
