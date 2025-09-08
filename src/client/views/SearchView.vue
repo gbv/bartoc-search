@@ -157,6 +157,12 @@ function onSearch(query) {
   resetOpenGroups()
   
   const base = { ...route.query }
+
+  // deleteing previous filters & pagination
+  delete base.filter
+  delete base.start
+  delete base.rows
+
   const newQuery = {
     ...base,
     search: query?.search ?? base.search ?? "",
