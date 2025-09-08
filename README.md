@@ -209,30 +209,98 @@ All query parameters are optional.
 | **order**       | `string` | `desc`      | Sort direction: `asc` or `desc`.                                                             |
 | **start**       | `number` |  `0`         | Zero-based index of first result to return (for paging).                                     |
 | **rows**        | `number` |  matches `limit` if omitted | Alias for `limit` — number of rows to return.                                            |
-| **filters**     | `object` |  `{}`        | Facet filters as a JSON object. Each key is a multivalued field name, value is an array of selected facet values. |
+| **filter**     | `repeatable string` |  -        | Facet filters as `filter=<publicKey>:<csvValues>`. Repeat for multiple facets. See the mapping table below |
 | **format**     | `string` |  -        |If set to `jskos`, returns the raw JSKOS records (from the `fullrecord` field) instead of the usual Solr docs.  |
 | **uri**     | `string` |  -        | `format=jskos&uri=<ConceptURI>` When both are included, the endpoint returns the raw JSKOS record for that exact URI instead of the list of JSKOS records.|
 
 
-### Faceted Filtering
+#### Faceted filtering with repeatable `filter=` param
 
-You can drive fine‐grained filtering by passing any of your multivalued facet fields in the `filters` object. Behind the scenes, each non-empty array translates to a Solr facet query like:
+- Use repeatable `filter` params in the URL:
+  
+  ```
+  &filter=<publicKey>:<comma,separated,values>
+  ```
+  
+- OR within a facet (comma-separated values), AND across facets (repeat each facet):
+  
+  ```
+  &filter=language:en,es&filter=ddc:3,9
+  ```
+  
+- Missing (“no value”) bucket: use a single dash `-` as a value:
+  
+  ```
+  &filter=api:-
+  ```
+  
+- Full bucket (no restriction, just return buckets): empty after the colon
+  
+  ```
+  &filter=language:
+  ```
+  
+- For shareable URLs, include only facets with actual values (and `-` when needed).  
+  The empty form (`facet:`) is primarily for UI bucket-loading and is usually omitted from shared links.
 
- `/api/search?search=Film&sort=modified&order=desc&filters={"format_group_ss":[],"api_type_ss":[]}`
+
+##### Examples
+
+```http
+/api/search?search=Film&sort=modified&order=desc
+  &filter=language:en,es
+  &filter=ddc:3,9
+```
+
+```http
+/api/search?filter=api:-        # documents with *no* API type (field missing)
+```
+
+```http
+/api/search?filter=language:    # return the full Language bucket (no restriction)
+```
+
+##### Public facet keys → internal fields
+
+Use these **public keys** in the `filter` param. The server maps them to Solr fields:
+
+| Public key | Internal field | Notes |
+| --- | --- | --- |
+| `type` | `type_uri` | KOS Type URIs |
+| `ddc` | `ddc_root_ss` | DDC root notations |
+| `language` | `languages_ss` | ISO codes |
+| `in` | `listed_in_ss` | “Listed in” registry URIs |
+| `api` | `api_type_ss` | API protocol identifiers |
+| `access` | `access_type_ss` | Access policy |
+| `license` | `license_group_ss` | Canonical license groups |
+| `format` | `format_group_ss` | Canonical format groups |
+| `country` | `address_country_s` | Country |
+| `publisher` | `publisher_labels_ss` | Publisher display label |
 
 
-- `filters={"format_group_ss":[],"api_type_ss":[]}`  
-  - Filters on the **format group** and **API type** facets.  
-  - An empty array (`[]`) means “no restriction” on that facet.  
-  - To restrict, supply one or more facet values, for example:  
-    ```json
-    filters={
-      "format_group_ss":["PDF","RDF"],
-      "api_type_ss":["jskos","sparql"]
-    }
-    ```
+##### Special cases
 
-#### Response
+###### “No value” (missing field)
+
+Use the single dash `-` to select documents where the facet field is absent.
+
+```http
+/api/search?filter=format:-
+```
+
+Server-side this is translated to a *missing field* filter (e.g., `-format_group_ss:*`; optionally OR’ed with `format_group_ss:""` if empty strings should also count as missing).
+
+###### Full bucket (empty after colon)
+
+To ask the server to **return the full bucket** for a facet **without restricting** results by that facet, send nothing after the colon:
+
+```http
+/api/search?filter=language:
+```
+
+This is intended for UI interactions (e.g., expanding a facet to load all choices). For public, shareable links prefer including only facets with actual values (and `-` when needed).
+
+#### Example of Response
   
 ```json
 {
@@ -338,6 +406,8 @@ You can drive fine‐grained filtering by passing any of your multivalued facet 
 }
 ```
 
+##### Fields Description
+
 | Field                    | Type    | Description                                              |
 | ------------------------ | ------- | -------------------------------------------------------- |
 | `responseHeader.status`  | integer | Solr execution status (0 = success).                     |
@@ -407,34 +477,6 @@ You can drive fine‐grained filtering by passing any of your multivalued facet 
 | └─ `modified_dt`         | string  | Last modification timestamp (ISO-8601).                  |
 | └─ `_version_`           | integer | Solr internal version number for optimistic concurrency. |
 
-
-#### Available Facet Fields
-
-| Field | Description |
-| --- | --- |
-| `type_uri` | SKOS/NKOS type URIs (e.g. ConceptScheme, thesaurus).|
-| `ddc_root_ss` | Dewey Decimal root notations |
-| `languages_ss` | ISO language codes |
-| `api_type_ss` | API protocol identifiers (e.g. jskos, sparql, skosmos) |
-| `listed_in_ss` | Registry URIs of the concept scheme(s) |
-| `access_type_ss` | Access policy URIs |
-| `license_type_ss` | Machine-readable license URIs |
-| `license_group_ss` | Canonical license group labels (e.g. “CC BY”, “Public Domain”, “WTFPL”) |
-| `format_type_ss` | Machine-readable format URIs |
-| `format_group_ss` | Canonical format group labels (e.g. “PDF”, “HTML”, “Spreadsheet”) |
-| `address_country_s` | Country of origin |
-| `publisher_labels_ss` | Name of the publisher |
-
-
-##### “No value” Facet Bucket
-
-In addition to ordinary facet values, every facet field also offers a special “no value” option. 
-Selecting this will only return documents where that field is entirely absent (i.e. `null` or not defined).  
-Under the hood we translate it into the Solr `filter:-field:[* TO *]`
-For example:
-
-- `-languages_ss:[* TO *]` → documents with no `languages_ss`  
-- `-ddc_ss:[* TO *]`       → documents with no Dewey Decimal Classification with no root level 
 
 
 #### Error Responses
