@@ -14,15 +14,22 @@
       :model-value="sortKey"
       :lookup-uri="lookupUri"
       @sort="onSort" />
-    <SearchResults
-      class="search-results__area"
-      :results="results"
-      :loading="loading"
-      :error-message="errorMessage"
-      :sort="sortBy"
-      @load-more="loadMore" />
+    <div class="search-results__area">
+      <SearchResults
+        v-if="loading || results.numFound > 0"
+        :results="results"
+        :loading="loading"
+        :error-message="errorMessage"
+        :sort="sortBy"
+        @load-more="loadMore" />
+      <NoResults
+        v-else
+        :search="route.query.search || ''"
+        :active-filters="activeFilters" />
+    </div>
     <aside class="search-sidebar__area">
       <SearchSidebar
+        v-if="results.numFound > 0"
         :facets="results.facets || {}"
         :loading="loading"
         @update-filters="onFilterChange" />
@@ -38,6 +45,7 @@ import NavBreadcrumb from "../components/NavBreadcrumb.vue"
 import SearchControls from "../components/SearchControls.vue"
 import SearchResults from "../components/SearchResults.vue"
 import SearchSidebar from "../components/SearchSidebar.vue"
+import NoResults from "../components/NoResults.vue"
 import _ from "lodash"
 import { state, setFilters, resetFiltersRequested, 
   clearFilters, resetOpenGroups, requestBucketFor, 
