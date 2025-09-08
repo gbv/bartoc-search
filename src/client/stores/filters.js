@@ -123,6 +123,60 @@ export function filtersToRepeatableForUrl(filters = state.activeFilters) {
 }
 
 
+// --- small local helpers
+function splitCsv(s) {
+  return String(s).split(",").map(t => t.trim()).filter(Boolean)
+}
+
+/**
+ * Hydrate store from repeatable ?filter=... in the URL.
+ * - Accepts a string, an array of strings, or undefined (from vue-router).
+ * - Keeps "-" values (no-value bucket).
+ * - Skips entries with nothing after ":" by default (i.e., "facet:"), since
+ *   don't put full-bucket requests in the URL.
+ *
+ * Usage (in SearchView onMounted):
+ *   setFiltersFromRepeatable(route.query.filter)
+ *
+ * @param {string|string[]|undefined} input
+ * @param {Object} [opts]
+ * @param {boolean} [opts.keepEmpty=false]  If true, include empty arrays for "facet:".
+ */
+export function setFiltersFromRepeatable(input, { keepEmpty = false } = {}) {
+  const out = {}
+  const arr = Array.isArray(input) ? input : (input ? [input] : [])
+
+  for (const item of arr) {
+    const s = String(item)
+    const idx = s.indexOf(":")
+    if (idx <= 0) {
+      continue
+    }
+
+    const publicKey = s.slice(0, idx).trim()
+    const internal = PUBLIC_TO_INTERNAL[publicKey] || publicKey
+    if (!internal) {
+      continue
+    }
+
+    const tail = s.slice(idx + 1)
+    if (tail === "" && !keepEmpty) {
+      continue
+    }  // ignore "facet:" in URL
+
+    const valsRaw = tail === "" ? [] : splitCsv(tail)
+    // Keep "-" values; skip values containing commas (unsupported)
+    const vals = Array.from(new Set(valsRaw.filter(v => v && !v.includes(","))))
+
+    if (vals.length > 0 || keepEmpty) {
+      out[internal] = vals  // if keepEmpty=true and empty, store []
+    }
+  }
+
+  setFilters(out)
+}
+
+
 ///--------------- mutators ------------------
 
 // mark/unmark full-bucket requests (accept public or internal keys)
@@ -207,4 +261,16 @@ export function resetOpenGroups() {
   Object.keys(state.openGroups).forEach(f => {
     delete state.openGroups[f]
   })
+}
+
+// Return internal facet keys that currently have values (incl. "-")
+export function getActiveFacetInternals() {
+  return Object.entries(state.activeFilters)
+    .filter(([, vals]) => Array.isArray(vals) && vals.length > 0)
+    .map(([k]) => k)
+}
+
+// Open those groups in the sidebar
+export function openGroupsForActiveFilters() {
+  getActiveFacetInternals().forEach((internal) => setGroupOpen(internal, true))
 }

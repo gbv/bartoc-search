@@ -31,7 +31,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue"
+import { ref, computed, onMounted } from "vue"
 import { useRouter, useRoute } from "vue-router"
 import SearchBar from "../components/SearchBar.vue"
 import NavBreadcrumb from "../components/NavBreadcrumb.vue"
@@ -41,7 +41,8 @@ import SearchSidebar from "../components/SearchSidebar.vue"
 import _ from "lodash"
 import { state, setFilters, resetFiltersRequested, 
   clearFilters, resetOpenGroups, requestBucketFor, 
-  buildRepeatableFiltersFromState, filtersToRepeatableForUrl } from "../stores/filters.js"
+  buildRepeatableFiltersFromState, filtersToRepeatableForUrl, 
+  setFiltersFromRepeatable, openGroupsForActiveFilters } from "../stores/filters.js"
 
 // Router hooks
 const router = useRouter()
@@ -59,6 +60,7 @@ const loading = ref(true)
 const errorMessage = ref(null)
 const sortBy = ref()
 const lookupUri = ref()
+const booted = ref(false) // useful for ignoring first search event from SearchBar
 
 // Computed summary for breadcrumb data
 const summary = computed(() => ({
@@ -144,12 +146,27 @@ async function fetchResults(query) {
   }
 }
 
+// Run search from the bar; preserve current URL's sort/order and ignore the very first auto-fire
 function onSearch(query) {
+  if (!booted.value) {
+    return
+  }
   limit.value = pageSize
   resetFiltersRequested()
   clearFilters()
   resetOpenGroups()
-  fetchResults(query, { append: false })
+  
+  delete base.filter      
+  delete base.start
+  delete base.rows
+
+  const base = { ...route.query }
+  const newQuery = {
+    ...base,
+    search: query?.search ?? base.search ?? "",
+    limit: String(limit.value)  }
+  fetchResults(newQuery)
+
 }
 
 function onSort({ sort, order }, opts = {}) {
@@ -225,6 +242,18 @@ function onFilterChange(filters, opts = {}) {
 function onInspect(raw) {
   lookupUri.value = !_.isEmpty(raw) ? raw : undefined
 }
+
+// On mount, set filters from URL and do initial search
+onMounted(() => {
+  // filters from repeatable ?filter=... in the URL
+  setFiltersFromRepeatable(route.query.filter)
+  openGroupsForActiveFilters() // auto-open groups with selected values
+  // limit from URL
+  limit.value = Number(route.query.limit) || pageSize
+  // 3) initial fetch with URL as-is
+  fetchResults({ ...route.query })
+  booted.value = true
+})
 
 </script>
 
