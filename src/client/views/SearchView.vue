@@ -25,7 +25,8 @@
       <NoResults
         v-else
         :search="route.query.search || ''"
-        :active-filters="activeFilters" />
+        :active-filters="activeFilters"
+        @clear-filters="onClearFilters" />
     </div>
     <aside class="search-sidebar__area">
       <SearchSidebar
@@ -247,6 +248,27 @@ function onFilterChange(filters, opts = {}) {
   }
 
   fetchResults(newQuery)
+}
+
+// Clear only filters (keep current search/sort/order)
+function onClearFilters() {
+  clearFilters()
+  const base = { ...route.query }
+
+  // deleteing previous filters & pagination
+  delete base.filter
+  delete base.start
+  delete base.rows
+
+  const newQuery = {
+    ...base,
+    search: base.search ?? "",
+    limit: String(limit.value)  }
+
+  router.push({ name: "search", query: newQuery })
+
+  fetchResults(newQuery)
+
 }
 
 function onInspect(raw) {
