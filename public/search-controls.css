@@ -9,3 +9,23 @@
   padding-right: 5px;
   font-size: 15px;
 }
+
+.search-controls__badges {
+  padding-top: 24px;
+  display: flex;
+  justify-content: left;
+  width: 60%;
+  margin: 0 auto;
+  flex-direction: column;
+}
+
+.badges-title {
+  font-weight: 600;
+  color: var(--color-text-light-1);
+  width: 200px;
+}
+
+.badges__wrapper, 
+.badges-title {
+  text-align: left;
+}

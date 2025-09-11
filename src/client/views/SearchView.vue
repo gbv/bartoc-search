@@ -13,7 +13,9 @@
       class="search-controls__area"
       :model-value="sortKey"
       :lookup-uri="lookupUri"
-      @sort="onSort" />
+      @sort="onSort"
+      @remove-badge="onRemoveFilter"
+      @reset-filters="onClearFilters" />
     <div class="search-results__area">
       <SearchResults
         v-if="loading || results.numFound > 0"
@@ -269,6 +271,27 @@ function onClearFilters() {
 
   fetchResults(newQuery)
 
+}
+
+function onRemoveFilter({ field, value }) {
+  const next = { ...state.activeFilters }
+  next[field] = (next[field] || []).filter(v => v !== value)
+  if (!next[field].length) {
+    delete next[field]
+  }
+  setFilters(next)
+
+  const filterParams = buildRepeatableFiltersFromState()
+
+  // 4) update URL + fetch
+  const base = { ...route.query }
+  const newQuery = {
+    ...base,
+    limit: String(pageSize),
+    ...(filterParams.length ? { filter: filterParams } : {}),
+  }
+
+  fetchResults(newQuery)
 }
 
 function onInspect(raw) {

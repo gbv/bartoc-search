@@ -22,12 +22,43 @@
       v-if="lookupUri"
       :uri="lookupUri.uri"
       :name="lookupUri.name" />
+
+
+    <!-- Active filter badges -->
+    <div
+      v-if="badges.length > 0"
+      class="search-controls__badges">
+      <div class="badges-title">
+        Applied Filters:
+      </div>
+      <div class="badges__wrapper">
+        <FilterBadge
+          v-for="badge in badges"
+          :key="badge.key"
+          :label="badge.label"
+          :value="badge.value"
+          @remove-badge="onRemoveBadge(badge)" />
+        <button
+          class="button"
+          :aria-label="`Reset Filters`"
+          type="button"
+          @click="emit('reset-filters')">
+          Reset Filters
+        </button>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="js">
 import { ref, watch, computed } from "vue"
 import LookupHint from "./LookupHint.vue"
+import FilterBadge from "./FilterBadge.vue"
+
+import { state, INTERNAL_TO_PUBLIC } from "../stores/filters.js"
+import { FACET_FIELD_LABELS } from "../constants/facetFieldLabels.js"
+
+
 
 // Sort options 
 const options = [
@@ -63,11 +94,29 @@ const props = defineProps({
 })
 
 
-const emit = defineEmits(["sort"])
+const emit = defineEmits(["sort" ,"remove-badge", "reset-filters"])
 
 // Internal ref to track selection
 const selectedSort = ref(props.modelValue)
 const lookupUri = computed(() => props.lookupUri)
+
+// Build badge items from activeFilters { internal: [v1, v2] }
+const badges = computed(() => {
+  const items = []
+  for (const [internal, values] of Object.entries(state.activeFilters || {})) {
+    const label = INTERNAL_TO_PUBLIC?.[internal] || internal
+    ;(values || []).forEach(v => {
+      items.push({
+        key: `${internal}|${v}`,
+        internal,
+        label,
+        value: FACET_FIELD_LABELS[internal]?.values[v] || v,
+        display: v,
+      })
+    })
+  }
+  return items
+})
 
 // whenever the parent changes modelValue, update the local state
 watch(
@@ -86,6 +135,10 @@ function onChange() {
     order: sortObj[selectedSort.value].order || "asc" }
     
   emit("sort", sortValue)
+}
+
+function onRemoveBadge(badge) {
+  emit("remove-badge", { field: badge.internal, value: badge.display })
 }
 
 </script>
