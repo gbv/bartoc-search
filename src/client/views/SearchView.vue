@@ -15,7 +15,7 @@
       :lookup-uri="lookupUri"
       @sort="onSort"
       @remove-badge="onRemoveFilter"
-      @reset-filters="onClearFilters" />
+      @clear-filters="onClearFilters" />
     <div class="search-results__area">
       <SearchResults
         v-if="loading || results.numFound > 0"

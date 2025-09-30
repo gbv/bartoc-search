@@ -40,10 +40,10 @@
           @remove-badge="onRemoveBadge(badge)" />
         <button
           class="button"
-          :aria-label="`Reset Filters`"
+          :aria-label="`Clear Filters`"
           type="button"
-          @click="emit('reset-filters')">
-          Reset Filters
+          @click="emit('clear-filters')">
+          Clear Filters
         </button>
       </div>
     </div>
@@ -94,7 +94,7 @@ const props = defineProps({
 })
 
 
-const emit = defineEmits(["sort" ,"remove-badge", "reset-filters"])
+const emit = defineEmits(["sort" ,"remove-badge", "clear-filters"])
 
 // Internal ref to track selection
 const selectedSort = ref(props.modelValue)
