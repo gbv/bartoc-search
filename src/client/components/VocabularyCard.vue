@@ -12,11 +12,11 @@
       <li v-if="doc.publisher_labels_ss">
         <strong>Publisher:</strong> {{ doc.publisher_labels_ss[0] }}
       </li>
-      <li v-if="doc.languages_ss?.length">
-        <strong>Languages:</strong> {{ doc.languages_ss.join(', ') }}
-      </li>
       <li v-if="typeLabel.length">
         <strong>Type:</strong> {{ typeLabel.join(', ') }}
+      </li>
+      <li v-if="doc.languages_ss?.length">
+        <strong>Languages:</strong> {{ doc.languages_ss.join(', ') }}
       </li>
       <li v-if="subjectList.length">
         <strong>Subjects:</strong> {{ subjectList.join(', ') }}
@@ -30,7 +30,7 @@
       </a>
       <span
         v-if="doc.created_dt"
-        :class="{ highlighted: sort == 'created' }">        
+        :class="{ highlighted: sort == 'created' }">       
         created {{ doc.created_dt.replace(/:..Z.*/,"").replace("T","&nbsp;") }}
       </span>
       <span
@@ -44,6 +44,10 @@
       <a
         :href="getSolrRecord(doc.id)"
         target="_blank">Solr</a>
+      <a
+        v-if="doc.api_url_ss?.length"
+        :href="doc.id + '#access'"
+        target="_blank">API</a>
     </div>
   </div>
 </template>
@@ -78,10 +82,10 @@ const rawDoc = props.doc || {}
 // Computed values for display
 const title = computed(() => rawDoc[`title_${props.lang ?? "en"}`] || rawDoc.id)
 // Showing the english description by default
-// TODO: searching for the description available, in not in english? 
+// TODO: searching for the description available, in not in english?
 const description = computed(
-  () => rawDoc[`definition_${props.lang ?? "en"}`] ? 
-    rawDoc[`definition_${props.lang ?? "en"}`][0] : 
+  () => rawDoc[`definition_${props.lang ?? "en"}`] ?
+    rawDoc[`definition_${props.lang ?? "en"}`][0] :
     "No description available.",
 )
 const typeLabel = computed(() => {
@@ -130,13 +134,13 @@ function JskosRecord(id) {
 
 </script>
 
-<style scoped>
+<style>
 .result-card {
   padding-left: 0.5rem;
   margin: 12px 8px;
   background-color: #fff;
   text-align: left;
-  color: #4a5568;
+  color: var(--color-text);
   border-left: 2px solid #fff;
 }
 .result-card:hover {
@@ -146,8 +150,9 @@ function JskosRecord(id) {
 .result-title {
   font-size: 1.25rem;
   font-weight: bold;
-  color: #1a202c;
+  color: var(--color-heading);
   margin: 4px 0px;
+  border-bottom: 1px dotted #aaa;
 }
 
 .result-description {
@@ -168,6 +173,7 @@ function JskosRecord(id) {
 }
 
 .result-metadata {
+  border-top: 1px dotted #aaa;
   display: flex;
   flex-wrap: wrap;
   font-size: 0.85rem;
