@@ -609,6 +609,7 @@ When `indexDataAtBoot` is enabled, the app will automatically:
 This is handled by `connectToSolr()` and `bootstrapIndexSolr()`—no manual steps required.
   
 #### Solr Schema
+
 Read the documentation [here](solr_schema.md).
 
 #### Troubleshooting
@@ -652,25 +653,15 @@ For more details, see the [bull-board documentation](https://github.com/felixmos
 ###  Technologies
 
 - Node.js + TypeScript
+- TypeScript strict mode enabled. Please use ESLint and Prettier (`npm run lint` and `npm run fix`)
 - Vite for build tooling
 - Docker & Docker Compose for containerization
 - Jest for unit and integration tests (?) -- no tests at the moment
 
-### Bootstrapping the Architecture
+See `docker-compose-backends.yml` in directory `docker` to quickly set up Solr and Redis for development.
 
-The search application architecture has been initialized using a combination of community-supported templates and official Vite SSR guidance:
-
-- **SSR Template:**  
-  Bootstrapped from the [create-vite-extra SSR Vue TS template](https://github.com/bluwy/create-vite-extra/tree/master/template-ssr-vue-ts), which provides a ready-to-use setup for server-side rendering with Vue 3 and TypeScript.
-  
-- **Vite SSR Dev Server:**  
-  Configured following the Vite official guide on setting up the SSR development server, enabling seamless hot module replacement and middleware integration – see [Vite SSR Guide](https://vite.dev/guide/ssr.html#setting-up-the-dev-server).
-  
-### Code Style
-
-- TypeScript strict mode enabled
-- Use ESLint and Prettier (`npm run lint`)
-- Tests must be provided for new features
+    cd docker
+    docker compose -f docker-compose-backends.yml up -V
 
 ## Maintainers
 
