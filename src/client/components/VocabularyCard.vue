@@ -1,7 +1,16 @@
 <template>
   <div class="result-card">
     <h2 class="result-title">
-      {{ title || fallbackTitle }}
+      <a
+        :href="doc.id"
+        target="_blank">
+        {{ title }}
+      </a>
+      <a
+        v-if="doc.api_url_ss?.length"
+        class="api-link"
+        :href="doc.id + '#access'"
+        target="_blank">API</a>
     </h2>
     <p
       v-if="shortDescription"
@@ -9,34 +18,31 @@
       {{ shortDescription }}
     </p>
     <ul class="result-details">
-      <li v-if="doc.publisher_labels_ss">
-        <strong>Publisher:</strong> {{ doc.publisher_labels_ss[0] }}
-      </li>
-      <li v-if="typeLabel.length">
-        <strong>Type:</strong> {{ typeLabel.join(', ') }}
-      </li>
-      <li v-if="doc.languages_ss?.length">
-        <strong>Languages:</strong> {{ doc.languages_ss.join(', ') }}
+      <li v-if="typeLabel.length || doc.languages_ss?.length">
+        <strong v-if="typeLabel.length">
+          {{ typeLabel.join(', ') }}
+        </strong>
+        <span v-if="doc.languages_ss?.length">
+          ({{ doc.languages_ss.join(', ') }})
+        </span>
       </li>
       <li v-if="subjectList.length">
         <strong>Subjects:</strong> {{ subjectList.join(', ') }}
       </li>
+      <li v-if="doc.publisher_labels_ss">
+        <strong>Published by </strong> {{ doc.publisher_labels_ss[0] }}
+      </li>
     </ul>
     <div class="result-metadata">
-      <a
-        :href="doc.id"
-        target="_blank">
-        {{ doc.id }}
-      </a>
       <span
         v-if="doc.created_dt"
         :class="{ highlighted: sort == 'created' }">       
-        created {{ doc.created_dt.replace(/:..Z.*/,"").replace("T","&nbsp;") }}
+        created {{ doc.created_dt.replace(/[T ].*/,"") }}
       </span>
       <span
         v-if="doc.modified_dt"
         :class="{ highlighted: sort == 'modified' }">
-        modified {{ doc.modified_dt.replace(/:..Z.*/,"").replace("T","&nbsp;") }}
+        modified {{ doc.modified_dt.replace(/[T ].*/,"") }}
       </span>
       <a
         :href="JskosRecord(doc.id)"
@@ -44,10 +50,6 @@
       <a
         :href="getSolrRecord(doc.id)"
         target="_blank">Solr</a>
-      <a
-        v-if="doc.api_url_ss?.length"
-        :href="doc.id + '#access'"
-        target="_blank">API</a>
     </div>
   </div>
 </template>
@@ -81,6 +83,7 @@ const rawDoc = props.doc || {}
 
 // Computed values for display
 const title = computed(() => rawDoc[`title_${props.lang ?? "en"}`] || rawDoc.id)
+
 // Showing the english description by default
 // TODO: searching for the description available, in not in english?
 const description = computed(
@@ -88,6 +91,7 @@ const description = computed(
     rawDoc[`definition_${props.lang ?? "en"}`][0] :
     "No description available.",
 )
+
 const typeLabel = computed(() => {
   const key = `type_label_${props.lang ?? "en"}`
   const val = rawDoc[key]
@@ -99,7 +103,6 @@ const typeLabel = computed(() => {
   }
   return []
 })
-const fallbackTitle = computed(() => rawDoc.id)
 
 // Extract subjects list safely
 const subjectList = computed(() => {
@@ -108,29 +111,25 @@ const subjectList = computed(() => {
   return Array.isArray(val) ? val : []
 })
 
-// Abbreviate description to first 50 characters
+// TODO: use CSS text-overflow: ellipsis instead
 const shortDescription = computed(() => {
-  const desc = description.value
-  return desc.length > 150 ? desc.slice(0, 150) + "..." : desc
+  const desc = description.value.replace(/^"/,"")
+  const cutoff = 230
+  return desc.length > cutoff ? desc.slice(0, cutoff) + "..." : desc
 })
 
-function getSolrRecord(id) {
-  return `${import.meta.env.BASE_URL}api/solr?id=${encodeURIComponent(id)}`
-}
+const getSolrRecord = id =>
+  `${import.meta.env.BASE_URL}api/solr?id=${encodeURIComponent(id)}`
 
-function serializeQuery(params) {
-  const res = Object.entries(params)
+const serializeQuery = params =>
+  Object.entries(params)
     .map(([key, val]) =>
       `${encodeURIComponent(key)}=${encodeURIComponent(val)}`,
     )
     .join("&")
 
-  return res
-}
-
-function JskosRecord(id) {
-  return `${import.meta.env.BASE_URL}api/search?${serializeQuery(route.query)}&format=jskos&uri=${encodeURIComponent(id)}`
-}
+const JskosRecord = id =>
+  `${import.meta.env.BASE_URL}api/search?${serializeQuery(route.query)}&format=jskos&uri=${encodeURIComponent(id)}`
 
 </script>
 
@@ -143,49 +142,45 @@ function JskosRecord(id) {
   color: var(--color-text);
   border-left: 2px solid #fff;
 }
+
 .result-card:hover {
   border-left: 2px solid #000;
 }
 
 .result-title {
   font-size: 1.25rem;
-  font-weight: bold;
-  color: var(--color-heading);
   margin: 4px 0px;
   border-bottom: 1px dotted #aaa;
 }
-
+.result-title a {
+  color: var(--color-heading);
+  font-weight: bold;
+}
+.result-title a.api-link {
+  float: right;
+  font-size: 1rem;
+}
 .result-description {
   font-size: 0.9rem;
-  margin: 4px 0px;
-  display: -webkit-box;
-  overflow: hidden;
+  margin: 0.3rem;
 }
-
 .result-details {
+  margin: 0.3rem;
   list-style: none;
   padding: 0;
-  margin: 0;
 }
 .result-details li {
   font-size: 0.85rem;
   margin-bottom: 4px;
 }
-
 .result-metadata {
   border-top: 1px dotted #aaa;
-  display: flex;
-  flex-wrap: wrap;
   font-size: 0.85rem;
+  padding: 0.2rem 0;
 }
 .result-metadata * {
-  padding: 0.2rem 0.5rem 0.2rem 0;
+  margin-right: 0.5rem;
 }
-.result-metadata span {
-  padding: 0.2rem 0.5rem;
-  margin-right: 0.2rem;
-}
-
 .highlighted {
   background: #ff9;
   color: #000;
