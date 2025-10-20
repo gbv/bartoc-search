@@ -33,8 +33,6 @@ const displayValue = computed(() => (props.value === "-" ? "No value" : props.va
   display: inline-flex;
   align-items: center;
   padding: 6px;
-  border: 1px solid #d1d5db;
-  background: #f3f4f6;
   color: var(--color-text-light-1);
   font-size: 15px;
   margin-right: 12px;
