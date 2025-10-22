@@ -26,6 +26,8 @@ if (env !== "test" && !fs.existsSync(configFilePath)) {
 // Merging config.default.json and config.json
 const config: AppConfig = loadConfig(defaultFilePath, configFilePath);
 
+config.env = env;
+
 // Set composed config variables
 const redisHost = process.env.REDIS_HOST ?? config.redis.host;
 

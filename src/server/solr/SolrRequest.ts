@@ -50,7 +50,7 @@ export abstract class SolrRequest {
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        console.error(
+        config.warn?.(
           "❌ Solr request failed:",
           error.response?.data || error.message,
         );

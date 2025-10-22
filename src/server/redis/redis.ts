@@ -2,6 +2,11 @@
 import Redis, { RedisOptions } from "ioredis";
 import config from "../conf/conf";
 
+function workersEnabled() {
+  // Disable in tests and when explicitly opted out
+  return process.env.NODE_ENV !== "test" && process.env.DISABLE_WORKERS !== "1";
+}
+
 // Use the configured ping timeout (fallback to 10s)
 const RETRY_INTERVAL = config.redis.pingTimeout ?? 10_000;
 
@@ -27,24 +32,24 @@ let redisClient: Redis | undefined;
  */
 function getRedisClient(): Redis {
   if (!redisClient) {
-    console.log("🔥 Instantiating Redis client");
+    // Avoid noisy logs when disabled
+    if (workersEnabled()) {
+      console.log("🔥 Instantiating Redis client");
+    }
     redisClient = new Redis(redisOptions);
 
-    // attach your handlers
     redisClient.on("error", (err) => {
-      console.warn("⚠️ Redis error:", err.message);
+      if (workersEnabled()) console.warn("⚠️ Redis error:", err.message);
     });
     redisClient.on("connect", () => {
-      console.log(
-        "✅ Connected to Redis:",
-        config.redis.host,
-        config.redis.port,
-      );
+      if (workersEnabled()) {
+        console.log("✅ Connected to Redis:", config.redis.host, config.redis.port);
+      }
     });
     redisClient.on("end", () => {
-      console.warn(
-        `⚠️ Redis connection closed, will retry in ${RETRY_INTERVAL / 1000}s`,
-      );
+      if (workersEnabled()) {
+        console.warn(`⚠️ Redis connection closed, will retry in ${RETRY_INTERVAL / 1000}s`);
+      }
     });
   }
   return redisClient;
@@ -53,8 +58,14 @@ function getRedisClient(): Redis {
 /**
  * Attempt to connect if not already connecting/connected.
  * On failure, schedule another retry in RETRY_INTERVAL ms.
+ * If workers are disabled, fail fast (no retries, no noise).
  */
 export async function connectToRedis(): Promise<void> {
+
+   if (!workersEnabled()) {
+    throw new Error("Workers disabled");
+  }
+
   let attempts = 0;
 
   const pingRetryDelay = config.redis.pingRetryDelay ?? RETRY_INTERVAL;
@@ -84,3 +95,5 @@ export const redisConnection = {
   host: config.redis.host,
   port: config.redis.port,
 };
+
+export { workersEnabled };
