@@ -13,6 +13,7 @@ beforeAll(async () => {
   });
 });
 
+// Test the /api/status endpoint
 describe("GET /api/status", () => {
   it("responds 200", async () => {
     const res = await request(app).get("/api/status");
