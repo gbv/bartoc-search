@@ -656,12 +656,35 @@ For more details, see the [bull-board documentation](https://github.com/felixmos
 - TypeScript strict mode enabled. Please use ESLint and Prettier (`npm run lint` and `npm run fix`)
 - Vite for build tooling
 - Docker & Docker Compose for containerization
-- Jest for unit and integration tests (?) -- no tests at the moment
+- Vitest for unit/smoke/integration tests
 
 See `docker-compose-backends.yml` in directory `docker` to quickly set up Solr and Redis for development.
 
     cd docker
     docker compose -f docker-compose-backends.yml up -V
+
+
+#### Testing 
+
+BARTOC Search uses **Vitest** for unit/smoke/integration tests and **Testcontainers** to spin up a real **Solr 8** during integration tests. For the moment Redis/workers are disabled in tests.
+
+###### How integration tests work
+
+1. Start `solr:8` container and copy project configset (terminologies).
+2. Create core `terminologies`.
+3. Seed a tiny set of JSON docs tailored for assertions.
+4. Boot the app with frontend/workers disabled.
+5. Hit HTTP routes via `supertest`.
+
+This gives high confidence without relying on external services.
+
+###### Tests
+
+* `GET /api/search` returns docs & facets
+* `GET /api/search?format=jskos` returns json of jskos data
+* `GET /api/solr?id=...` echoes the seeded `fullrecord`
+* Facet filtering via `filter=language:en`, `filter=in:http://…`, `filter=api:-` (NO_VALUE)
+* SSR page: `GET /` responds 200 + HTML
 
 ## Maintainers
 
