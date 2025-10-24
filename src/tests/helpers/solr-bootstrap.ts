@@ -1,6 +1,7 @@
 import { GenericContainer, StartedTestContainer, Wait } from "testcontainers";
 import path from "node:path";
 import fs from "node:fs";
+import { addDocuments } from "../../server/solr/solr";
 
 let solr: StartedTestContainer | undefined;
 const CORE = "terminologies";
@@ -45,31 +46,9 @@ export async function startSolrWithConfigset() {
 }
 
 /**
- * Seed Solr with an in-memory array of docs.
- */
-export async function seedSolr(docs: unknown[], { batchSize = 200 } = {}) {
-  const port = Number(process.env.SOLR_PORT);
-  const core = "terminologies";
-  const url  = `http://127.0.0.1:${port}/solr/${core}/update?commit=true`;
-
-  for (let i = 0; i < docs.length; i += batchSize) {
-    const chunk = docs.slice(i, i + batchSize);
-    const r = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(chunk),
-    });
-    if (!r.ok) {
-      const text = await r.text();
-      throw new Error(`Seed failed [${i}-${i + chunk.length}]: ${r.status} ${text}`);
-    }
-  }
-}
-
-/**
  * Seed Solr from a JSON file that contains a JSON array of solr docs.
  */
-export async function seedSolrFromJson(fileRelPath: string, opts?: { batchSize?: number }) {
+export async function seedSolrFromJson(fileRelPath: string) {
   const file = path.resolve(fileRelPath);
   if (!fs.existsSync(file)) throw new Error(`Fixture not found: ${file}`);
 
@@ -78,7 +57,7 @@ export async function seedSolrFromJson(fileRelPath: string, opts?: { batchSize?:
   if (!Array.isArray(arr)) {
     throw new Error(`JSON fixture must be an array: ${file}`);
   }
-  await seedSolr(arr, opts);
+  await addDocuments(CORE, arr);
   return arr;
 }
 

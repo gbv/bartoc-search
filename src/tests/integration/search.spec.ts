@@ -12,7 +12,7 @@ beforeAll(async () => {
   process.env.DISABLE_WORKERS = "1";
 
   await startSolrWithConfigset();
-  seededDocs = await seedSolrFromJson(FIXTURE, { batchSize: 50 });
+  seededDocs = await seedSolrFromJson(FIXTURE);
 
   const { createApp } = await import("../../server/main");
   app = await createApp({ withVite:false, withFrontend:false, withWorkers:false, withUpdater:false });
