@@ -96,4 +96,21 @@ describe("GET /api/search", () => {
       expect(d.publisher_labels_ss).toBeUndefined();
     }
   });
+
+  it("maps legacy partOf to filter:in (listed_in_ss)", async () => {
+    const legacy = await request(app).get("/api/search")
+      .query({ search: "", limit: 10, sort: "relevance", order: "desc", partOf: "http://bartoc.org/en/node/1734" });
+
+    const current = await request(app).get("/api/search")
+      .query({ search: "", limit: 10, sort: "relevance", order: "desc", filter: "in:http://bartoc.org/en/node/1734" });
+
+    expect(legacy.status).toBe(200);
+    expect(current.status).toBe(200);
+    expect(legacy.body.response?.numFound).toBe(current.body.response?.numFound);
+    // compare IDs:
+    const idsA = (legacy.body.response?.docs ?? []).map((d: any) => d.id).sort();
+    const idsB = (current.body.response?.docs ?? []).map((d: any) => d.id).sort();
+    expect(idsA).toEqual(idsB);
+  });
+
 });

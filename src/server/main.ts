@@ -22,7 +22,7 @@ import { SearchFilter } from "./solr/search/SearchFilter.js";
 import _ from "lodash";
 import { runUpdateOnce } from "./utils/updateFromBartoc";
 import fsPromises from "node:fs/promises";
-import { parseRepeatableFilters } from "./utils/filters.ts";
+import { parseRepeatableFilters, legacyFiltersFromQuery } from "./utils/filters.ts";
 
 const isProduction = process.env.NODE_ENV === "production";
 const isTest = process.env.NODE_ENV === "test";
@@ -138,9 +138,14 @@ export async function createApp(opts?: {
     const query = LuceneQuery.fromText(search, field, 3, 2).operator("OR");
 
     // Parse the filters field into an object
-  
     const parsedFilters: Record<string, string[]> =
       parseRepeatableFilters(req.query.filter as string | string[] | undefined);
+
+    // Also include legacy Bartoc params 
+    const legacy = legacyFiltersFromQuery(req.query as Record<string, unknown>);
+    for (const [k, vals] of Object.entries(legacy)) {
+      parsedFilters[k] = Array.from(new Set([...(parsedFilters[k] ?? []), ...vals]));
+    }
 
     // Prepare the Solr query
     try {

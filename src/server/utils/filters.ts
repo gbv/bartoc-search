@@ -15,8 +15,38 @@ const PUBLIC_TO_INTERNAL: Record<PublicKey, string> = {
   publisher: "publisher_labels_ss",
 };
 
-const splitCsv = (s: string) =>
-  s.split(",").map(t => t.trim()).filter(Boolean);
+function splitCsv(v: unknown): string[] {
+  if (Array.isArray(v)) return v.flatMap(splitCsv);
+  if (typeof v !== "string") return [];
+  return v.split(",").map(s => s.trim()).filter(Boolean);
+}
+
+
+export function legacyFiltersFromQuery(q: Record<string, unknown>): Record<string, string[]> {
+  const out: Record<string, string[]> = {};
+  const add = (pubKey: PublicKey, vals: string[]) => {
+    const internal = PUBLIC_TO_INTERNAL[pubKey];
+    if (!internal || vals.length === 0) return;
+    out[internal] = Array.from(new Set([...(out[internal] ?? []), ...vals]));
+  };
+
+  // Legacy → public-key mapping
+  // partOf => in (listed_in_ss)
+  if (q.partOf) add("in", splitCsv(q.partOf));
+
+  // add more legacy keys from old BARTOC here if needed:
+  // if (q.language) add("language", splitCsv(q.language));
+  // if (q.type)     add("type",     splitCsv(q.type));
+  // if (q.license)  add("license",  splitCsv(q.license));
+  // if (q.format)   add("format",   splitCsv(q.format));
+  // if (q.access)   add("access",   splitCsv(q.access));
+  // if (q.api)      add("api",      splitCsv(q.api));
+  // if (q.country)  add("country",  splitCsv(q.country));
+  // if (q.publisher) add("publisher", splitCsv(q.publisher));
+  // if (q.ddc)      add("ddc",      splitCsv(q.ddc));
+
+  return out;
+}
 
 /** Parse repeatable ?filter=key:a,b (accept empty after ':') */
 export function parseRepeatableFilters(
