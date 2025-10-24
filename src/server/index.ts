@@ -8,13 +8,19 @@ const startSolr = async () => {
     await solr.connectToSolr();
   } catch (error) {
     config.error?.("Error connecting to Solr" + error);
+    if (process.env.NODE_ENV === "test") throw error;
   }
 };
 
-// Starting Solr
-startSolr();
+(async () => {
+  await startSolr();
+  if (process.env.NODE_ENV !== "test") {
+    await startServer();
+  }
+})();
 
-// Starting the server
-const app = startServer();
+export {};
 
-export { app };
+
+
+

@@ -1,6 +1,6 @@
 import { Queue as BullQueue } from "bullmq";
 import config from "../conf/conf";
-import { redisConnection, connectToRedis } from "../redis/redis";
+import { redisConnection, connectToRedis, workersEnabled } from "../redis/redis";
 
 //Generics per for every kind of Job payload
 type RegisteredQueue<T> = {
@@ -25,7 +25,9 @@ if (!global.__registeredQueues) {
 const registeredQueues = global.__registeredQueues;
 
 /**
- * Creates (or returns) a singleton BullMQ queue.
+ * Create (or return) a singleton BullMQ queue.
+ * Returns null when workers/Redis are disabled or unreachable.
+ * ---
  * Key knobs:
  *  - defaultJobOptions.attempts/backoff
  *  - removeOnComplete/removeOnFail to clean up old jobs
@@ -33,6 +35,12 @@ const registeredQueues = global.__registeredQueues;
 export async function Queue<Payload>(
   name: string,
 ): Promise<BullQueue<Payload> | null> {
+
+  if (!workersEnabled()) {
+    config.log?.(`Queue "${name}" not started: workers disabled`);
+    return null;
+  }
+
   // If the queue already exists, return the existing instance
   if (registeredQueues[name]) {
     config.log?.(`Queue "${name}" already initialized`);

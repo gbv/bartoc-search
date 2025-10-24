@@ -2,7 +2,11 @@ import axios from "axios";
 import qs from "qs";
 import config from "../conf/conf";
 
-const SOLR_BASE_URL = config.solr.url || "http://localhost:8983/solr";
+function getSolrBaseUrl(): string {
+  const host = process.env.SOLR_HOST ?? config.solr.host ?? "127.0.0.1";
+  const port = Number(process.env.SOLR_PORT ?? config.solr.port ?? 8983);
+  return `http://${host}:${port}/solr`;
+}
 
 export abstract class SolrRequest {
   /**
@@ -28,7 +32,7 @@ export abstract class SolrRequest {
   protected abstract httpBody(): unknown;
 
   public async execute<T = unknown>(
-    baseUrl: string = SOLR_BASE_URL,
+    baseUrl: string = getSolrBaseUrl(),
   ): Promise<T> {
     const url = `${baseUrl}${this.absolutePath()}`;
     const method = this.httpMethod();
@@ -50,7 +54,7 @@ export abstract class SolrRequest {
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        console.error(
+        config.warn?.(
           "❌ Solr request failed:",
           error.response?.data || error.message,
         );
