@@ -31,8 +31,13 @@ export function legacyFiltersFromQuery(q: Record<string, unknown>): Record<strin
   };
 
   // Legacy → public-key mapping
+
   // partOf => in (listed_in_ss)
   if (q.partOf) add("in", splitCsv(q.partOf));
+  
+  // languages => language (languages_ss)
+  if (q.languages) add("language", splitCsv(q.languages));
+
 
   // add more legacy keys from old BARTOC here if needed:
   // if (q.language) add("language", splitCsv(q.language));

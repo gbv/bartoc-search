@@ -7,6 +7,9 @@ let app: any;
 let seededDocs: any[];
 const FIXTURE = "src/tests/fixtures/solr/seed.json";
 
+const getIds = (res: any) =>
+  (res.body.response?.docs ?? []).map((d: any) => d.id).sort();
+
 beforeAll(async () => {
   process.env.NODE_ENV = "test";
   process.env.DISABLE_WORKERS = "1";
@@ -108,9 +111,33 @@ describe("GET /api/search", () => {
     expect(current.status).toBe(200);
     expect(legacy.body.response?.numFound).toBe(current.body.response?.numFound);
     // compare IDs:
-    const idsA = (legacy.body.response?.docs ?? []).map((d: any) => d.id).sort();
-    const idsB = (current.body.response?.docs ?? []).map((d: any) => d.id).sort();
-    expect(idsA).toEqual(idsB);
+    expect(getIds(legacy)).toEqual(getIds(current));
+  });
+
+  it("filters by single legacy languages value", async () => {
+    const legacy = await request(app).get("/api/search")
+      .query({ search: "", languages: "de" });
+    
+    const current = await request(app).get("/api/search")
+      .query({ search: "", filter: "language:de" });
+    
+
+    expect(legacy.status).toBe(200);
+    expect(current.status).toBe(200);
+    expect(legacy.body?.response?.numFound ?? 0).toBeGreaterThan(0);
+    expect(current.body?.response?.numFound ?? 0).toBeGreaterThan(0);
+    expect(legacy.body.response?.numFound).toBe(current.body.response?.numFound);
+    // compare IDs:
+    expect(getIds(legacy)).toEqual(getIds(current));
+  });
+
+  it("filters by multiple legacy languages values", async () => {
+    const legacy  = await request(app).get("/api/search").query({ search: "*", languages: "de,en" });
+    const current = await request(app).get("/api/search").query({ search: "*", filter: "language:de,en" });
+
+    expect(legacy.status).toBe(200);
+    expect(current.status).toBe(200);
+    expect(getIds(legacy)).toEqual(getIds(current));
   });
 
 });
