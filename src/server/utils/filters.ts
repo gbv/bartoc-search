@@ -38,10 +38,11 @@ export function legacyFiltersFromQuery(q: Record<string, unknown>): Record<strin
   // languages => language (languages_ss)
   if (q.languages) add("language", splitCsv(q.languages));
 
+  // type => type (type_uri)
+  if (q.type) add("type", splitCsv(q.type));
 
   // add more legacy keys from old BARTOC here if needed:
-  // if (q.language) add("language", splitCsv(q.language));
-  // if (q.type)     add("type",     splitCsv(q.type));
+  
   // if (q.license)  add("license",  splitCsv(q.license));
   // if (q.format)   add("format",   splitCsv(q.format));
   // if (q.access)   add("access",   splitCsv(q.access));

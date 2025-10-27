@@ -100,44 +100,56 @@ describe("GET /api/search", () => {
     }
   });
 
-  it("maps legacy partOf to filter:in (listed_in_ss)", async () => {
-    const legacy = await request(app).get("/api/search")
-      .query({ search: "", limit: 10, sort: "relevance", order: "desc", partOf: "http://bartoc.org/en/node/1734" });
+  describe("Testing legacy params", () => {
+    it("maps legacy partOf to filter:in (listed_in_ss)", async () => {
+      const legacy = await request(app).get("/api/search")
+        .query({ search: "", limit: 10, sort: "relevance", order: "desc", partOf: "http://bartoc.org/en/node/1734" });
 
-    const current = await request(app).get("/api/search")
-      .query({ search: "", limit: 10, sort: "relevance", order: "desc", filter: "in:http://bartoc.org/en/node/1734" });
+      const current = await request(app).get("/api/search")
+        .query({ search: "", limit: 10, sort: "relevance", order: "desc", filter: "in:http://bartoc.org/en/node/1734" });
 
-    expect(legacy.status).toBe(200);
-    expect(current.status).toBe(200);
-    expect(legacy.body.response?.numFound).toBe(current.body.response?.numFound);
-    // compare IDs:
-    expect(getIds(legacy)).toEqual(getIds(current));
-  });
+      expect(legacy.status).toBe(200);
+      expect(current.status).toBe(200);
+      expect(legacy.body.response?.numFound).toBe(current.body.response?.numFound);
+      // compare IDs:
+      expect(getIds(legacy)).toEqual(getIds(current));
+    });
 
-  it("filters by single legacy languages value", async () => {
-    const legacy = await request(app).get("/api/search")
-      .query({ search: "", languages: "de" });
-    
-    const current = await request(app).get("/api/search")
-      .query({ search: "", filter: "language:de" });
-    
+    it("filters by single legacy languages value de", async () => {
+      const legacy = await request(app).get("/api/search")
+        .query({ search: "", languages: "de" });
+      
+      const current = await request(app).get("/api/search")
+        .query({ search: "", filter: "language:de" });
+      
 
-    expect(legacy.status).toBe(200);
-    expect(current.status).toBe(200);
-    expect(legacy.body?.response?.numFound ?? 0).toBeGreaterThan(0);
-    expect(current.body?.response?.numFound ?? 0).toBeGreaterThan(0);
-    expect(legacy.body.response?.numFound).toBe(current.body.response?.numFound);
-    // compare IDs:
-    expect(getIds(legacy)).toEqual(getIds(current));
-  });
+      expect(legacy.status).toBe(200);
+      expect(current.status).toBe(200);
+      expect(legacy.body?.response?.numFound ?? 0).toBeGreaterThan(0);
+      expect(current.body?.response?.numFound ?? 0).toBeGreaterThan(0);
+      expect(legacy.body.response?.numFound).toBe(current.body.response?.numFound);
+      // compare IDs:
+      expect(getIds(legacy)).toEqual(getIds(current));
+    });
 
-  it("filters by multiple legacy languages values", async () => {
-    const legacy  = await request(app).get("/api/search").query({ search: "*", languages: "de,en" });
-    const current = await request(app).get("/api/search").query({ search: "*", filter: "language:de,en" });
+    it("filters by multiple legacy languages values de,en", async () => {
+      const legacy  = await request(app).get("/api/search").query({ search: "*", languages: "de,en" });
+      const current = await request(app).get("/api/search").query({ search: "*", filter: "language:de,en" });
 
-    expect(legacy.status).toBe(200);
-    expect(current.status).toBe(200);
-    expect(getIds(legacy)).toEqual(getIds(current));
+      expect(legacy.status).toBe(200);
+      expect(current.status).toBe(200);
+      expect(getIds(legacy)).toEqual(getIds(current));
+    });
+
+    it("maps type legacy param, searching for Thesaurus", async () => {
+      const legacy  = await request(app).get("/api/search").query({ search: "*", type: "http://w3id.org/nkos/nkostype#thesaurus" });
+      const current = await request(app).get("/api/search").query({ search: "*", filter: "type:http://w3id.org/nkos/nkostype#thesaurus" });
+
+      expect(legacy.status).toBe(200);
+      expect(current.status).toBe(200);
+      expect(getIds(legacy)).toEqual(getIds(current));
+    });
+
   });
 
 });
