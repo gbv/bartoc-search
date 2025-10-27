@@ -150,6 +150,16 @@ describe("GET /api/search", () => {
       expect(getIds(legacy)).toEqual(getIds(current));
     });
 
+    it("maps country legacy param", async () => {
+      const legacy  = await request(app).get("/api/search").query({ search: "*", country: "Austria" });
+      const current = await request(app).get("/api/search").query({ search: "*", filter: "country:austria" });
+
+      expect(legacy.status).toBe(200);
+      expect(current.status).toBe(200);
+      expect(getIds(legacy)).toEqual(getIds(current));
+    });
+
+
   });
 
 });

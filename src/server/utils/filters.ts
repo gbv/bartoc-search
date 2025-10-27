@@ -1,6 +1,8 @@
+
 type PublicKey =
   | "type" | "ddc" | "language" | "in" | "api"
   | "access" | "license" | "format" | "country" | "publisher";
+
 
 const PUBLIC_TO_INTERNAL: Record<PublicKey, string> = {
   type: "type_uri",
@@ -21,14 +23,19 @@ function splitCsv(v: unknown): string[] {
   return v.split(",").map(s => s.trim()).filter(Boolean);
 }
 
-
 export function legacyFiltersFromQuery(q: Record<string, unknown>): Record<string, string[]> {
   const out: Record<string, string[]> = {};
+  
+  // Add values for a *public* facet key (e.g., "language").
+  // - Looks up the corresponding internal Solr field via PUBLIC_TO_INTERNAL
+  // - Merges with any existing values in `out[internal]`
+  // - De-duplicates using a Set
   const add = (pubKey: PublicKey, vals: string[]) => {
     const internal = PUBLIC_TO_INTERNAL[pubKey];
     if (!internal || vals.length === 0) return;
     out[internal] = Array.from(new Set([...(out[internal] ?? []), ...vals]));
   };
+
 
   // Legacy → public-key mapping
 
@@ -41,9 +48,12 @@ export function legacyFiltersFromQuery(q: Record<string, unknown>): Record<strin
   // type => type (type_uri)
   if (q.type) add("type", splitCsv(q.type));
 
-  // add more legacy keys from old BARTOC here if needed:
-  
-  // if (q.license)  add("license",  splitCsv(q.license));
+  // country => country (address_country_s)
+  if (q.country) add("country", splitCsv(q.country));
+
+
+  // Porblematic / unimplemented legacy keys: license
+
   // if (q.format)   add("format",   splitCsv(q.format));
   // if (q.access)   add("access",   splitCsv(q.access));
   // if (q.api)      add("api",      splitCsv(q.api));
