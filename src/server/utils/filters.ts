@@ -36,7 +36,6 @@ export function legacyFiltersFromQuery(q: Record<string, unknown>): Record<strin
     out[internal] = Array.from(new Set([...(out[internal] ?? []), ...vals]));
   };
 
-
   // Legacy → public-key mapping
 
   // partOf => in (listed_in_ss)
@@ -50,7 +49,6 @@ export function legacyFiltersFromQuery(q: Record<string, unknown>): Record<strin
 
   // country => country (address_country_s)
   if (q.country) add("country", splitCsv(q.country));
-
 
   // Porblematic / unimplemented legacy keys: license
 
