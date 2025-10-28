@@ -17,6 +17,15 @@ export interface ExtractDdcOptions {
  */
 export const DDC_SCHEME = "http://dewey.info/class/";
 
+
+// Match DDC URIs like:
+//   https://dewey.info/class/3/e23/
+//   http://dewey.info/class/32.1/e23/
+// Capture group 1 = the notation part ("3", "300", "32.1", ...)
+// ^https?://dewey\.info/class/([0-9]+(?:\.[0-9]+)?)/e\d+/?$
+//  └─ allow http/https     └─ path  └─ digits, optional ".digits"  └─ "e" + version  └─ optional trailing slash
+export const DDC_URI_RE = /^https?:\/\/dewey\.info\/class\/([0-9]+(?:\.[0-9]+)?)\/e\d+\/?$/i;
+
 /**
  * Extract Dewey Decimal notations from an array of JSKOS subjects.
  *
@@ -67,3 +76,20 @@ export function extractDdc(
 
   return notations;
 }
+
+/**
+ * Extract the DDC *root* class (a single digit "0"–"9") from a dewey.info class URI.
+ *
+ * Examples:
+ *  - "https://dewey.info/class/3/e23/"     -> "3"
+ *  - "https://dewey.info/class/300/e23/"   -> "3"
+ *  - "https://dewey.info/class/32.1/e23/"  -> "3"
+ *  - "https://example.org/foo"             -> null
+ */
+export const toDdcRoot = (uri: string): string | null => {
+  const m = DDC_URI_RE.exec(uri);
+  if (!m) return null;
+  const notation = m[1];               // e.g., "3", "300", "32.1"
+  const head = notation.split(".")[0]; // take part before decimal, e.g., "3" or "300"
+  return head[0] ?? null;              // first digit = DDC root ("3" for all above)
+};

@@ -7,6 +7,9 @@ let app: any;
 let seededDocs: any[];
 const FIXTURE = "src/tests/fixtures/solr/seed.json";
 
+const getIds = (res: any) =>
+  (res.body.response?.docs ?? []).map((d: any) => d.id).sort();
+
 beforeAll(async () => {
   process.env.NODE_ENV = "test";
   process.env.DISABLE_WORKERS = "1";
@@ -97,20 +100,182 @@ describe("GET /api/search", () => {
     }
   });
 
-  it("maps legacy partOf to filter:in (listed_in_ss)", async () => {
-    const legacy = await request(app).get("/api/search")
-      .query({ search: "", limit: 10, sort: "relevance", order: "desc", partOf: "http://bartoc.org/en/node/1734" });
+  describe("Testing legacy params", () => {
+    it("maps legacy partOf to filter:in (listed_in_ss)", async () => {
+      const legacy = await request(app).get("/api/search")
+        .query({ search: "", limit: 10, sort: "relevance", order: "desc", partOf: "http://bartoc.org/en/node/1734" });
 
-    const current = await request(app).get("/api/search")
-      .query({ search: "", limit: 10, sort: "relevance", order: "desc", filter: "in:http://bartoc.org/en/node/1734" });
+      const current = await request(app).get("/api/search")
+        .query({ search: "", limit: 10, sort: "relevance", order: "desc", filter: "in:http://bartoc.org/en/node/1734" });
 
-    expect(legacy.status).toBe(200);
-    expect(current.status).toBe(200);
-    expect(legacy.body.response?.numFound).toBe(current.body.response?.numFound);
-    // compare IDs:
-    const idsA = (legacy.body.response?.docs ?? []).map((d: any) => d.id).sort();
-    const idsB = (current.body.response?.docs ?? []).map((d: any) => d.id).sort();
-    expect(idsA).toEqual(idsB);
+      expect(legacy.status).toBe(200);
+      expect(current.status).toBe(200);
+      expect(legacy.body.response?.numFound).toBe(current.body.response?.numFound);
+      // compare IDs:
+      expect(getIds(legacy)).toEqual(getIds(current));
+    });
+
+    it("filters by single legacy languages value de", async () => {
+      const legacy = await request(app).get("/api/search")
+        .query({ search: "", languages: "de" });
+      
+      const current = await request(app).get("/api/search")
+        .query({ search: "", filter: "language:de" });
+      
+
+      expect(legacy.status).toBe(200);
+      expect(current.status).toBe(200);
+      expect(legacy.body?.response?.numFound ?? 0).toBeGreaterThan(0);
+      expect(current.body?.response?.numFound ?? 0).toBeGreaterThan(0);
+      expect(legacy.body.response?.numFound).toBe(current.body.response?.numFound);
+      // compare IDs:
+      expect(getIds(legacy)).toEqual(getIds(current));
+    });
+
+    it("filters by multiple legacy languages values de,en", async () => {
+      const legacy  = await request(app).get("/api/search").query({ search: "*", languages: "de,en" });
+      const current = await request(app).get("/api/search").query({ search: "*", filter: "language:de,en" });
+
+      expect(legacy.status).toBe(200);
+      expect(current.status).toBe(200);
+      expect(getIds(legacy)).toEqual(getIds(current));
+    });
+
+    it("maps type legacy param, searching for Thesaurus", async () => {
+      const legacy  = await request(app).get("/api/search").query({ search: "*", type: "http://w3id.org/nkos/nkostype#thesaurus" });
+      const current = await request(app).get("/api/search").query({ search: "*", filter: "type:http://w3id.org/nkos/nkostype#thesaurus" });
+
+      expect(legacy.status).toBe(200);
+      expect(current.status).toBe(200);
+      expect(getIds(legacy)).toEqual(getIds(current));
+    });
+
+    it("maps country legacy param", async () => {
+      const legacy  = await request(app).get("/api/search").query({ search: "*", country: "Austria" });
+      const current = await request(app).get("/api/search").query({ search: "*", filter: "country:austria" });
+
+      expect(legacy.status).toBe(200);
+      expect(current.status).toBe(200);
+      expect(getIds(legacy)).toEqual(getIds(current));
+    });
+
+    it("maps access legacy param", async () => {
+      const legacy  = await request(app).get("/api/search").query({ search: "*", access: "http://bartoc.org/en/Access/Free" });
+      const current = await request(app).get("/api/search").query({ search: "*", filter: "access:http://bartoc.org/en/Access/Free" });
+
+      expect(legacy.status).toBe(200);
+      expect(current.status).toBe(200);
+      expect(getIds(legacy)).toEqual(getIds(current));
+    });
+
+    it("legacy subject (dewey URI) maps to ddc root", async () => {
+      // legacy: subject=http://dewey.info/class/0/e23/|
+      const legacy = await request(app).get("/api/search").query({
+        search: "",
+        subject: "http://dewey.info/class/0/e23/|",
+        limit: 10,
+      });
+
+      // current: filter=ddc:0
+      const current = await request(app).get("/api/search").query({
+        search: "",
+        filter: "ddc:0",
+        limit: 10,
+      });
+
+      expect(legacy.status).toBe(200);
+      expect(current.status).toBe(200);
+
+      const idsLegacy = (legacy.body.response?.docs ?? []).map((d: any) => d.id).sort();
+      const idsCurrent = (current.body.response?.docs ?? []).map((d: any) => d.id).sort();
+
+      // Both non-empty and equivalent
+      expect(idsLegacy.length).toBeGreaterThan(0);
+      expect(idsCurrent.length).toBeGreaterThan(0);
+      expect(idsLegacy).toEqual(idsCurrent);
+    });
+
+    it("legacy subject list (dewey URI) maps to ddc roots", async () => {
+      // legacy: subject=http://dewey.info/class/0/e23/|
+      const legacy = await request(app).get("/api/search").query({
+        search: "",
+        subject: "http://dewey.info/class/0/e23/|http://dewey.info/class/6/e23/|",
+        limit: 10,
+      });
+
+      // current: filter=ddc:0
+      const current = await request(app).get("/api/search").query({
+        search: "",
+        filter: "ddc:0,6",
+        limit: 10,
+      });
+
+      expect(legacy.status).toBe(200);
+      expect(current.status).toBe(200);
+
+      const idsLegacy = (legacy.body.response?.docs ?? []).map((d: any) => d.id).sort();
+      const idsCurrent = (current.body.response?.docs ?? []).map((d: any) => d.id).sort();
+
+      // Both non-empty and equivalent
+      expect(idsLegacy.length).toBeGreaterThan(0);
+      expect(idsCurrent.length).toBeGreaterThan(0);
+      expect(idsLegacy).toEqual(idsCurrent);
+    });
+
+    it("legacy license maps to license group", async () => {
+      // legacy: subject=http://dewey.info/class/0/e23/|
+      const legacy = await request(app).get("/api/search").query({
+        search: "",
+        license: "http://creativecommons.org/licenses/by/4.0/",
+        limit: 10,
+      });
+
+      // current: filter=ddc:0
+      const current = await request(app).get("/api/search").query({
+        search: "",
+        filter: "license:CC BY",
+        limit: 10,
+      });
+
+      expect(legacy.status).toBe(200);
+      expect(current.status).toBe(200);
+
+      const idsLegacy = (legacy.body.response?.docs ?? []).map((d: any) => d.id).sort();
+      const idsCurrent = (current.body.response?.docs ?? []).map((d: any) => d.id).sort();
+
+      // Both non-empty and equivalent
+      expect(idsLegacy.length).toBeGreaterThan(0);
+      expect(idsCurrent.length).toBeGreaterThan(0);
+      expect(idsLegacy).toEqual(idsCurrent);
+    });
+
+    it("legacy list of licenses maps to license groups", async () => {
+      // legacy: subject=http://dewey.info/class/0/e23/|
+      const legacy = await request(app).get("/api/search").query({
+        search: "",
+        license: "http://creativecommons.org/licenses/by/4.0/,http://www.apache.org/licenses/LICENSE-2.0",
+        limit: 10,
+      });
+
+      // current: filter=ddc:0
+      const current = await request(app).get("/api/search").query({
+        search: "",
+        filter: "license:CC BY,Apache 2.0",
+        limit: 10,
+      });
+
+      expect(legacy.status).toBe(200);
+      expect(current.status).toBe(200);
+
+      const idsLegacy = (legacy.body.response?.docs ?? []).map((d: any) => d.id).sort();
+      const idsCurrent = (current.body.response?.docs ?? []).map((d: any) => d.id).sort();
+
+      // Both non-empty and equivalent
+      expect(idsLegacy.length).toBeGreaterThan(0);
+      expect(idsCurrent.length).toBeGreaterThan(0);
+      expect(idsLegacy).toEqual(idsCurrent);
+    });
+
   });
 
 });

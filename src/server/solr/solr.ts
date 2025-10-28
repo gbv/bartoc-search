@@ -25,7 +25,7 @@ import { ensureSnapshotForIndexing } from "../utils/updateFromBartoc";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const LAST_INDEX_FILE = join(__dirname, "../../../data/lastIndexedAt.txt");
-const LICENSE_GROUPS: GroupEntry[] = await loadJSONFile<GroupEntry[]>("/data/license-groups.json");
+export const LICENSE_GROUPS: GroupEntry[] = await loadJSONFile<GroupEntry[]>("/data/license-groups.json");
 const FORMAT_GROUPS: GroupEntry[] = await loadJSONFile<GroupEntry[]>("data/format-groups.json");
 
 await loadNkosConcepts();
