@@ -50,12 +50,14 @@ export function legacyFiltersFromQuery(q: Record<string, unknown>): Record<strin
   // country => country (address_country_s)
   if (q.country) add("country", splitCsv(q.country));
 
+  // access => access (access_type_ss)
+  if (q.access) add("access", splitCsv(q.access));
+
   // Porblematic / unimplemented legacy keys: license
 
   // if (q.format)   add("format",   splitCsv(q.format));
   // if (q.access)   add("access",   splitCsv(q.access));
   // if (q.api)      add("api",      splitCsv(q.api));
-  // if (q.country)  add("country",  splitCsv(q.country));
   // if (q.publisher) add("publisher", splitCsv(q.publisher));
   // if (q.ddc)      add("ddc",      splitCsv(q.ddc));
 

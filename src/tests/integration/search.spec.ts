@@ -159,6 +159,15 @@ describe("GET /api/search", () => {
       expect(getIds(legacy)).toEqual(getIds(current));
     });
 
+    it("maps access legacy param", async () => {
+      const legacy  = await request(app).get("/api/search").query({ search: "*", access: "http://bartoc.org/en/Access/Free" });
+      const current = await request(app).get("/api/search").query({ search: "*", filter: "access:http://bartoc.org/en/Access/Free" });
+
+      expect(legacy.status).toBe(200);
+      expect(current.status).toBe(200);
+      expect(getIds(legacy)).toEqual(getIds(current));
+    });
+
 
   });
 
