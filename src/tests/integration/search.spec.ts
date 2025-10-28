@@ -222,6 +222,59 @@ describe("GET /api/search", () => {
       expect(idsLegacy).toEqual(idsCurrent);
     });
 
+    it("legacy license maps to license group", async () => {
+      // legacy: subject=http://dewey.info/class/0/e23/|
+      const legacy = await request(app).get("/api/search").query({
+        search: "",
+        license: "http://creativecommons.org/licenses/by/4.0/",
+        limit: 10,
+      });
+
+      // current: filter=ddc:0
+      const current = await request(app).get("/api/search").query({
+        search: "",
+        filter: "license:CC BY",
+        limit: 10,
+      });
+
+      expect(legacy.status).toBe(200);
+      expect(current.status).toBe(200);
+
+      const idsLegacy = (legacy.body.response?.docs ?? []).map((d: any) => d.id).sort();
+      const idsCurrent = (current.body.response?.docs ?? []).map((d: any) => d.id).sort();
+
+      // Both non-empty and equivalent
+      expect(idsLegacy.length).toBeGreaterThan(0);
+      expect(idsCurrent.length).toBeGreaterThan(0);
+      expect(idsLegacy).toEqual(idsCurrent);
+    });
+
+    it("legacy list of licenses maps to license groups", async () => {
+      // legacy: subject=http://dewey.info/class/0/e23/|
+      const legacy = await request(app).get("/api/search").query({
+        search: "",
+        license: "http://creativecommons.org/licenses/by/4.0/,http://www.apache.org/licenses/LICENSE-2.0",
+        limit: 10,
+      });
+
+      // current: filter=ddc:0
+      const current = await request(app).get("/api/search").query({
+        search: "",
+        filter: "license:CC BY,Apache 2.0",
+        limit: 10,
+      });
+
+      expect(legacy.status).toBe(200);
+      expect(current.status).toBe(200);
+
+      const idsLegacy = (legacy.body.response?.docs ?? []).map((d: any) => d.id).sort();
+      const idsCurrent = (current.body.response?.docs ?? []).map((d: any) => d.id).sort();
+
+      // Both non-empty and equivalent
+      expect(idsLegacy.length).toBeGreaterThan(0);
+      expect(idsCurrent.length).toBeGreaterThan(0);
+      expect(idsLegacy).toEqual(idsCurrent);
+    });
 
   });
 

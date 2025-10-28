@@ -1,5 +1,7 @@
-import { splitMulti } from "../utils/utils";
+import { splitMulti, mapUriToGroups, uniq } from "../utils/utils";
 import { toDdcRoot } from "./ddc";
+import { LICENSE_GROUPS } from "../solr/solr";
+
 
 type PublicKey =
   | "type" | "ddc" | "language" | "in" | "api"
@@ -58,7 +60,16 @@ export function legacyFiltersFromQuery(q: Record<string, unknown>): Record<strin
     if (ddcs.length) add("ddc", ddcs);
   }
 
-  // Problematic / unimplemented legacy keys: license, format
+  // license => license (license_group_ss)
+  if (q.license) {
+    const uris = splitMulti(q.license);
+    if (uris.length !== 0 && LICENSE_GROUPS) {
+      const groups = uniq(uris.flatMap(u => mapUriToGroups(u, LICENSE_GROUPS))).filter(Boolean);
+      if (groups.length) add("license", groups.map(g => g.label));
+    }
+  } 
+
+  // Problematic / unimplemented legacy keys: format
 
   // if (q.format)   add("format",   splitCsv(q.format));
   // if (q.api)      add("api",      splitCsv(q.api));
