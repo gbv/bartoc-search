@@ -13,8 +13,6 @@ export type JSONObject =
   | { [key: string]: JSONObject }
   | JSONObject[];
 
-
-
 /** Convert bytes → megabytes with one decimal place */
 export function formatBytes(bytes: number): string {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
@@ -46,6 +44,31 @@ export function formatTimestamp(iso: string | number | undefined): string {
  */
 export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Split a value (string or array) into a flat list of tokens using one or more delimiters.
+ *
+ * - Accepts strings like "en,it|de" or arrays like ["en,it", "de|fr"].
+ * - Supports multiple delimiters via `delims` (default: pipes and commas).
+ * - Trims whitespace, removes empty tokens, and ignores non-string inputs.
+ * - Drops any trailing delimiters (e.g., "en,it,|" → "en,it").
+ */
+export function splitMulti(v: unknown, delims = /[|,]/): string[] {
+  // If it's an array, recursively split each element and flatten the result.
+  if (Array.isArray(v)) return v.flatMap(x => splitMulti(x, delims));
+
+  // Non-string inputs yield no tokens.
+  if (typeof v !== "string") return [];
+
+  return v
+    // Remove any trailing delimiters like "..." or "...||" to avoid empty tokens at the end.
+    .replace(/[|,]+$/, "")
+    // Split by the provided delimiters (pipe and/or comma by default).
+    .split(delims)
+    // Trim each token and drop blanks that may result from consecutive delimiters.
+    .map(s => s.trim())
+    .filter(Boolean);
 }
 
 /**
