@@ -214,6 +214,32 @@ All query parameters are optional.
 | **uri**     | `string` |  -        | `format=jskos&uri=<ConceptURI>` When both are included, the endpoint returns the raw JSKOS record for that exact URI instead of the list of JSKOS records.|
 
 
+Here’s a compact section you can drop into the README under **GET /api/search**.
+
+---
+
+#### Legacy parameters (backwards compatibility)
+
+For old BARTOC links, several legacy query params are supported and mapped to the new faceted API automatically. You can keep using your existing URLs; the server translates them to internal facet filters.
+
+**Supported legacy params**
+
+| Legacy param | Example (legacy) | Internally mapped to… | Notes |
+| - | - | - | - | 
+| `partOf` | `?partOf=http://bartoc.org/en/node/18926`| `filter=in:<uri>`| One or many values.|  |  |
+| `languages` | `?languages=de` or `?languages=it,en` | `filter=language:<codes>` | ISO codes, multiple allowed. |  
+| `country`| `?country=Italy` or `?country=Italy,Germany`| `filter=country:<labels>` | Verbatim country labels; multiple allowed. | 
+| `type` | `?type=http://w3id.org/nkos/nkostype#thesaurus` | `filter=type:<uri(s)>` | NKOS/SKOS type URIs; multiple allowed. | 
+| `access` | `?access=http://bartoc.org/en/Access/Free` | `filter=access:<uri(s)>` | Access policy URIs; multiple allowed. | 
+| `subject` | `?subject=http://dewey.info/class/3/e23/` | `filter=ddc:3` | DDC URIs are normalized to their root digit. Pipes/commas supported. |
+| `license` | `?license=http://creativecommons.org/licenses/by/4.0/` | `filter=license:<group>` | Exact URI is always applied; if known, its group (e.g. “Apache-2.0”, “CC BY”) is also added as a facet filter. |
+
+**Multiple values**
+
+* Legacy params accept **`|`** or **`,`** as separators, e.g.
+  `?languages=it,en` or `?subject=http://dewey.info/class/3/e23/|http://dewey.info/class/6/e23/|`
+* Trailing separators are ignored.
+
 #### Faceted filtering with repeatable `filter=` param
 
 - Use repeatable `filter` params in the URL:

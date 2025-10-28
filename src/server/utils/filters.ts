@@ -69,12 +69,6 @@ export function legacyFiltersFromQuery(q: Record<string, unknown>): Record<strin
     }
   } 
 
-  // Problematic / unimplemented legacy keys: format
-
-  // if (q.format)   add("format",   splitCsv(q.format));
-  // if (q.api)      add("api",      splitCsv(q.api));
-  // if (q.publisher) add("publisher", splitCsv(q.publisher));
-
   return out;
 }
 
