@@ -12,11 +12,13 @@ import { buildDDCLabels } from "./buildDDCLabels";
 import { buildListedInLabels } from "./buildListedInLabels";
 import { buildBartocApiLabels } from "./buildBartocApiLabels";
 import { KEEP_LANGS } from "./helpers";
+import { runJskosEnrich } from "./runJskosEnrich";
+import { spawn } from "node:child_process";
 
 
 /** Base configuration with sensible defaults */
 const DATA_DIR = process.env.DATA_DIR ?? "data";
-const ART_DIR = path.join(DATA_DIR, "artifacts");
+export const ART_DIR = path.join(DATA_DIR, "artifacts");
 const META_PATH = path.join(ART_DIR, "vocs.last.json"); // metadata persisted between runs
 
 type Source = {
@@ -79,11 +81,17 @@ interface LastMeta {
   sha256?: string
 }
 
+
+type SnapshotChoice = {
+  path: string;
+  source: "enriched" | "raw";
+  meta?: LastMeta; // only for raw fallback
+};
+
 type FetchResult = {
   meta: LastMeta; 
   notModified: boolean; // true when server returned 304 and we reused the old file
 };
-
 
 
 /**
@@ -161,33 +169,49 @@ async function publishCurrent(tempDir: string): Promise<void> {
   console.log("✅ Artifacts published to", CURRENT_DIR);
 }
 
-// Use the latest local snapshot if available, else null
-async function resolveLatestLocalSnapshot(): Promise<LastMeta | null> {
-  // 1) Prefer last.json
+/** Resolve the best available VOCS input for indexing */
+async function resolveVocsInput(): Promise<SnapshotChoice | null> {
+  const CURRENT_DIR = path.join(DATA_DIR, "artifacts", "current");
+  const enrichedPath = path.join(CURRENT_DIR, "vocs.enriched.ndjson");
+
+  // 1) enriched file published by the Producer
+  try {
+    await fs.access(enrichedPath);
+    return { path: enrichedPath, source: "enriched" };
+  } catch { /* no enriched file */ }
+
+  // 2) fallback to last raw snapshot tracked in vocs.last.json
   try {
     const meta = JSON.parse(await fs.readFile(META_PATH, "utf8")) as LastMeta;
-    if (meta.snapshotPath && existsSync(meta.snapshotPath)) return meta;
-  } catch (e) {
-    if (e instanceof Error) {
-      console.log(e.message);
+    if (meta.snapshotPath && existsSync(meta.snapshotPath)) {
+      return { path: meta.snapshotPath, source: "raw", meta };
     }
-  }
+  } catch { /* no meta or unreadable */ }
 
+  // 3) nothing usable
   return null;
 }
 
 
 // Resolve a snapshot path to use for indexing: prefer local, else (optionally) download
-export async function ensureSnapshotForIndexing(): Promise<LastMeta | null> {
-  const local = await resolveLatestLocalSnapshot();
-  if (local) return local;
+export async function ensureSnapshotForIndexing(): Promise<string> {
+  const resolved = await resolveVocsInput();
 
-  if (!local) {
-    throw new Error("No local NDJSON snapshot found and ALLOW_DOWNLOAD_FALLBACK=0.");
+  if (!resolved) {
+    throw new Error("No vocs input found (neither enriched nor raw snapshot).");
   }
-
-  return null;
+  return resolved.path;
   
+}
+
+// helper to trigger reindexing via existing script
+async function runReindexOnce(): Promise<void> {
+  await new Promise<void>((resolve, reject) => {
+    // "npm run reindex" -> tsx ./src/server/solr/index-once.ts
+    const p = spawn("npm", ["run", "reindex"], { stdio: "inherit" });
+    p.on("error", reject);
+    p.on("exit", (code) => (code === 0 ? resolve() : reject(new Error(`reindex exit ${code}`))));
+  });
 }
 
 /**
@@ -238,9 +262,60 @@ async function main(): Promise<void> {
   const tempDir    = `${versionDir}__tmp`;
   await fs.mkdir(tempDir, { recursive: true });
 
+	// Reuse last enriched file if vocs didn't change; otherwise run enrichment.
+	// - If vocs changed: build a fresh vocs.enriched.ndjson into tempDir
+	// - If vocs did NOT change:
+	//     - try to copy artifacts/current/vocs.enriched.ndjson into tempDir
+	//     - if it doesn't exist, fall back to the raw vocs snapshot
+
+	const CURRENT_DIR = path.join(ART_DIR, "current");
+	const prevEnrichedPath = path.join(CURRENT_DIR, "vocs.enriched.ndjson");
+
+	let vocsPathForBuilders = vocsMeta.snapshotPath; // default = raw snapshot
+	let enrichMeta: { used: boolean; file?: string; source: "new" | "prev" | "raw"; sha256?: string; count?: number } = {
+		used: false,
+		source: "raw",
+	};
+
+	if (!notModifiedVocs) {
+		// vocs changed → run enrichment now
+		try {
+			const { outfile, sha256, count } = await runJskosEnrich(
+				vocsMeta.snapshotPath,
+				tempDir,
+				"vocs.enriched.ndjson",
+				{
+					properties: ["subject"], // keep to supported property set
+					quiet: true,
+					schemesFile: "config/enrich.schemes.json",
+				}
+			);
+			console.log(`✅ jskos-enrich: produced ${path.basename(outfile)} (${count} records)`);
+			vocsPathForBuilders = outfile;
+			enrichMeta = { used: true, file: path.basename(outfile), source: "new", sha256, count };
+		} catch (e) {
+			console.warn("⚠️ jskos-enrich failed (vocs changed) — continuing with raw snapshot:", (e as Error).message);
+			// vocsPathForBuilders stays raw
+		}
+	} else {
+		// vocs NOT changed → reuse last enriched file if present
+		try {
+			await fs.access(prevEnrichedPath);
+			const reused = path.join(tempDir, "vocs.enriched.ndjson");
+			await fs.copyFile(prevEnrichedPath, reused);
+			vocsPathForBuilders = reused;
+			enrichMeta = { used: true, file: path.basename(reused), source: "prev" };
+			console.log("♻️  Reused previous vocs.enriched.ndjson from artifacts/current");
+		} catch {
+			console.log("ℹ️  No previous vocs.enriched.ndjson found — using raw vocs snapshot");
+			// vocsPathForBuilders stays raw
+		}
+	}
+
   // Build lookup_entries.json in streaming mode
   await timed("Build lookup_entries.json", () =>
-    buildLookupEntries(vocsMeta.snapshotPath, tempDir)
+    // buildLookupEntries(vocsMeta.snapshotPath, tempDir)
+		buildLookupEntries(vocsPathForBuilders, tempDir)
   );
 
   // Build access_type.json in streaming mode
@@ -284,6 +359,19 @@ async function main(): Promise<void> {
     console.log("DDC 100 concepts Snapshot unchanged — nothing to do.");
   }
 
+	const files: string[] =  [
+      "lookup_entries.json",
+      "access_type.json",
+      "ddc-labels.json",
+      "listed_in.json",
+      "bartoc-api-types-labels.json"
+    ];
+
+	// If enrichment succeeded, record the enriched file in the manifest list
+	if (enrichMeta.used && enrichMeta.file) {
+		files.unshift(enrichMeta.file); // put it first for visibility
+	}
+	
   // Write artifact metadata (useful for healthchecks and debugging)
   const artifactsMeta = {
     generatedAt: new Date().toISOString(),
@@ -292,26 +380,30 @@ async function main(): Promise<void> {
       vocs: { url: SOURCES.vocs.url, ...vocsMeta },
       registries: { url: SOURCES.registries.url, ...regMeta },
     },
-    files: [
-      "lookup_entries.json",
-      "access_type.json",
-      "ddc-labels.json",
-      "listed_in.json",
-      "bartoc-api-types-labels.json",
-      "format-groups.json"
-    ],
+		enriched: enrichMeta,      // <— new: records whether enriched file was used
+    files, 
   };
-    await fs.writeFile(path.join(tempDir, "artifacts.meta.json"), JSON.stringify(artifactsMeta, null, 2), "utf8");
+  
+	await fs.writeFile(path.join(tempDir, "artifacts.meta.json"), JSON.stringify(artifactsMeta, null, 2), "utf8");
 
   // 5) Atomic publish
   await publishCurrent(tempDir);
+
+  // Reindex after update
+	try {
+		console.log("▶️  Reindex after update…");
+		await runReindexOnce();
+		console.log("✅ Reindex completed.");
+	} catch (e) {
+		console.error("❌ Reindex failed:", (e as Error).message);
+	}
+
 }
 
 function isDirectExec(metaUrl: string): boolean {
   const entry = process.argv[1] ? pathToFileURL(process.argv[1]).href : "";
   return metaUrl === entry;
 }
-
 
 export { main as runUpdateOnce };
 

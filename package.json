@@ -13,6 +13,7 @@
     "lint:server": "tsc --noEmit --project tsconfig.json && eslint --fix \"src/server/**/*.{js,ts}\" --config src/server/eslint.config.mjs",
     "live:seed": "npx ts-node ./src/data/seedTerminologies.ts",
     "update-data": "tsx ./src/server/utils/updateFromBartoc.ts",
+    "reindex": "tsx ./src/server/solr/index-once.ts",
     "prepare": "husky || true"
   },
   "keywords": [],
@@ -38,6 +39,7 @@
     "@vitejs/plugin-vue": "^5.2.1",
     "axios": "^1.9.0",
     "c8": "^10.1.3",
+    "cocoda-sdk": "^3.4.13",
     "cross-env": "^7.0.3",
     "dotenv": "^16.5.0",
     "eslint": "^9.24.0",
@@ -47,6 +49,7 @@
     "express-ws": "^5.0.2",
     "globals": "^16.0.0",
     "husky": "^9.1.7",
+    "jskos-cli": "^0.8.3",
     "jskos-tools": "^1.0.43",
     "lodash": "^4.17.21",
     "namespace-lookup": "^0.2.1",

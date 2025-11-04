@@ -61,16 +61,115 @@ data/
 
 ```
 
-### How the updater works (quick overview)
+## How the updater works
 
-1. Fetch each source with conditional GET (ETag + Last-Modified) → saves a versioned file in `data/snapshots/<source>/YYYY-MM-DD_<etag>_<sha12>.(ndjson|json)`.
-2. Build artifacts into a versioned temp directory (e.g., `data/artifacts/<versionName>__tmp/`).
-3. Write `artifacts.meta.json` with timestamps, keep-langs, and the source snapshot metadata.
-4. Atomically publish by renaming the temp dir to `data/artifacts/current/`.
+1. **Fetch sources** with conditional GET (ETag + Last-Modified).
+   Each response is saved versioned as:
 
-If a server returns **304 Not Modified**, the previous snapshot is reused and only the publish step runs.
+   ```
+   data/snapshots/<source>/YYYY-MM-DD_<etagOrNoetag>_<sha12>.(ndjson|json)
+   ```
 
+2. **Enrich (optional):**
 
+   * If the **vocs** snapshot changed, run `jskos-enrich` (local binary) to produce
+
+     ```
+     data/artifacts/<version>__tmp/vocs.enriched.ndjson
+     ```
+
+     using your schemes config (e.g., `config/enrich.schemes.json`) and selected properties (e.g., `subject`).
+   * If **vocs** did not change, keep the previously published `vocs.enriched.ndjson`.
+
+3. **Build artifacts** into the same temp dir (streaming):
+
+   * `lookup_entries.json` (uri, identifier[], prefLabel{…}, namespace)
+   * `access_type.json`
+   * `ddc-labels.json`
+   * `listed_in.json`
+   * `bartoc-api-types-labels.json`
+   * `artifacts.meta.json` (timestamps, keep-langs, source metadata)
+
+4. **Atomic publish**: rename `<version>__tmp` → `artifacts/current/`.
+
+### Notes
+
+* If a server returns **304 Not Modified**, the previous snapshot is reused.
+* Enrichment only runs when **vocs** changed; otherwise the last enriched file remains in `artifacts/current/`.
+* Indexing prefers the **enriched** NDJSON if present.
+
+---
+
+### Indexing
+
+* One-shot indexing:
+
+  ```bash
+  npm run reindex
+  ```
+
+  Internally, the indexer chooses the input via:
+
+  * `data/artifacts/current/vocs.enriched.ndjson` (preferred)
+  * else the latest `vocs` NDJSON snapshot
+  * else remote `BARTOC_NDJSON_URL` (streamed)
+
+---
+
+### Automation (cron in Docker)
+
+Mount your cron file and config directory:
+
+```yaml
+volumes:
+  - $CONFIGS/bartoc-search-dev:/config:ro
+environment:
+  - CONFIG_FILE=/config/config.json
+  - TZ=Europe/Berlin
+```
+
+`/config/cron` example (run every **6 hours**, update → reindex):
+
+```cron
+CRON_TZ=Europe/Berlin
+
+0 */6 * * * cd /usr/src/app && /usr/local/bin/npm run update-data >> /proc/1/fd/1 2>&1 && /usr/local/bin/npm run reindex >> /proc/1/fd/1 2>&1
+```
+
+> The container entrypoint installs `/config/cron` and starts `crond`; all job output goes to `docker logs`.
+
+**Verify:**
+
+```bash
+docker compose logs -f bartoc-search
+docker compose exec bartoc-search sh -lc 'crontab -l; ps aux | grep [c]rond'
+```
+
+---
+
+### Troubleshooting
+
+* **Permissions**: ensure the container user can write under `DATA_DIR` (bind mounts can inherit host perms).
+* **Enrichment config**: if `jskos-enrich` complains about missing config, point `--schemes` to your file (e.g., `/config/enrich.schemes.json`).
+* **cocoda-sdk missing**: install `jskos-cli` (dev dep) and make sure `node_modules/.bin/jskos-enrich` exists.
+* **Solr connectivity**: in Docker, use `SOLR_URL=http://solr:8983/solr` and ensure the `solr` service is healthy.
+* **Time zone**: set `TZ` and install `tzdata` in the image if you need local times in cron.
+
+---
+
+### CLI
+
+Run the updater locally:
+
+```bash
+npm run update-data
+```
+
+Run the indexer locally:
+
+```bash
+npm run reindex
+```
 
 ### Snapshots
 

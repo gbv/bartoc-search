@@ -10,7 +10,8 @@ import {
   SolrErrorResponse,
 } from "../types/solr";
 import { AxiosError } from "axios";
-import { createReadStream, existsSync, writeFileSync } from "fs";
+import fs from "node:fs/promises";
+import { createReadStream, writeFileSync, constants as FS } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { ConceptSchemeDocument, GroupEntry } from "../types/jskos";
@@ -83,7 +84,7 @@ export async function connectToSolr(): Promise<void> {
 
 // Initializes the Solr core with daily dump data from Database even if that is not empty
 export async function bootstrapIndexSolr() {
-  config.log?.("📦 Proceeding with initial indexing...");
+  config.log?.("Proceeding with initial indexing...");
   const REMOTE_URL = "https://bartoc.org/data/dumps/latest.ndjson";
 
   // 1) Pick input stream: local snapshot (preferred) or remote fallback
@@ -91,14 +92,12 @@ export async function bootstrapIndexSolr() {
   let source: string;
 
   try {
-      const meta = await ensureSnapshotForIndexing(); // returns { snapshotPath, ... } or throws
-      if (meta?.snapshotPath && existsSync(meta.snapshotPath)) {
-        source = meta.snapshotPath;
-        input = createReadStream(meta.snapshotPath);
-        config.log?.(`📄 Using local snapshot: ${source}`);
-      } else {
-        throw new Error("No local snapshot available.");
-      }
+      const localPath = await ensureSnapshotForIndexing(); // e.g. ".../artifacts/current/vocs.enriched.ndjson"
+      await fs.access(localPath, FS.R_OK); // explicit readability check
+      input = createReadStream(localPath);
+      source = localPath;
+      config?.log?.(`Using local vocs snapshot: ${source}`);
+
     } catch {
     // Fallback: stream from remote
     const res = await axios.get(REMOTE_URL, {
@@ -107,7 +106,7 @@ export async function bootstrapIndexSolr() {
     });
     input = res.data as NodeJS.ReadableStream;
     source = REMOTE_URL;
-    config.log?.(`Using remote NDJSON: ${REMOTE_URL}`);
+    config.log?.(`Using remote NDJSON vocs: ${REMOTE_URL}`);
   }
    
   // 2) Stream line-by-line → transform → batch to Solr
