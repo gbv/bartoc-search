@@ -20,6 +20,7 @@ import { spawn } from "node:child_process";
 const DATA_DIR = process.env.DATA_DIR ?? "data";
 export const ART_DIR = path.join(DATA_DIR, "artifacts");
 const META_PATH = path.join(ART_DIR, "vocs.last.json"); // metadata persisted between runs
+const ENRICH_OUT_NAME = "vocs.enriched.ndjson";
 
 type Source = {
   key: "vocs" | "registries" | "apiTypes" | "accessTypes" | "ddcConcepts";
@@ -91,6 +92,14 @@ type SnapshotChoice = {
 type FetchResult = {
   meta: LastMeta; 
   notModified: boolean; // true when server returned 304 and we reused the old file
+};
+
+type EnrichMeta = {
+  used: boolean;
+  source: "new" | "prev" | "raw";
+  file?: string;
+  sha256?: string;
+  count?: number;
 };
 
 
@@ -214,6 +223,62 @@ async function runReindexOnce(): Promise<void> {
   });
 }
 
+async function pathExists(p: string): Promise<boolean> {
+  try { await fs.access(p); return true; } catch { return false; }
+}
+
+/**
+ * Decide which NDJSON to feed into builders:
+ * - Re-enrich if vocs changed OR no enriched file exists (or FORCE_ENRICH=1).
+ * - Else reuse the previously published enriched file (copy into tempDir).
+ * - If enrichment fails, fall back to raw snapshot.
+ */
+export async function selectVocsInput({
+  vocsSnapshotPath,
+  tempDir,
+  notModifiedVocs,
+  schemesFile = "config/enrich.schemes.json",
+  properties = ["subject"],
+}: {
+  vocsSnapshotPath: string;
+  tempDir: string;
+  notModifiedVocs: boolean;
+  schemesFile?: string;
+  properties?: string[];
+}): Promise<{ path: string; meta: EnrichMeta }> { 
+
+  const currentEnriched = path.join(ART_DIR, "current", ENRICH_OUT_NAME);
+  const mustEnrich = !notModifiedVocs || !(await pathExists(currentEnriched));
+
+  if (mustEnrich) {
+    try {
+      const { outfile, sha256, count } = await runJskosEnrich(
+        vocsSnapshotPath,
+        tempDir,
+        ENRICH_OUT_NAME,
+        { properties, schemesFile, quiet: true }
+      );
+      console.log(`jskos-enrich: ${path.basename(outfile)} (${count} records)`);
+      return { path: outfile, meta: { used: true, source: "new", file: path.basename(outfile), sha256, count } };
+    } catch (e) {
+      console.warn("jskos-enrich failed — using raw snapshot:", (e as Error).message);
+      return { path: vocsSnapshotPath, meta: { used: false, source: "raw" } };
+    }
+  }
+
+  // Reuse previously published enriched file
+  try {
+    const reused = path.join(tempDir, ENRICH_OUT_NAME);
+    await fs.copyFile(currentEnriched, reused);
+    console.log("♻️  Reused previous vocs.enriched.ndjson from artifacts/current");
+    return { path: reused, meta: { used: true, source: "prev", file: ENRICH_OUT_NAME } };
+  } catch {
+    console.log("ℹ️  No previous enriched file — using raw snapshot");
+    return { path: vocsSnapshotPath, meta: { used: false, source: "raw" } };
+  }
+
+}
+
 /**
  * Main:
  *  1) Fetch snapshot (conditional with ETag/Last-Modified).
@@ -261,56 +326,16 @@ async function main(): Promise<void> {
   const versionDir = path.join(ART_DIR, versionName);
   const tempDir    = `${versionDir}__tmp`;
   await fs.mkdir(tempDir, { recursive: true });
-
-	// Reuse last enriched file if vocs didn't change; otherwise run enrichment.
-	// - If vocs changed: build a fresh vocs.enriched.ndjson into tempDir
-	// - If vocs did NOT change:
-	//     - try to copy artifacts/current/vocs.enriched.ndjson into tempDir
-	//     - if it doesn't exist, fall back to the raw vocs snapshot
-
-	const CURRENT_DIR = path.join(ART_DIR, "current");
-	const prevEnrichedPath = path.join(CURRENT_DIR, "vocs.enriched.ndjson");
-
-	let vocsPathForBuilders = vocsMeta.snapshotPath; // default = raw snapshot
-	let enrichMeta: { used: boolean; file?: string; source: "new" | "prev" | "raw"; sha256?: string; count?: number } = {
-		used: false,
-		source: "raw",
-	};
-
-	if (!notModifiedVocs) {
-		// vocs changed → run enrichment now
-		try {
-			const { outfile, sha256, count } = await runJskosEnrich(
-				vocsMeta.snapshotPath,
-				tempDir,
-				"vocs.enriched.ndjson",
-				{
-					properties: ["subject"], // keep to supported property set
-					quiet: true,
-					schemesFile: "config/enrich.schemes.json",
-				}
-			);
-			console.log(`✅ jskos-enrich: produced ${path.basename(outfile)} (${count} records)`);
-			vocsPathForBuilders = outfile;
-			enrichMeta = { used: true, file: path.basename(outfile), source: "new", sha256, count };
-		} catch (e) {
-			console.warn("⚠️ jskos-enrich failed (vocs changed) — continuing with raw snapshot:", (e as Error).message);
-			// vocsPathForBuilders stays raw
-		}
-	} else {
-		// vocs NOT changed → reuse last enriched file if present
-		try {
-			await fs.access(prevEnrichedPath);
-			const reused = path.join(tempDir, "vocs.enriched.ndjson");
-			await fs.copyFile(prevEnrichedPath, reused);
-			vocsPathForBuilders = reused;
-			enrichMeta = { used: true, file: path.basename(reused), source: "prev" };
-			console.log("♻️  Reused previous vocs.enriched.ndjson from artifacts/current");
-		} catch {
-			console.log("ℹ️  No previous vocs.enriched.ndjson found — using raw vocs snapshot");
-			// vocsPathForBuilders stays raw
-		}
-	}
+  console.log(`▶️  Building artifacts in temporary dir: ${tempDir}`);
+	// let vocsPathForBuilders = vocsMeta.snapshotPath; // default = raw snapshot
+	
+  const { path: vocsPathForBuilders, meta: enrichMeta } = await selectVocsInput({
+    vocsSnapshotPath: vocsMeta.snapshotPath,
+    tempDir,
+    notModifiedVocs,
+    schemesFile: process.env.ENRICH_SCHEMES || "config/enrich.schemes.json",
+    properties: ["subject"],
+  });
 
   // Build lookup_entries.json in streaming mode
   await timed("Build lookup_entries.json", () =>
@@ -359,13 +384,13 @@ async function main(): Promise<void> {
     console.log("DDC 100 concepts Snapshot unchanged — nothing to do.");
   }
 
-	const files: string[] =  [
-      "lookup_entries.json",
-      "access_type.json",
-      "ddc-labels.json",
-      "listed_in.json",
-      "bartoc-api-types-labels.json"
-    ];
+	const files: string[] = [
+    "lookup_entries.json",
+    "access_type.json",
+    "ddc-labels.json",
+    "listed_in.json",
+    "bartoc-api-types-labels.json",
+  ];
 
 	// If enrichment succeeded, record the enriched file in the manifest list
 	if (enrichMeta.used && enrichMeta.file) {
