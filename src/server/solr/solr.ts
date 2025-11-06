@@ -18,7 +18,7 @@ import { ConceptSchemeDocument, GroupEntry } from "../types/jskos";
 import { sleep, loadJSONFile, mapUriToGroups, extractGroups, applyAgents, 
   applyDistributions, applyPrefLabel, applyPublishers, applySubjectOf, applySubject, pickTitleSort } from "../utils/utils";
 import readline from "readline";
-import { extractDdc } from "../utils/ddc";
+import { extractDdc, buildDdcAncestorsFromSubjects } from "../utils/ddc";
 import { applyLangMap } from "../utils/utils";
 import { getNkosConcepts, loadNkosConcepts } from "../utils/nskosService";
 import { ensureSnapshotForIndexing } from "../utils/updateFromBartoc";
@@ -206,6 +206,7 @@ export function transformConceptSchemeToSolr(
     extent_s: doc.extent,
     ddc_ss: extractDdc(doc.subject, { rootLevel: false }),
     ddc_root_ss: extractDdc(doc.subject, { rootLevel: true }),
+    ddc_ancestors_ss: buildDdcAncestorsFromSubjects(doc.subject),
     format_type_ss: doc.FORMAT?.map(f => f.uri) || [],
     created_dt: doc.created,
     id: doc.uri,

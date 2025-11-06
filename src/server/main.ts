@@ -29,10 +29,6 @@ const isTest = process.env.NODE_ENV === "test";
 const base = process.env.VIRTUAL_PATH || "/";
 const DATA_DIR = process.env.DATA_DIR ?? "data";
 
-
-console.log("isTest :", isTest);
-console.log("NODE_ENV =", process.env.NODE_ENV); 
-
 // Cached production template
 const templateHtml = isProduction
   ? await fs.readFile("./dist/client/index.html", "utf-8")

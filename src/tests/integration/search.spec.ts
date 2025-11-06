@@ -6,6 +6,7 @@ import request from "supertest";
 let app: any;
 let seededDocs: any[];
 const FIXTURE = "src/tests/fixtures/solr/seed.json";
+const DDC_FIXTURE = "src/tests/fixtures/solr/ddc-seed.json";
 
 const getIds = (res: any) =>
   (res.body.response?.docs ?? []).map((d: any) => d.id).sort();
@@ -16,6 +17,9 @@ beforeAll(async () => {
 
   await startSolrWithConfigset();
   seededDocs = await seedSolrFromJson(FIXTURE);
+
+  const ddcDocs = await seedSolrFromJson(DDC_FIXTURE);
+  seededDocs = [...seededDocs, ...ddcDocs];
 
   const { createApp } = await import("../../server/main");
   app = await createApp({ withVite:false, withFrontend:false, withWorkers:false, withUpdater:false });
@@ -278,4 +282,73 @@ describe("GET /api/search", () => {
 
   });
 
+});
+
+describe("GET /api/search — DDC routing via filter=ddc:", () => {
+  it("routes 1-digit to ddc_root_ss (ddc:4)", async () => {
+    const res = await request(app)
+      .get("/api/search")
+      .query({ search: "", limit: 10, filter: "ddc:4" });
+
+    expect(res.status).toBe(200);
+    const ids = getIds(res);
+    // Should include both root 4-only and the 420 doc (because it also has root 4)
+    expect(ids).toEqual(["doc:eng-420", "doc:root-4"]);
+  });
+
+  it("routes 2-digits to ddc_ancestors_ss (ddc:42)", async () => {
+    const res = await request(app)
+      .get("/api/search")
+      .query({ search: "", limit: 10, filter: "ddc:42" });
+
+    expect(res.status).toBe(200);
+    const ids = getIds(res);
+    expect(ids).toEqual(["doc:eng-420"]);
+  });
+
+  it("routes 3+ digit integers to ddc_ss (ddc:420)", async () => {
+    const res = await request(app)
+      .get("/api/search")
+      .query({ search: "", limit: 10, filter: "ddc:420" });
+
+    expect(res.status).toBe(200);
+    const ids = getIds(res);
+    expect(ids).toEqual(["doc:eng-420"]);
+  });
+
+  it("routes decimal notations to ddc_ss (ddc:32.1)", async () => {
+    const res = await request(app)
+      .get("/api/search")
+      .query({ search: "", limit: 10, filter: "ddc:32.1" });
+
+    expect(res.status).toBe(200);
+    const ids = getIds(res);
+    expect(ids).toEqual(["doc:decimal-32-1"]);
+  });
+
+  it("accepts DDC URI and extracts notation (ddc:http://dewey.info/class/420/e23/)", async () => {
+    const res = await request(app)
+      .get("/api/search")
+      .query({
+        search: "",
+        limit: 10,
+        filter: "ddc:http://dewey.info/class/420/e23/",
+      });
+
+    expect(res.status).toBe(200);
+    const ids = getIds(res);
+    expect(ids).toEqual(["doc:eng-420"]);
+  });
+
+  it("does not emit empty ddc_* keys for empty value (ddc:)", async () => {
+    // This shouldn't crash or constrain results; also shouldn't add empty arrays to Solr query.
+    const res = await request(app)
+      .get("/api/search")
+      .query({ search: "", limit: 10, filter: "ddc:" });
+
+    expect(res.status).toBe(200);
+    // We don't assert IDs here; the main check is that it doesn't 400/500.
+    // (Optionally, you could assert numFound >= 3 because fixture has 3 docs total.)
+    expect((res.body.response?.numFound ?? 0)).toBeGreaterThanOrEqual(3);
+  });
 });

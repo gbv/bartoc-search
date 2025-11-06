@@ -45,3 +45,6 @@ data/snapshots/
 data/artifacts/
 !data/README.md
 data/lastIndexedAt.txt
+
+# Cron
+config/cron

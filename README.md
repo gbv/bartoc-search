@@ -304,6 +304,31 @@ Use these **public keys** in the `filter` param. The server maps them to Solr fi
 | `publisher` | `publisher_labels_ss` | Publisher display label |
 
 
+**DDC filtering (index-time expansion + query-time routing)**
+
+To make DDC filters intuitive:
+
+- Index-time expansion adds ddc_ancestors_ss for integer notations:
+420 → ["4","42","420"], 453 → ["4","45","453"].
+Decimals like 32.1 are not expanded (kept exact in ddc_ss).
+
+- Query-time routing of filter=ddc:<value>:
+
+  - 4 (one digit) → ddc_root_ss
+  - 42 (two digits) → ddc_ancestors_ss (matches 420–429)
+  - 420, 453 (3+ integer digits) → ddc_ancestors_ss (exact integer class)
+  - 32.1 (decimal) → ddc_ss (exact only)
+  - DDC URIs (e.g. http://dewey.info/class/420/e23/) are normalized to notation first
+
+Examples:
+```http
+/api/search?filter=ddc:4       # Language (4xx)
+/api/search?filter=ddc:42      # English & related (420–429)
+/api/search?filter=ddc:420     # Exact 420
+/api/search?filter=ddc:32.1    # Exact decimal 32.1
+/api/search?filter=ddc:http://dewey.info/class/420/e23/
+```
+
 ##### Special cases
 
 ###### “No value” (missing field)

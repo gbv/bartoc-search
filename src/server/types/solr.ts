@@ -88,6 +88,7 @@ export interface SolrDocument
   created_dt?: string;
   ddc_ss: string[];
   ddc_root_ss: string[];
+  ddc_ancestors_ss?: string[];
   definition_ss?: string[];
   distributions_download_ss?: string[];
   distributions_format_ss?: string[];

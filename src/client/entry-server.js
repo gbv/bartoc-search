@@ -18,7 +18,6 @@ export async function render(url) {
 
   const ctx = {}
   const stream = renderToWebStream(app, ctx)
-  console.log("✅ renderToWebStream called")
 
   if (!stream) {
     throw new Error("❌ renderToWebStream did not return a valid stream")

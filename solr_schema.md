@@ -73,6 +73,7 @@ Each field is configured with `indexed`, `stored`, and `multiValued` attributes 
 | `subject_of_host_ss` | `lc_keyword` |    ✓    |    ✓   |   ✓   | Hostnames extracted from URLs coming from JSKOS subjectOf (case-insensitive exact match). |
 | `ddc_ss`           | `string` |    ✓    |    ✓   |     ✓     | Dewey Decimal Classification notations.                     |
 | `ddc_root_ss`      | `string` |    ✓    |    ✓   |     ✓     | Dewey Decimal Classification notations only at root level.  |
+| `ddc_ancestors_ss` | `string` |    ✓    |    ✓   |      ✓      | Hierarchical expansion of DDC integer notations. For each DDC class with an integer notation, all numeric prefixes are added (e.g., `420` → `["4","42","420"]`, `453` → `["4","45","453"]`). Used to support “bucket” filtering like `ddc:42` (420–429) and exact class queries like `ddc:420` without requiring range queries. Decimal notations (e.g., `32.1`) are not expanded and remain exact in `ddc_ss`. |
 | `modified_dt`      | `pdate`  |    ✓    |    ✓   |      x     | Last modification timestamp (ISO 8601).                     |
 | `start_date_i`     | `pint`   |    ✓    |    ✓   |      x     | Start year (integer) of the classification.                 |
 | `url_s`            | `string` |    ×    |    ✓   |      x     | Canonical URL for more information (not indexed).           |

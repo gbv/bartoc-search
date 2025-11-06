@@ -93,3 +93,23 @@ export const toDdcRoot = (uri: string): string | null => {
   const head = notation.split(".")[0]; // take part before decimal, e.g., "3" or "300"
   return head[0] ?? null;              // first digit = DDC root ("3" for all above)
 };
+
+// Build ["4","45","453"] from notations like "453" (ignores decimals beyond 3 digits)
+export function buildDdcAncestorsFromSubjects(
+  subjects: JskosSubject[] | undefined
+): string[] {
+  if (!Array.isArray(subjects)) return [];
+  const out = new Set<string>();
+
+  for (const s of subjects) {
+    for (const n of (s.notation ?? [])) {
+      const raw = String(n);
+      const noDot = raw.split(".")[0]; // "32.1" -> "32"
+      if (!/^\d+$/.test(noDot)) continue;
+      for (let len = 1; len <= Math.min(3, noDot.length); len++) {
+        out.add(noDot.slice(0, len)); // "453" -> "4","45","453"
+      }
+    }
+  }
+  return Array.from(out);
+}
