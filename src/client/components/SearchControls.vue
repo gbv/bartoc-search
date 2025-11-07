@@ -28,9 +28,6 @@
     <div
       v-if="badges.length > 0"
       class="search-controls__badges">
-      <div class="badges-title">
-        Applied Filters:
-      </div>
       <div class="badges__wrapper">
         <FilterBadge
           v-for="badge in badges"
