@@ -80,6 +80,8 @@ Each field is configured with `indexed`, `stored`, and `multiValued` attributes 
 | `title_sort`       | `string` |    ✓    |    ✓   |      x     | Sortable, un-analyzed title.                                |
 | `type_uri`         | `string` |    ✓    |    ✓   |     ✓     | SKOS/NKOS type URIs (e.g. ConceptScheme, thesaurus).        |
 | `title_search`     | `text`   |    ✓    |    ×   |     ✓     | Dedicated, multi-valued title field for title-only queries. |
+| `title_trigram` | text_trigram | ✓ | × | ✓ | Trigram-indexed title field for typo-tolerant matching; filled via copyField from title_*. |
+| `allfields_trigram` | text_trigram | ✓ | × | ✓ | Trigram-indexed catch-all mirror of allfields, used as a low-boost fuzzy fallback in queries. |
 
 
 ### Dynamic Fields
@@ -117,9 +119,11 @@ To enable both targeted and global search, we copy field values into broader cat
 | `publisher_label` | `allfields`    |
 | `subject_notation`| `allfields`    |
 | `subject_label_* `| `allfields`    |
-| `type_label_* `| `allfields`    |
+| `type_label_* `   | `allfields`    |
 | `title_*`         | `title_search` |
 | `title_en`        | `title_sort`   |
+| `title_*`         | `title_trigram` |
+| `allfields*`      | `allfields_trigram` |
 
 
 - allfields
@@ -127,6 +131,68 @@ A multi-valued text field that aggregates most human-readable content for global
 
 - title_search
 A dedicated text field optimized for title-only searches.
+
+
+### Fuzzy search via character trigrams (baseline)
+
+A small, safe way to make search resilient to typos. We add two trigram fields in Solr and a tiny bit of query glue on the server. Exact matches still win; trigrams are a soft fallback so users don’t get zero results for small mistakes.
+
+#### Why trigrams?
+
+Example: user types **“clasification”** (missing *s*).  
+Index-time, Solr stores 3‑char slices for “classification”: `cla, las, ass, ssi, sif, ifi, fic, ica, cat, ati, tio, ion, …`  
+Query-time, the typo is sliced similarly and **overlaps a lot** with the indexed grams → documents still score.
+
+Trigrams are simple, predictable, and cheap to roll back.
+
+
+#### Solr schema changes
+
+A dedicated **text_trigram** that lowercases, ASCII‑folds, and splits into 3‑char n‑grams.
+
+```xml
+<!-- FieldType: trigrams for fuzzy-ish matching -->
+<fieldType name="text_trigram" class="solr.TextField" positionIncrementGap="100">
+  <analyzer type="index">
+    <tokenizer class="solr.StandardTokenizerFactory"/>
+    <filter class="solr.LowerCaseFilterFactory"/>
+    <filter class="solr.ASCIIFoldingFilterFactory" preserveOriginal="false"/>
+    <filter class="solr.NGramFilterFactory" minGramSize="3" maxGramSize="3"/>
+  </analyzer>
+  <analyzer type="query">
+    <tokenizer class="solr.StandardTokenizerFactory"/>
+    <filter class="solr.LowerCaseFilterFactory"/>
+    <filter class="solr.ASCIIFoldingFilterFactory" preserveOriginal="false"/>
+    <filter class="solr.NGramFilterFactory" minGramSize="3" maxGramSize="3"/>
+  </analyzer>
+</fieldType>
+```
+
+#### What Solr gets (example):
+
+```
+( allfields:("British Columbia First Nations Subject Headings"^3 OR "British" OR "Columbia" OR "First" OR "Nations" OR "Subject" OR "Headings") )
+OR
+( _query_:"{!field f=title_trigram}British Columbia First Nations Subject Headings"^0.6
+  OR _query_:"{!field f=allfields_trigram}British Columbia First Nations Subject Headings"^0.25 )
+```
+
+- The first part is the exact/token query (unchanged).
+- The second part kicks in only for simple inputs and lets the analyzer expand to trigrams safely via `{!field f=…}` local parameters.
+
+
+**Enabled** for: typos and simple text, e.g.  
+`Clasification`, `italain`, `deutsch land` (length ≥ 3, no Lucene syntax).
+
+**Disabled** for: power-user cases, e.g.  
+`title:"film noir"`, `api:*`, `foo AND bar`, `type:thesaurus`, or very short inputs like `it`.
+
+#### Tuning notes
+
+- Start with boosts `title_trigram^0.6`, `allfields_trigram^0.25`.
+  - Raise/lower as needed to balance recall vs. noise.
+- If index size grows too much, keep only `title_trigram` (remove `allfields_trigram` & copyField).
+- Keep min/max gram size at **3** to avoid churn and false positives.
 
 
 ### Example Document Structure

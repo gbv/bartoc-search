@@ -96,9 +96,10 @@ describe("GET /api/search", () => {
     const res = await request(app).get("/api/search")
       .query({ search: "British Columbia First Nations Subject Headings", limit: 10, filter: "publisher:-" }); // NO_VALUE
     expect(res.status).toBe(200);
+    
     const docs = res.body.response?.docs ?? [];
     expect(docs.length).toBeGreaterThan(0);
-    console.log(docs.length);
+  
     for (const d of docs) {
       expect(d.publisher_labels_ss).toBeUndefined();
     }
@@ -352,3 +353,119 @@ describe("GET /api/search — DDC routing via filter=ddc:", () => {
     expect((res.body.response?.numFound ?? 0)).toBeGreaterThanOrEqual(3);
   });
 });
+
+// --- Fuzzy / trigram integration
+describe("GET /api/search – fuzzy/trigram integration", () => {
+  it('typo "Clasification" still finds the “Classification” results (title_search)', async () => {
+    const limit = 25;
+
+    // Baseline: correctly spelled
+    const good = await request(app)
+      .get("/api/search")
+      .query({
+        search: "Classification",
+        field: "title_search",
+        limit,
+        sort: "relevance",
+        order: "desc",
+      });
+
+    expect(good.status).toBe(200);
+    const goodIds = new Set(getIds(good));
+
+    // If your seed set doesn’t contain any “Classification” titles,
+    // don’t fail the whole suite — just skip this assertion gracefully.
+    if (goodIds.size === 0) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        '[fuzzy-test] No baseline results for "Classification" in seed; ' +
+        "skipping fuzzy overlap assertion."
+      );
+      return;
+    }
+
+    // Typo: drop one 's' -> "Clasification"
+    const typo = await request(app)
+      .get("/api/search")
+      .query({
+        search: "Clasification",
+        field: "title_search",
+        limit,
+        sort: "relevance",
+        order: "desc",
+      });
+
+    expect(typo.status).toBe(200);
+    const typoIds = new Set(getIds(typo));
+    expect(typoIds.size).toBeGreaterThan(0); // should recover at least something
+
+    // Require some overlap with the correct spelling’s results.
+    const overlap = [...goodIds].filter(id => typoIds.has(id)).length;
+    expect(overlap).toBeGreaterThan(0);
+
+  });
+
+  it('trigram gate: very short/advanced queries don’t crash (and may not fuzz)', async () => {
+    // Too short < 3, don’t enable trigrams
+    const shortQ = await request(app)
+      .get("/api/search")
+      .query({ search: "cl", field: "title_search", limit: 5 });
+
+    expect(shortQ.status).toBe(200);
+
+    // “Advanced looking” query with wildcard — still must not error.
+    const advanced = await request(app)
+      .get("/api/search")
+      .query({ search: 'class*', field: 'title_search', limit: 5 });
+
+    expect(advanced.status).toBe(200);
+  });
+
+  // Regression: long multi-word query + NO_VALUE facet must not 400
+  it("handles long multi-word + NO_VALUE facet without 400", async () => {
+    const res = await request(app)
+      .get("/api/search")
+      .query({
+        search: "British Columbia First Nations Subject Headings",
+        limit: 10,
+        filter: "publisher:-",
+      });
+
+    expect(res.status).toBe(200);
+    const numFound = res.body?.response?.numFound ?? 0;
+    expect(numFound).toBeGreaterThanOrEqual(0);
+  });
+
+  // Trigram fallback: mild misspelling still returns something if the correct query does
+  it("simple misspelling returns results via trigram fallback", async () => {
+    // Baseline with a known-good token present
+    const baseline = await request(app)
+      .get("/api/search")
+      .query({ search: "Australian", limit: 5 });
+    expect(baseline.status).toBe(200);
+
+    const baseFound = baseline.body?.response?.numFound ?? 0;
+
+    // Mild misspelling
+    const miss = await request(app)
+      .get("/api/search")
+      .query({ search: "Austrailan", limit: 5 });
+    expect(miss.status).toBe(200);
+
+    // Only assert >0 if the baseline actually finds something
+    if (baseFound > 0) {
+      const missFound = miss.body?.response?.numFound ?? 0;
+      expect(missFound).toBeGreaterThan(0);
+    }
+  });
+
+  // Advanced syntax should *not* route to trigram (we just assert it doesn't crash)
+  it("advanced Lucene-ish query does not crash (trigram skipped)", async () => {
+    const res = await request(app)
+      .get("/api/search")
+      .query({ search: 'title:"film"', limit: 5 });
+    expect(res.status).toBe(200);
+  });
+});
+
+

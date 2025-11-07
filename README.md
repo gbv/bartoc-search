@@ -214,13 +214,11 @@ All query parameters are optional.
 | **uri**     | `string` |  -        | `format=jskos&uri=<ConceptURI>` When both are included, the endpoint returns the raw JSKOS record for that exact URI instead of the list of JSKOS records.|
 
 
-Here’s a compact section you can drop into the README under **GET /api/search**.
-
 ---
 
 #### Legacy parameters (backwards compatibility)
 
-For old BARTOC links, several legacy query params are supported and mapped to the new faceted API automatically. You can keep using your existing URLs; the server translates them to internal facet filters.
+For old BARTOC links, several legacy query params are supported and mapped to the new faceted API automatically.
 
 **Supported legacy params**
 

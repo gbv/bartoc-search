@@ -131,7 +131,23 @@ export async function createApp(opts?: {
     } = req.query as Partial<SearchParams>;
 
     // Building the query
-    const query = LuceneQuery.fromText(search, field, 3, 2).operator("OR");
+    // 1) Build the *base* Lucene query from the user text.
+    //    - `search`: raw user input (string)
+    //    - `field`: which field to search in (e.g. "allfields", "title_search")
+    //    - The numbers (3, 2) are weights/params used by your builder (e.g. phrase vs. terms).
+    //    - keeping the operator as OR to allow partial matches across tokens.
+    const base = LuceneQuery.fromText(search, field, 3, 2).operator("OR");
+    
+    // Convert to a final Lucene string for Solr.
+    const baseLucene = base.toString();
+
+    // 2) Compose the base query with *trigram* fields (fuzzy char n-grams)
+    const { buildLuceneWithTrigrams } = await import("./utils/helpers.ts"); // adjust path
+    const { q, defType } = buildLuceneWithTrigrams({
+      userQuery: String(search ?? ""),
+      baseField: String(field ?? "allfields"),
+      baseLucene,
+    });
 
     // Parse the filters field into an object
     const parsedFilters: Record<string, string[]> =
@@ -150,7 +166,8 @@ export async function createApp(opts?: {
 
       const op = solrQueryBuilder
         .prepareSelect(config.solr.coreName)
-        .for(query)
+        //.for(query) old way!
+        .for({ toString: () => q, getDefType: () => defType })
         .sort(sort, order)
         .limit(limit)
         .facetMissing(true);
@@ -182,7 +199,7 @@ export async function createApp(opts?: {
             .raw(`-${facetName}:[* TO *]`)
         );
         continue;
-      }
+      } 
 
       facetValues = facetValues.filter(v => v !== NO_VALUE);
 
