@@ -24,7 +24,7 @@
         <!-- Reduce syntactical complex structures -->
         <filter class="solr.FlattenGraphFilterFactory"/>
         <!-- Normalize unicode (e.g. à → a) -->
-        <filter class="solr.ICUFoldingFilterFactory"/> It needs to be installed!
+        <filter class="solr.ICUFoldingFilterFactory"/>
         <!-- Protect key words from stemming -->
         <filter class="solr.KeywordMarkerFilterFactory" protected="protwords.txt"/>
         <!-- Stemming with snowball algorithm for english -->
