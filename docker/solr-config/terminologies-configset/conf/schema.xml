@@ -64,14 +64,13 @@
     <!-- Integer type -->
     <fieldType name="pint" class="solr.TrieIntField" precisionStep="0" positionIncrementGap="0"/>
 
-
     <!-- Char-level trigram type -->
     <fieldType name="text_trigram" class="solr.TextField" positionIncrementGap="100">
       <analyzer type="index">
         <tokenizer class="solr.StandardTokenizerFactory"/>
         <filter class="solr.LowerCaseFilterFactory"/>
         <filter class="solr.ASCIIFoldingFilterFactory"/>
-        <!-- Char n-grams; 3 is a good default. If languages are short, consider 2–3 -->
+        <!-- Char n-grams; 3 is a good default -->
         <filter class="solr.NGramFilterFactory" minGramSize="3" maxGramSize="3"/>
       </analyzer>
       <analyzer type="query">
@@ -81,7 +80,6 @@
         <filter class="solr.NGramFilterFactory" minGramSize="3" maxGramSize="3"/>
       </analyzer>
     </fieldType>
-
 
   </types>
 
@@ -240,7 +238,6 @@
   <dynamicField name="subject_label_*" type="text" indexed="true" stored="true" multiValued="true"/>
   <dynamicField name="title_*" type="text" indexed="true" stored="true"/>
   <dynamicField name="type_label_*" type="text" indexed="true" stored="true"/>
-
   <dynamicField name="*_s" type="string" indexed="true" stored="true"/>
   <dynamicField name="*_i" type="pint" indexed="true" stored="true"/>
   <dynamicField name="*_dt" type="pdate" indexed="true" stored="true"/>
@@ -274,10 +271,7 @@
   <copyField source="title_*" dest="title_search"/>
   <copyField source="type_label_*" dest="allfields"/>
 
-  <!-- If you already copy many things into title_* and allfields, reuse that -->
   <copyField source="title_*"  dest="title_trigram"/>
-  <!-- If allfields aggregates a lot, consider a smaller set for ngrams;
-      If not, this is the simplest: -->
   <copyField source="allfields" dest="allfields_trigram"/>
 
   <!-- ================================================
