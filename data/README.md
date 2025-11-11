@@ -198,7 +198,7 @@ npm run reindex
 - `prefLabel` — language map with the registry’s name
 - `definition?` — short description (lang map, arrays of strings)
 - `url?` — external website of the registry
-- `type` — usually `http://purl.org/cld/cdtype/CatalogueOrIndex`
+- `type` — usually `http://www.w3.org/ns/dcat#Catalog`
 
 **Example:**
 
@@ -213,7 +213,7 @@ npm run reindex
       "en": "VEST Registry"
     },
     "type": [
-      "http://purl.org/cld/cdtype/CatalogueOrIndex"
+      "http://www.w3.org/ns/dcat#Catalog"
     ],
     "uri": "http://bartoc.org/en/node/18927",
     "url": "http://aims.fao.org/vest-registry"
