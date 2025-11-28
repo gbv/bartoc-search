@@ -89,6 +89,9 @@ export interface SolrDocument
   ddc_ss: string[];
   ddc_root_ss: string[];
   ddc_ancestors_ss?: string[];
+  ddc_label_rank1_t?: string[];
+  ddc_label_rank2_t?: string[];
+  ddc_label_rank3_t?:string[];
   definition_ss?: string[];
   distributions_download_ss?: string[];
   distributions_format_ss?: string[];

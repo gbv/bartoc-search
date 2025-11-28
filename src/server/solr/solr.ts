@@ -23,10 +23,26 @@ import { applyLangMap } from "../utils/utils";
 import { getNkosConcepts, loadNkosConcepts } from "../utils/nskosService";
 import { ensureSnapshotForIndexing } from "../utils/updateFromBartoc";
 
+
+// DDC enricher: loads the precomputed DDC snapshot once at startup.
+// If it fails (e.g. file missing in development), we keep running
+// without enrichment and fall back to the legacy numeric expansion.
+import { DdcEnricher } from "../ddc/index";  
+
+let ddcEnricher: DdcEnricher | null = null;
+try {
+  ddcEnricher = await DdcEnricher.create();
+ 
+} catch (e) {
+  config.warn?.(`⚠️ Could not load  ${e}`);
+  // fallback: ddcEnricher stays null, old utils/ddc.ts still usable if desired
+}
+
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const LAST_INDEX_FILE = join(__dirname, "../../../data/lastIndexedAt.txt");
-export const LICENSE_GROUPS: GroupEntry[] = await loadJSONFile<GroupEntry[]>("/data/license-groups.json");
+export const LICENSE_GROUPS: GroupEntry[] = await loadJSONFile<GroupEntry[]>("data/license-groups.json");
 const FORMAT_GROUPS: GroupEntry[] = await loadJSONFile<GroupEntry[]>("data/format-groups.json");
 
 await loadNkosConcepts();
@@ -186,6 +202,8 @@ export async function solrStatus(): Promise<SolrResponse> {
   }
 }
 
+// This  transforms JSKOS records into Solr documents for the
+// "terminologies" core. 
 export function transformConceptSchemeToSolr(
   doc: ConceptSchemeDocument,
   nKosConceptsDocs: ConceptZodType[],
@@ -204,9 +222,6 @@ export function transformConceptSchemeToSolr(
     display_numericalNotation_b: doc.DISPLAY?.numericalNotation,
     examples_ss: doc.EXAMPLES?.map(s => (typeof s === "string" ? s.trim() : "")).filter(Boolean) ?? [],
     extent_s: doc.extent,
-    ddc_ss: extractDdc(doc.subject, { rootLevel: false }),
-    ddc_root_ss: extractDdc(doc.subject, { rootLevel: true }),
-    ddc_ancestors_ss: buildDdcAncestorsFromSubjects(doc.subject),
     format_type_ss: doc.FORMAT?.map(f => f.uri) || [],
     created_dt: doc.created,
     id: doc.uri,
@@ -309,6 +324,41 @@ export function transformConceptSchemeToSolr(
   // not indexed, just stored.
   solrDoc.fullrecord = JSON.stringify(doc);
 
+  // Collect all DDC subject URIs from JSKOS (only dewey.info/class/...).
+  // Example subject:
+  //   { uri: "http://dewey.info/class/971/e23/", notation: ["971"], ... }
+  const ddcUris = (doc.subject ?? [])
+  .map(s => s?.uri)
+  .filter((u: unknown): u is string =>
+    typeof u === "string" && /http?:\/\/dewey\.info\/class\//.test(u)
+  );
+
+  if (ddcEnricher && ddcUris.length) {
+    const e = ddcEnricher.expandUris(ddcUris);
+
+    // Facet fields: root, ancestor and exact notations.
+    solrDoc.ddc_root_ss = e.roots;
+    solrDoc.ddc_ancestors_ss = e.ancestors;
+    solrDoc.ddc_ss = e.exact;
+
+    // Ranked text fields for scoring/UX (see schema.xml for *_t fields).
+    // Example buckets:
+    //   rank1: main class labels          (e.g. "Canada")
+    //   rank2: immediate ancestor + parts (e.g. "History of North America")
+    //   rank3: root ancestor labels       (e.g. "History & geography")
+    solrDoc.ddc_label_rank1_t = e.labels.rank1;
+    solrDoc.ddc_label_rank2_t = e.labels.rank2;
+    solrDoc.ddc_label_rank3_t = e.labels.rank3;
+
+  } else {
+    // Fallback: keep the old numeric-only behaviour if the DDC snapshot
+    // could not be loaded. This only derives roots/ancestors from the
+    // notation itself (e.g. "440" → root "4", ancestor "44").    
+    // solrDoc.ddc_ss = extractDdc(doc.subject, { rootLevel: false });
+    solrDoc.ddc_root_ss = extractDdc(doc.subject, { rootLevel: true });
+    solrDoc.ddc_ancestors_ss = buildDdcAncestorsFromSubjects(doc.subject);
+  }
+    
   return solrDoc as SolrDocument;
 }
 

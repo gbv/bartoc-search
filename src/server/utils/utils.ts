@@ -103,6 +103,7 @@ export function parseFacetFields(
   return out;
 }
 
+
 /**
  * Asynchronously read & parse any JSON file.
  * @param filePath Relative or absolute path to a .json file
@@ -111,11 +112,30 @@ export function parseFacetFields(
 export async function loadJSONFile<T = unknown>(
   filePath: string
 ): Promise<T> {
-  const fullPath = path.join(process.cwd(), filePath);
-  const data = await fsPromises.readFile(fullPath, "utf8");
-  // JSON.parse returns unknown, which we then assert to T
-  return JSON.parse(data) as T;
   
+  let fullPath: string;
+
+  if (path.isAbsolute(filePath)) {
+    fullPath = filePath;
+  } else {
+    if (filePath.startsWith("usr/src/app/")) {
+      fullPath = "/" + filePath;
+    } else {
+      fullPath = path.join(process.cwd(), filePath);
+    }
+  }
+
+  try {
+    const data = await fsPromises.readFile(fullPath, "utf8");
+    return JSON.parse(data) as T;
+  } catch (err) {
+    if (err instanceof SyntaxError) {
+      throw new Error(
+        `Invalid JSON in file ${fullPath}: ${err.message}`
+      );
+    }
+    throw err;
+  }
 }
 
 /**

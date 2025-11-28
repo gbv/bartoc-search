@@ -302,30 +302,93 @@ Use these **public keys** in the `filter` param. The server maps them to Solr fi
 | `publisher` | `publisher_labels_ss` | Publisher display label |
 
 
-**DDC filtering (index-time expansion + query-time routing)**
+**DDC subject enrichment**
 
-To make DDC filters intuitive:
+BARTOC Search can enrich DDC subject assignments during indexing to improve faceting and ranking. It relies on a precomputed DDC JSKOS snapshot (generated from[`bartoc-vocabularies`](https://github.com/gbv/bartoc-vocabularies)) and a lightweight in-memory lookup (`DdcStore` + `DdcEnricher`).
 
-- Index-time expansion adds ddc_ancestors_ss for integer notations:
-420 → ["4","42","420"], 453 → ["4","45","453"].
-Decimals like 32.1 are not expanded (kept exact in ddc_ss).
+During indexing, the DDC subject URIs are extracted and passed to `DdcEnricher.expandUris`, which consults the precomputed DDC snapshot to resolve ancestors and component notations.
 
-- Query-time routing of filter=ddc:<value>:
+The DDC snapshot is downloaded and maintained like any other source. At application startup, `DdcStore` reads `ddcConcepts.last.json`, loads `snapshotPath`, parses the DDC JSON and builds an in-memory map of enriched `DdcConcept` objects:
 
-  - 4 (one digit) → ddc_root_ss
-  - 42 (two digits) → ddc_ancestors_ss (matches 420–429)
-  - 420, 453 (3+ integer digits) → ddc_ancestors_ss (exact integer class)
-  - 32.1 (decimal) → ddc_ss (exact only)
-  - DDC URIs (e.g. http://dewey.info/class/420/e23/) are normalized to notation first
+- follows the JSKOS `broader` chain to build `ancestors` (top-down),
+- resolves `memberSet` URIs to DDC concepts and copies their labels.
 
-Examples:
-```http
-/api/search?filter=ddc:4       # Language (4xx)
-/api/search?filter=ddc:42      # English & related (420–429)
-/api/search?filter=ddc:420     # Exact 420
-/api/search?filter=ddc:32.1    # Exact decimal 32.1
-/api/search?filter=ddc:http://dewey.info/class/420/e23/
-```
+If the snapshot cannot be loaded (missing meta file, invalid JSON, etc.), the `DdcEnricher` is not initialized and BARTOC Search falls back to the legacy “numeric-only” expansion (prefixes of the DDC notation).
+
+You can override the snapshot path explicitly with `DDC_CONCEPTS_FILE` – absolute or relative path to a DDC JSON file.
+
+The following Solr fields are populated from the DDC expansion:
+
+- `ddc_ss`  
+  Exact DDC notations assigned to the terminology.
+  
+  Example (languages & literatures of Romance languages):
+  
+  ```json
+  "ddc_ss": ["440", "450", "460", "840", "850", "860"]
+  ```
+  
+- `ddc_ancestors_ss`  
+  Intermediate ancestor notations (excluding the root and the main class).
+  
+  For the example above:
+  
+  ```json
+  "ddc_ancestors_ss": ["44", "45", "46", "84", "85", "86"]
+  ```
+  
+- `ddc_root_ss`  
+  Root notations (top-level DDC classes derived from the ancestor chain).
+  
+  For the same terminology:
+  
+  ```json
+  "ddc_root_ss": ["4", "8"]
+  ```
+  
+  where `4` = *Language*, `8` = *Literature*.
+  
+- `ddc_label_rank1_t`  
+  Labels of the main DDC classes assigned to the terminology.
+  
+  ```json
+  "ddc_label_rank1_t": [
+    "Romance languages; French",
+    "Italian, Romanian & related languages",
+    "Spanish & Portuguese languages",
+    "Literatures of Romance languages",
+    "Italian, Romanian & related literatures",
+    "Spanish & Portuguese literatures"
+  ]
+  ```
+  
+- `ddc_label_rank2_t`  
+  Labels of **immediate ancestors** and **memberSet components**.
+  
+  Example for a vocabulary with subjects `3`, `305`, and `971`:
+  
+  ```json
+  "ddc_label_rank2_t": [
+    "Social sciences, sociology & anthropology",  // ancestor of 305
+    "History of North America",                   // ancestor of 971
+    "History & geography",                        // memberSet component
+    "Canada"                                      // memberSet component (table notation 2--71)
+  ]
+  ```
+  
+- `ddc_label_rank3_t`  
+  Labels of **root ancestors** (most general DDC classes involved).
+  
+  For the same example:
+  
+  ```json
+  "ddc_label_rank3_t": [
+    "Social sciences",
+    "History & geography"
+  ]
+  ```
+  
+All three label buckets are also copied into the general `allfields` full-text field, so they influence query matching and scoring.
 
 ##### Special cases
 

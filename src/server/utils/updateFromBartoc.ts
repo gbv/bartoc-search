@@ -22,6 +22,17 @@ export const ART_DIR = path.join(DATA_DIR, "artifacts");
 const META_PATH = path.join(ART_DIR, "vocs.last.json"); // metadata persisted between runs
 const ENRICH_OUT_NAME = "vocs.enriched.ndjson";
 
+// Base URLs for BARTOC in dev/prod.
+// Can be overridden via env if needed.
+const BARTOC_BASE =
+  process.env.BARTOC_BASE_URL ??
+  (process.env.NODE_ENV === "production"
+    ? "https://bartoc.org"
+    : "https://dev.bartoc.org");
+
+const BARTOC_API_BASE =
+  process.env.BARTOC_API_BASE_URL ?? `${BARTOC_BASE}/api`;
+
 type Source = {
   key: "vocs" | "registries" | "apiTypes" | "accessTypes" | "ddcConcepts";
   url: string;
@@ -34,7 +45,9 @@ type Source = {
 const SOURCES: Record<Source["key"], Source> = {
   vocs: {
     key: "vocs",
-    url: process.env.BARTOC_NDJSON_URL ?? "https://bartoc.org/data/dumps/latest.ndjson",
+    url:
+      process.env.BARTOC_NDJSON_URL ??
+      `${BARTOC_BASE}/data/dumps/latest.ndjson`,
     kind: "ndjson",
     snapDir: path.join(DATA_DIR, "snapshots", "vocs"),
     metaPath: path.join(DATA_DIR, "artifacts", "vocs.last.json"),
@@ -42,7 +55,7 @@ const SOURCES: Record<Source["key"], Source> = {
   },
   registries: {
     key: "registries",
-    url: "https://bartoc.org/registries?format=jskos",
+    url: `${BARTOC_BASE}/registries?format=jskos`,
     kind: "json",
     snapDir: path.join(DATA_DIR, "snapshots", "registries"),
     metaPath: path.join(DATA_DIR, "artifacts", "registries.last.json"),
@@ -50,7 +63,7 @@ const SOURCES: Record<Source["key"], Source> = {
   },
   apiTypes: {
     key: "apiTypes",
-    url: "https://bartoc.org/api/voc/top?uri=http://bartoc.org/en/node/20002",
+    url: `${BARTOC_API_BASE}/voc/top?uri=http://bartoc.org/en/node/20002`,
     kind: "json",
     snapDir: path.join(DATA_DIR, "snapshots", "apiTypes"),
     metaPath: path.join(DATA_DIR, "artifacts", "apiTypes.last.json"),
@@ -58,7 +71,7 @@ const SOURCES: Record<Source["key"], Source> = {
   },
   accessTypes: {
     key: "accessTypes",
-    url: "https://bartoc.org/api/voc/top?uri=http://bartoc.org/en/node/20001",
+    url: `${BARTOC_API_BASE}/voc/top?uri=http://bartoc.org/en/node/20001`,
     kind: "json",
     snapDir: path.join(DATA_DIR, "snapshots", "accessTypes"),
     metaPath: path.join(DATA_DIR, "artifacts", "accessTypes.last.json"),
@@ -66,7 +79,7 @@ const SOURCES: Record<Source["key"], Source> = {
   },
   ddcConcepts: {
     key: "ddcConcepts",
-    url: "https://bartoc.org/api/voc/concepts?uri=http://bartoc.org/en/node/241&limit=1500",
+    url: `${BARTOC_API_BASE}/voc/concepts?uri=http://bartoc.org/en/node/241&limit=1500`,  
     kind: "json",
     snapDir: path.join(DATA_DIR, "snapshots", "ddcConcepts"),
     metaPath: path.join(DATA_DIR, "artifacts", "ddcConcepts.last.json"),
@@ -75,7 +88,7 @@ const SOURCES: Record<Source["key"], Source> = {
 };
 
 /** Metadata persisted to support conditional requests on the next run */
-interface LastMeta {
+export interface LastMeta {
   etag: string;
   lastModified: string;
   snapshotPath: string;

@@ -223,6 +223,10 @@
     <field name="title_trigram"     type="text_trigram" indexed="true" stored="false" multiValued="true"/>
     <field name="allfields_trigram" type="text_trigram" indexed="true" stored="false" multiValued="true"/>
 
+    <!-- Ranked DDC label buckets for scoring -->
+    <field name="ddc_label_rank1_t" type="text" indexed="true" stored="true" multiValued="true"/>
+    <field name="ddc_label_rank2_t" type="text" indexed="true" stored="true" multiValued="true"/>
+    <field name="ddc_label_rank3_t" type="text" indexed="true" stored="true" multiValued="true"/>
 
   </fields>
 
@@ -257,19 +261,23 @@
   <copyField source="contributor_ss" dest="allfields"/>
   <copyField source="creator_*" dest="allfields"/>
   <copyField source="creator_ss" dest="allfields"/>
-  <copyField source="defintion_*" dest="allfields"/>
+  <copyField source="definition_*" dest="allfields"/>
   <copyField source="definition_ss" dest="allfields"/>
   <copyField source="examples_ss" dest="allfields"/>
   <copyField source="notation_ss" dest="allfields"/>
-  <copyField source="publisher_label_*" dest="allfields"/>
+  <copyField source="publisher_*" dest="allfields"/>
   <copyField source="publisher_labels_ss" dest="allfields"/>
-  <copyField source="prefLabel_*" dest="allfields"/>
+  <copyField source="pref_label_*" dest="allfields"/>
   <copyField source="pref_labels_ss" dest="allfields"/>
   <copyField source="subject_label_*" dest="allfields"/>
   <copyField source="subject_notation" dest="allfields"/>
   <copyField source="title_*" dest="allfields"/>
   <copyField source="title_*" dest="title_search"/>
   <copyField source="type_label_*" dest="allfields"/>
+  <copyField source="ddc_label_rank1_t" dest="allfields"/>
+  <copyField source="ddc_label_rank2_t" dest="allfields"/>
+  <copyField source="ddc_label_rank3_t" dest="allfields"/>
+
 
   <copyField source="title_*"  dest="title_trigram"/>
   <copyField source="allfields" dest="allfields_trigram"/>
