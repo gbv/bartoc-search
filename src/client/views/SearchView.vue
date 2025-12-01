@@ -91,8 +91,15 @@ const sortKey = computed(() => {
   return `${s} ${o}`
 })
 
-async function fetchResults(query) {
-  loading.value = true
+async function fetchResults(query, opts = {}) {
+  const mode = opts.mode || "results" // "results" | "facets"
+  const isResultsMode = mode === "results"
+
+  if (isResultsMode) {
+    loading.value = true
+  }
+
+ 
   errorMessage.value = null
 
   try {
@@ -146,15 +153,32 @@ async function fetchResults(query) {
     const facets = data?.facets || {}
     
     // After (only update docs & numFound, and merge facets):
-    results.value.docs      = docs
-    results.value.numFound  = numFound
+    // results.value.docs      = docs
+    // results.value.numFound  = numFound
+    // results.value.facets = facets
+
+    if (isResultsMode) {
+      results.value.docs      = docs
+      results.value.numFound  = numFound
+    }
+
     results.value.facets = facets
+
 
   } catch (error) {
     errorMessage.value = `Search failed: ${error.message}`
   } finally {
-    loading.value = false
+    if (isResultsMode) { 
+      loading.value = false
+    }
   }
+
+  console.log("after fetchResults:", {
+    mode,
+    docs: results.value.docs.length,
+    numFound: results.value.numFound,
+  })
+
 }
 
 // Run search from the bar; preserve current URL's sort/order and ignore the very first auto-fire
@@ -237,6 +261,8 @@ function onFilterChange(filters, opts = {}) {
     requestBucketFor(opts.bucketFor)
   }
 
+  const isBucketOnly = opts.bucketFor && (!filters || Object.keys(filters).length === 0)
+
   // 3) build final repeatable params from *both* selected values + bucket facets
   const filterParams = buildRepeatableFiltersFromState(opts)
 
@@ -249,7 +275,13 @@ function onFilterChange(filters, opts = {}) {
     ...(filterParams.length ? { filter: filterParams } : {}),
   }
 
-  fetchResults(newQuery)
+  if (isBucketOnly) {
+    fetchResults(newQuery, { mode: "facets" })
+  } else {
+    fetchResults(newQuery, { mode: "results" })
+  }
+
+  // fetchResults(newQuery)
 }
 
 // Clear only filters (keep current search/sort/order)
@@ -315,17 +347,25 @@ onMounted(() => {
 <style scoped>
 .search-view__wrapper  {
   display: grid;
-  grid-column-gap: 30px;
-  grid-template-areas: "search-bar search-bar" 
-  "search-controls search-controls"
-  "results sidebar";
+  width: 100%;
+  max-width: 1320px;
+  grid-template-columns: minmax(0, 3fr) 400px;
+  grid-template-areas:
+    "search-bar search-bar"
+    "search-controls search-controls"
+    "results sidebar";
+  column-gap: 30px;
   margin: 0 auto;
+  align-items: start;
 }
 
 .search-bar__area { grid-area: search-bar; }
 .search-results__area    { grid-area: results; }
 .search-controls__area   { grid-area: search-controls; }
-.search-sidebar__area    { grid-area: sidebar; }
+.search-sidebar__area    { 
+  grid-area: sidebar; 
+  min-width: 320px;
+}
 
 </style>
 
