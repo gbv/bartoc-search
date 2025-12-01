@@ -22,8 +22,8 @@
             v-for="facet in values"
             :key="facet.value"
             @click="onRow(facet.value)"
-            @keydown.enter.prevent="onRowClick(facet.value)"
-            @keydown.space.prevent="onRowClick(facet.value)">
+            @keydown.enter.prevent="onRow(facet.value)"
+            @keydown.space.prevent="onRow(facet.value)">
             <input
               type="checkbox"
               :value="facet.value"
@@ -130,18 +130,23 @@ ul {
 /* transition the max-height over 0.4s */
 .dropdown-enter-active,
 .dropdown-leave-active {
-  transition: max-height 0.4s ease;
+  transition: opacity 120ms ease-out, transform 120ms ease-out;
 }
 
 /* start/end states */
 .dropdown-enter-from,
 .dropdown-leave-to {
-  max-height: 0;
+  opacity: 0;
+  transform: translateY(-2px);
 }
 .dropdown-enter-to,
 .dropdown-leave-from {
-  /* big enough to accommodate your full list */
-  max-height: 500px;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.options-container {
+  overflow: hidden;
 }
 
 .options-list {
