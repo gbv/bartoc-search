@@ -99,7 +99,6 @@ async function fetchResults(query, opts = {}) {
     loading.value = true
   }
 
- 
   errorMessage.value = null
 
   try {
@@ -152,11 +151,6 @@ async function fetchResults(query, opts = {}) {
     const numFound = response?.numFound || 0
     const facets = data?.facets || {}
     
-    // After (only update docs & numFound, and merge facets):
-    // results.value.docs      = docs
-    // results.value.numFound  = numFound
-    // results.value.facets = facets
-
     if (isResultsMode) {
       results.value.docs      = docs
       results.value.numFound  = numFound
@@ -172,12 +166,6 @@ async function fetchResults(query, opts = {}) {
       loading.value = false
     }
   }
-
-  console.log("after fetchResults:", {
-    mode,
-    docs: results.value.docs.length,
-    numFound: results.value.numFound,
-  })
 
 }
 
@@ -281,7 +269,6 @@ function onFilterChange(filters, opts = {}) {
     fetchResults(newQuery, { mode: "results" })
   }
 
-  // fetchResults(newQuery)
 }
 
 // Clear only filters (keep current search/sort/order)
