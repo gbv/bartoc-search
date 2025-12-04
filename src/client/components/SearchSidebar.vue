@@ -125,7 +125,7 @@ function updateFilters(field, values) {
 }
 .sidebar--fixed {
   position: fixed;
-  max-height: calc(100vh - 2rem);
+  max-height: calc(100vh - 14rem);
   overflow-y: auto;
   transition: top 0.25s ease-out; 
 }
