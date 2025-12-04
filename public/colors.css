@@ -7,7 +7,19 @@
   --black: #181818;
   --black-soft: #222222;
   --black-mute: #282828;
-  --gray-dark: #343A40;
+  --gray-dark: #343A40; /* keeping backwards compatibility */
+
+  /* Neutral gray ramp */
+  --gray-50:  #f8f9fa;
+  --gray-100: #f1f3f5;
+  --gray-200: #e9ecef;
+  --gray-300: #dee2e6;
+  --gray-400: #ced4da;
+  --gray-500: #adb5bd;
+  --gray-600: #868e96;
+  --gray-700: #495057;
+  --gray-800: #343a40; /* basically --gray-dark */
+  --gray-900: #212529;
 
   /* Buttons */
   --blue: #007BFF;
@@ -32,8 +44,8 @@
   --color-background: var(--white);
   --color-background-soft: var(--white-soft);
   --color-background-mute: var(--white-mute);
-  --color-border: var(--divider-light-2);
-  --color-border-hover: var(--divider-light-1);
+  --color-border: var(--gray-200);
+  --color-border-hover: var(--gray-300);
   --color-heading: var(--color-text-light-1);
   --color-text: var(--color-text-light-1);
 
@@ -41,5 +53,10 @@
   --color-button-text: var(--color-text-dark-1);
   --color-button-hover: var(--blue-dark);
   --color-button-light: var(--color-text-light-2);
-  --color-button-soft: var(--color-text-light-1); 
+  --color-button-soft: var(--color-text-light-1);
+
+  /* Extras useful for the modal / sidebar */
+  --color-surface: var(--gray-50);             /* cards, modals background */
+  --color-surface-border: var(--gray-200);     /* card/modal border */
+  --color-backdrop: rgba(0, 0, 0, 0.5);       /* modal backdrop */
 }

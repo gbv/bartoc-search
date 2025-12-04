@@ -76,10 +76,12 @@
     "compression": "^1.8.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
+    "feather-icons": "^4.29.2",
     "jskos-vue": "^0.3.18",
     "morgan": "^1.10.0",
     "namespace-lookup": "^0.2.1",
     "sirv": "^3.0.1",
-    "vue": "^3.5.13"
+    "vue": "^3.5.25",
+    "vue-feather": "^2.0.0"
   }
 }

@@ -4,6 +4,7 @@ import { createRouterInstance } from "./router/router"
 import * as JSKOSVue from "jskos-vue"
 import "jskos-vue/dist/style.css"
 import { Namespaces } from "namespace-lookup" 
+import  VueFeather  from "vue-feather"
 
 // SSR requires a fresh app instance per request, therefore we export a function
 // that creates a fresh app instance. If using Vuex, we'd also be creating a
@@ -15,6 +16,9 @@ export function createApp(url = "/", isClient = false) {
   
   // jskos-vue
   app.use(JSKOSVue)
+  
+  // register as a global component: <vue-feather type="star" />
+  app.component(VueFeather.name, VueFeather)
 
   // Client-only: init a singleton Namespaces registry for URI lookup,
   // cache it on window to survive HMR, and provide it app-wide.
