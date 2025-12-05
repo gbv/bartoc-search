@@ -29,7 +29,7 @@
     <!-- Load more button -->
     <button
       v-if="results.docs.length < results.numFound && !loading" 
-      class="button"
+      class="button load-more__button"
       @click="$emit('load-more')">
       More results
     </button>
@@ -80,4 +80,9 @@ watch(
 
 </script>
 
-
+<style scoped>
+.load-more__button {
+  display: block;
+  margin: 2rem auto;
+}
+</style>

@@ -7,11 +7,33 @@
   --black: #181818;
   --black-soft: #222222;
   --black-mute: #282828;
-  --gray-dark: #343A40;
+  --gray-dark: #343A40; /* keeping backwards compatibility */ 
+  
+  --red: #961300;
 
-  /* Buttons */
-  --blue: #007BFF;
-  --blue-dark: #2779bd;
+  /* Neutral gray ramp */
+  --gray-50:  #f8f9fa;
+  --gray-100: #f1f3f5;
+  --gray-200: #e9ecef;
+  --gray-300: #dee2e6;
+  --gray-400: #ced4da;
+  --gray-500: #adb5bd;
+  --gray-600: #868e96;
+  --gray-700: #495057;
+  --gray-800: #343a40; /* basically --gray-dark */
+  --gray-900: #212529;
+
+  /* Background family around #F6F3F3 */
+  --bg-main: #F6F3F3;  /* chosen main background */
+  --bg-soft: #FBF8F8;  /* a bit lighter */
+  --bg-mute: #EDE4E4;  /* a bit darker/inked */
+
+  /* Neutral button palette */
+  --btn-neutral:       #e9e1e1;
+  --btn-neutral-hover: #d4cbcb;
+
+  --blue:      var(--btn-neutral);
+  --blue-dark: var(--btn-neutral-hover);
 
   --divider-light-1: rgba(60, 60, 60, 0.29);
   --divider-light-2: rgba(60, 60, 60, 0.12);
@@ -23,23 +45,34 @@
   --color-text-dark-1: var(--white);
   --color-text-dark-2: rgba(235, 235, 235, 0.64);
 
-  /* Semantic color variables for this project */
-  --red: #961300;
-
+ 
   --color-header-background: var(--red);
-
   --color-primary: var(--red);
-  --color-background: var(--white);
-  --color-background-soft: var(--white-soft);
-  --color-background-mute: var(--white-mute);
-  --color-border: var(--divider-light-2);
-  --color-border-hover: var(--divider-light-1);
+
+  /*  Semantic background variables using the bg-* family */
+  --color-background: var(--bg-main);
+  --color-background-soft: var(--bg-soft);
+  --color-background-mute: var(--bg-mute);
+  
+  --color-border: var(--gray-200);
+  --color-border-hover: var(--gray-300);
   --color-heading: var(--color-text-light-1);
   --color-text: var(--color-text-light-1);
 
-  --color-button-background: var(--blue);
-  --color-button-text: var(--color-text-dark-1);
-  --color-button-hover: var(--blue-dark);
-  --color-button-light: var(--color-text-light-2);
-  --color-button-soft: var(--color-text-light-1); 
+  --color-button-background: var(--btn-neutral);
+  --color-button-text: var(--color-text-light-1);
+  --color-button-hover: var(--btn-neutral-hover);
+  --color-button-light: var(--gray-300);
+  --color-button-soft: var(--gray-600);
+
+  
+  /* Breadcrumb */
+  --color-breadcrumb-background: var(--gray-100);
+  --color-breadcrumb-border: var(--gray-200);
+  --color-breadcrumb-text: var(--gray-700);
+  
+  /* Extras useful for the modal / sidebar */
+  --color-surface: var(--gray-50);             /* cards, modals background */
+  --color-surface-border: var(--gray-200);     /* card/modal border */
+  --color-backdrop: rgba(0, 0, 0, 0.5);       /* modal backdrop */
 }

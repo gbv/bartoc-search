@@ -293,7 +293,7 @@ Use these **public keys** in the `filter` param. The server maps them to Solr fi
 | `type` | `type_uri` | KOS Type URIs |
 | `ddc` | `ddc_root_ss` | DDC root notations |
 | `language` | `languages_ss` | ISO codes |
-| `in` | `listed_in_ss` | “Listed in” registry URIs |
+| `in` | `listed_in_ss` | “Register” registry URIs |
 | `api` | `api_type_ss` | API protocol identifiers |
 | `access` | `access_type_ss` | Access policy |
 | `license` | `license_group_ss` | Canonical license groups |

@@ -178,6 +178,7 @@ export async function createApp(opts?: {
       }
    
     
+    // TODO(bartoc-search): consider VuFind-style facets using tag/exclude
     // Dynamically register each facet field
     for (const facetName of Object.keys(parsedFilters)) {
 
