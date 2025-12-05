@@ -9,7 +9,7 @@ import { ensureLabels } from "./facetLabels"
 const DYNAMIC_FACETS = {
   access_type_ss: { file: "access_type.json", label: "Access Type" },
   ddc_root_ss: { file: "ddc-labels.json", label: "Dewey Decimal Classification" },
-  listed_in_ss: { file: "listed_in.json", label: "Listed In" },
+  listed_in_ss: { file: "listed_in.json", label: "Register" },
   api_type_ss: { file: "bartoc-api-types-labels.json", label: "Api Type" },
 }
 

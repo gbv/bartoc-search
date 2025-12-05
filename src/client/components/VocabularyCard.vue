@@ -135,54 +135,85 @@ const JskosRecord = id =>
 
 <style>
 .result-card {
-  padding-left: 0.5rem;
   margin: 12px 8px;
-  background-color: #fff;
+  padding: 0.75rem 1rem;
   text-align: left;
   color: var(--color-text);
-  border-left: 2px solid #fff;
+
+  background-color: var(--color-surface);            /* #f8f9fa */
+  border: 1px solid var(--color-surface-border);     /* #e9ecef */
+  border-radius: 6px;
+
+  border-left-width: 3px;
+  border-left-style: solid;
+  border-left-color: transparent;
+
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+
+  transition:
+    background-color 120ms ease-out,
+    border-color 120ms ease-out,
+    border-left-color 120ms ease-out,
+    box-shadow 120ms ease-out,
+    transform 80ms ease-out;
 }
 
 .result-card:hover {
-  border-left: 2px solid #000;
+  background-color: var(--color-background-soft);
+  border-color: var(--color-border-hover);
+  border-left-color: var(--red);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+  transform: translateY(-1px);
 }
 
 .result-title {
-  font-size: 1.25rem;
-  margin: 4px 0px;
-  border-bottom: 1px dotted #aaa;
+  font-size: 1.1rem;
+  margin: 4px 0 6px;
+  border-bottom: 1px dotted var(--color-border);
+  padding-bottom: 2px;
 }
+
 .result-title a {
   color: var(--color-heading);
-  font-weight: bold;
+  font-weight: 600;
 }
+
 .result-title a.api-link {
   float: right;
-  font-size: 1rem;
+  font-size: 0.9rem;
 }
+
 .result-description {
   font-size: 0.9rem;
-  margin: 0.3rem;
+  margin: 0.35rem 0.3rem;
+  color: var(--color-text-light-2);
 }
+
 .result-details {
   margin: 0.3rem;
   list-style: none;
   padding: 0;
 }
+
 .result-details li {
   font-size: 0.85rem;
   margin-bottom: 4px;
 }
+
 .result-metadata {
-  border-top: 1px dotted #aaa;
-  font-size: 0.85rem;
-  padding: 0.2rem 0;
+  border-top: 1px dotted var(--color-border);
+  font-size: 0.8rem;
+  padding: 0.25rem 0;
+  margin-top: 0.25rem;
+  color: var(--color-text-light-2);
 }
+
 .result-metadata * {
   margin-right: 0.5rem;
 }
+
 .highlighted {
-  background: #ff9;
+  background: #fffbcc;
   color: #000;
 }
 </style>

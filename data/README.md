@@ -190,7 +190,7 @@ npm run reindex
 
 #### `registries`
 
-**Purpose:** Registry/collection records (things a scheme can be “listed in”), used for badges and links in the UI.  
+**Purpose:** Registry/collection records (things a scheme can be “Register”), used for badges and links in the UI.  
 **Format:** JSON.  
 **Key fields:**
 
@@ -448,7 +448,7 @@ npm run reindex
 
 ### `listed_in.json`
 
-**Purpose:** Lookup table for registry/collection names by their BARTOC node URI (used to render “Listed in …” badges).  
+**Purpose:** Lookup table for registry/collection names by their BARTOC node URI (used to render “Register …” badges).  
 **Format:** JSON object mapping, registry URI → label (string).  
 **Example:**
 
