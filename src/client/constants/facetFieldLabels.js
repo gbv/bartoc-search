@@ -1,6 +1,6 @@
 // src/constants/facetFieldLabels.js
 
-// import { SUPPORTED_LANGUAGES } from "../../server/types/lang"
+import { reactive } from "vue"
 import { KOS_TYPE_LABELS} from "./kosTypeMapping"
 import SUPPORTED_LANGUAGES from "../../../data/supported_languages.json"
 import { ensureLabels } from "./facetLabels"
@@ -22,12 +22,12 @@ for (const [key, cfg] of Object.entries(DYNAMIC_FACETS)) {
  * Human-friendly labels for facet field keys.
  * Maps the internal facet field names to display titles.
  */
-export const FACET_FIELD_LABELS = {
+export const FACET_FIELD_LABELS = reactive({
   type_uri: {
     label: "Knowledge Organization System Type",
     values: KOS_TYPE_LABELS,
   },
-  languages_ss:  {
+  languages_ss: {
     label: "Language",
     values: SUPPORTED_LANGUAGES,
   },
@@ -41,24 +41,23 @@ export const FACET_FIELD_LABELS = {
   },
   address_country_s: {
     label: "Country",
-    values: {}, 
-  },
-  publisher_labels_ss: {
-    label: "Publisher",
     values: {},
   },
   ...dynamicFacets,
-}
-
+})
 
 const baseUrl = import.meta.env.BASE_URL || "/"
 
 // Client-only: load each dynamic JSON once and merge into the same object reference.
+let _labelsReady = Promise.resolve()
 if (typeof window !== "undefined") {
-  for (const [facet, cfg] of Object.entries(DYNAMIC_FACETS)) {
-    const target = FACET_FIELD_LABELS[facet].values // stable reference used in UI
-    ensureLabels(facet, `${baseUrl}data/${cfg.file}`).then(obj => {
-      Object.assign(target, obj || {}) // mutate in place → no need to replace references
-    })
-  }
+  _labelsReady = Promise.all(
+    Object.entries(DYNAMIC_FACETS).map(async ([facet, cfg]) => {
+      const target = FACET_FIELD_LABELS[facet].values
+      const obj = await ensureLabels(facet, `${baseUrl}data/${cfg.file}`)
+      Object.assign(target, obj || {})
+    }),
+  )
 }
+
+export const dynamicFacetLabelsReady = _labelsReady
