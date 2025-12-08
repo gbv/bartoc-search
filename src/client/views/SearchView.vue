@@ -115,17 +115,40 @@ async function fetchResults(query, opts = {}) {
 
   try {
     
-    // 1) derive short URL filters from store (values only; no empties)
-    const urlFilters = filtersToRepeatableForUrl()
-
     const { filter, ...rest } = query || {}
     const base = { ...rest }
+
+    // Normalize `filter` from query into an array for the API
+    const apiFilterList = Array.isArray(filter)
+      ? filter
+      : filter
+        ? [filter]
+        : []
+
+    // Build SHORT filters for the URL from the current store ---
+    // This should only contain filters with values, e.g. "language:it,en"
+    const urlFiltersFromStore = filtersToRepeatableForUrl()
+
+    // Fallback: if the store is still empty (e.g. first load after legacy mapping),
+    // derive filters from the query, but strip any empty "key:" entries.
+    const fallbackFromQuery = apiFilterList.filter(f => {
+      const idx = f.indexOf(":")
+      if (idx <= 0) {
+        return false
+      }
+      const valuePart = f.slice(idx + 1).trim()
+      return valuePart.length > 0 // keep only filters with values
+    })
+
+
+    const effectiveUrlFilters =
+      urlFiltersFromStore.length > 0 ? urlFiltersFromStore : fallbackFromQuery
 
     // 2) update the address bar (SHORT)
     const urlQuery = {
       ...base,
       limit: String(limit.value),
-      ...(urlFilters.length ? { filter: urlFilters } : {}),
+      ...(effectiveUrlFilters.length ? { filter: effectiveUrlFilters } : {}),
     }
 
     router.replace({ name: route.name, query: urlQuery })
@@ -140,9 +163,7 @@ async function fetchResults(query, opts = {}) {
     params.set("start", "0")
     params.set("rows", String(limit.value))
 
-    // Prefer filters provided by caller (may include empties),
-    // else fall back to SHORT ones (no empties).
-    const apiFilterList = Array.isArray(filter) ? filter : filter ? [filter] : urlFilters
+    // For the actual API call, use the same effective filters
     apiFilterList.forEach(f => params.append("filter", f))
 
     // 4) fetch
