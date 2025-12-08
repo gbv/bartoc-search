@@ -1,3 +1,14 @@
+/**
+ * SearchView
+ *
+ * Responsibilities:
+ * - Parse query parameters from the URL (search, sort, filter, pagination).
+ * - Normalize *legacy* BARTOC parameters (languages, subject, ...) to the new
+ *   repeatable ?filter=key:values syntax used by the API and the Vue store.
+ * - Keep the URL and the internal filter store in sync.
+ * - Orchestrate data fetching (`/api/search`) and pass results + facets down
+ *   into SearchResults and SearchSidebar components.
+ */
 <template>
   <NavBreadcrumb
     v-if="summary.total > 0"
@@ -54,6 +65,7 @@ import { state, setFilters, resetFiltersRequested,
   clearFilters, resetOpenGroups, requestBucketFor, 
   buildRepeatableFiltersFromState, filtersToRepeatableForUrl, 
   setFiltersFromRepeatable, openGroupsForActiveFilters } from "../stores/filters.js"
+import { parseFilterMap, serializeFilterMap, splitMultiParam, extractDdcFromSubject, mapLicenseUrisToGroups } from "../utils/legacy.js"
 
 // Router hooks
 const router = useRouter()
@@ -317,16 +329,137 @@ function onInspect(raw) {
   lookupUri.value = !_.isEmpty(raw) ? raw : undefined
 }
 
+
+/**
+ * Take the current route, return a normalized query object:
+ *  - All legacy params turned into "filter=..." entries
+ *  - URL updated via history.replaceState()
+ */
+const normalizeLegacyQueryFromRoute = (route, router) => {
+  const q = { ...route.query }
+
+  // Start from existing filters
+  const filterMap = parseFilterMap(q.filter)
+
+  let touched = false
+
+  // --- languages => filter=language:it,en ---
+  if (q.languages) {
+    const langs = splitMultiParam(q.languages)
+    if (langs.length) {
+      filterMap.language = Array.from(new Set([...(filterMap.language ?? []), ...langs]))
+      touched = true
+    }
+    delete q.languages
+  }
+
+  // --- country => filter=country:Italy,Germany ---
+  if (q.country) {
+    const countries = splitMultiParam(q.country)
+    if (countries.length) {
+      filterMap.country = Array.from(new Set([...(filterMap.country ?? []), ...countries]))
+      touched = true
+    }
+    delete q.country
+  }
+
+  // --- type => filter=type:<URI(s)> ---
+  if (q.type) {
+    const types = splitMultiParam(q.type)
+    if (types.length) {
+      filterMap.type = Array.from(new Set([...(filterMap.type ?? []), ...types]))
+      touched = true
+    }
+    delete q.type
+  }
+
+  // --- access => filter=access:<URI(s)> ---
+  if (q.access) {
+    const accessVals = splitMultiParam(q.access)
+    if (accessVals.length) {
+      filterMap.access = Array.from(new Set([...(filterMap.access ?? []), ...accessVals]))
+      touched = true
+    }
+    delete q.access
+  }
+
+  // --- partOf => filter=in:<URI(s)> ---
+  if (q.partOf) {
+    const partOfVals = splitMultiParam(q.partOf)
+    if (partOfVals.length) {
+      filterMap.in = Array.from(new Set([...(filterMap.in ?? []), ...partOfVals]))
+      touched = true
+    }
+    delete q.partOf
+  }
+
+  // --- subject (DDC URIs) => filter=ddc:<notations> ---
+  if (q.subject) {
+    const ddcs = extractDdcFromSubject(q.subject)
+    if (ddcs.length) {
+      filterMap.ddc = Array.from(new Set([...(filterMap.ddc ?? []), ...ddcs]))
+      touched = true
+    }
+    delete q.subject
+  }
+
+  // --- license (URIs) => filter=license:<group labels> ---
+  // Example:
+  //   ?license=http://creativecommons.org/licenses/by/4.0/,http://www.apache.org/licenses/LICENSE-2.0
+  // → ?filter=license:CC BY,Apache 2.0
+  if (q.license) {
+    const uris = splitMultiParam(q.license)
+    const groups = mapLicenseUrisToGroups(uris)
+
+    if (groups.length) {
+      filterMap.license = Array.from(
+        new Set([...(filterMap.license ?? []), ...groups]),
+      )
+      touched = true
+    }
+
+    delete q.license
+  }
+
+  // 2) Re-serialize filter map
+  const newFilter = serializeFilterMap(filterMap)
+  if (newFilter.length) {
+    q.filter = newFilter.length === 1 ? newFilter[0] : newFilter
+  } else {
+    delete q.filter
+  }
+
+  // 3) If we changed something, update the URL *without* navigation
+  if (touched && typeof window !== "undefined") {
+    const resolved = router.resolve({ name: route.name || "search", query: q })
+    window.history.replaceState(window.history.state, "", resolved.href)
+  }
+
+  return q
+}
+
 // On mount, set filters from URL and do initial search
 onMounted(() => {
-  // filters from repeatable ?filter=... in the URL
-  setFiltersFromRepeatable(route.query.filter)
-  openGroupsForActiveFilters() // auto-open groups with selected values
-  // limit from URL
-  limit.value = Number(route.query.limit) || pageSize
-  // 3) initial fetch with URL as-is
-  fetchResults({ ...route.query })
+  // Normalize legacy query params (?languages=..., ?subject=..., etc.)
+  //    into the  repeatable ?filter=... syntax.
+  //    This runs once on the client so that:
+  //    - the URL in the address bar is "clean"
+  //    - the rest of the app only deals with `filter=...`
+  const normalized = normalizeLegacyQueryFromRoute(route, router) ?? { ...route.query }
+
+  // Initialise filter store from normalized ?filter=... params
+  setFiltersFromRepeatable(normalized.filter)
+  openGroupsForActiveFilters() // auto–open facet groups that have selections
+
+  // Initialise pagination limit from URL or fall back to default page size
+  limit.value = Number(normalized.limit) || pageSize
+
+  // Fetch initial results based on the normalized query
+  fetchResults({ ...normalized })
+
+  // After the first auto-run from SearchBar, ignore extra initial “search” events
   booted.value = true
+
 })
 
 </script>
