@@ -22,7 +22,7 @@ import { SearchFilter } from "./solr/search/SearchFilter.js";
 import _ from "lodash";
 import { runUpdateOnce } from "./utils/updateFromBartoc";
 import fsPromises from "node:fs/promises";
-import { parseRepeatableFilters, legacyFiltersFromQuery } from "./utils/filters.ts";
+import { parseRepeatableFilters } from "./utils/filters.ts";
 
 const isProduction = process.env.NODE_ENV === "production";
 const isTest = process.env.NODE_ENV === "test";
@@ -149,15 +149,13 @@ export async function createApp(opts?: {
       baseLucene,
     });
 
-    // Parse the filters field into an object
-    const parsedFilters: Record<string, string[]> =
+    // Parse the *modern* repeatable ?filter=... parameters into
+    // internal Solr facet fields → values.
+    // Legacy parameters (?languages, ?subject, ?partOf, ?license, …)
+    // are now normalized on the *client side* (SearchView.vue) and
+    // converted to `filter=` before reaching this endpoint.
+    const facetFilters: Record<string, string[]> =
       parseRepeatableFilters(req.query.filter as string | string[] | undefined);
-
-    // Also include legacy Bartoc params 
-    const legacy = legacyFiltersFromQuery(req.query as Record<string, unknown>);
-    for (const [k, vals] of Object.entries(legacy)) {
-      parsedFilters[k] = Array.from(new Set([...(parsedFilters[k] ?? []), ...vals]));
-    }
 
     // Prepare the Solr query
     try {
@@ -180,15 +178,15 @@ export async function createApp(opts?: {
     
     // TODO(bartoc-search): consider VuFind-style facets using tag/exclude
     // Dynamically register each facet field
-    for (const facetName of Object.keys(parsedFilters)) {
+    for (const facetName of Object.keys(facetFilters)) {
 
       op.facetOnField(facetName);
-      let facetValues = (parsedFilters[facetName] ?? [])
+      let facetValues = (facetFilters[facetName] ?? [])
         .map(v => v.trim())
         .filter(v => v !== "");
 
       // If nothing left and “no value” wasn’t requested, skip entirely
-      if (facetValues.length === 0 && !parsedFilters[facetName].includes(NO_VALUE)) {
+      if (facetValues.length === 0 && !facetFilters[facetName].includes(NO_VALUE)) {
         continue;
       }
 
