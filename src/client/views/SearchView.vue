@@ -64,7 +64,7 @@ import _ from "lodash"
 import { state, setFilters, resetFiltersRequested, 
   clearFilters, resetOpenGroups, requestBucketFor, 
   buildRepeatableFiltersFromState, filtersToRepeatableForUrl, 
-  setFiltersFromRepeatable, openGroupsForActiveFilters } from "../stores/filters.js"
+  setFiltersFromRepeatable, openGroupsForActiveFilters, clearAllBuckets } from "../stores/filters.js"
 import { parseFilterMap, serializeFilterMap, splitMultiParam, extractDdcFromSubject, mapLicenseUrisToGroups } from "../utils/legacy.js"
 
 // Router hooks
@@ -288,8 +288,12 @@ function onFilterChange(filters, opts = {}) {
   const filterParams = buildRepeatableFiltersFromState(opts)
 
 
-  // 4) update URL + fetch
+  // update URL + fetch
   const base = { ...route.query }
+  delete base.filter
+  delete base.start
+  delete base.rows
+
   const newQuery = {
     ...base,
     limit: String(pageSize),
@@ -306,7 +310,10 @@ function onFilterChange(filters, opts = {}) {
 
 // Clear only filters (keep current search/sort/order)
 function onClearFilters() {
-  clearFilters()
+  clearFilters()          // no active filters
+  clearAllBuckets()       // no pending "bucket-only" request
+  resetFiltersRequested() // with this facets will reload fully
+  resetOpenGroups()       // close all the groups in the sidebar
   const base = { ...route.query }
 
   // deleteing previous filters & pagination
@@ -335,8 +342,12 @@ function onRemoveFilter({ field, value }) {
 
   const filterParams = buildRepeatableFiltersFromState()
 
-  // 4) update URL + fetch
+  // update URL + fetch
   const base = { ...route.query }
+  delete base.filter
+  delete base.start
+  delete base.rows
+
   const newQuery = {
     ...base,
     limit: String(pageSize),

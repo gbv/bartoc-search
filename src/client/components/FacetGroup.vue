@@ -172,11 +172,20 @@ function closeModal() {
 }
 
 function toggleOpen() {
-  emit("toggle", !props.open)
-  if (!state.filtersRequested[props.field]) {
-    // mark it so we won’t do this again for the same field
+  const isOpening = !props.open
+  emit("toggle", isOpening)
+
+  // We want a "bucket-only" request only if:
+  // - we are opening the facet,
+  // - no values are currently selected for this field,
+  // - we have already asked bucket in the past.
+  const hasSelected =
+    Array.isArray(state.activeFilters[props.field]) &&
+    state.activeFilters[props.field].length > 0
+
+  if (isOpening && !hasSelected && !state.filtersRequested[props.field]) {
     markFilterRequested(props.field)
-    // trigger a “change” with an empty array to fetch its buckets
+    // change([]) is interpreted as "only get buckets"
     emit("change", [])
   }
 }
