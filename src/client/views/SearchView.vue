@@ -106,6 +106,10 @@ const sortKey = computed(() => {
 async function fetchResults(query, opts = {}) {
   const mode = opts.mode || "results" // "results" | "facets"
   const isResultsMode = mode === "results"
+  const isAppendMode  = mode === "append"
+
+  const oldLen = isAppendMode ? results.value.docs.length : 0
+
 
   if (isResultsMode) {
     loading.value = true
@@ -187,6 +191,11 @@ async function fetchResults(query, opts = {}) {
     if (isResultsMode) {
       results.value.docs      = docs
       results.value.numFound  = numFound
+    }  else if (isAppendMode) {
+      // append soltanto i nuovi record
+      const newDocs = docs.slice(oldLen)
+      results.value.docs.push(...newDocs)
+      results.value.numFound = numFound
     }
 
     results.value.facets = facets
@@ -264,7 +273,7 @@ function loadMore(opts = {}) {
   }
 
   router.push({ name: "search", query: newQuery })
-  fetchResults(newQuery)
+  fetchResults(newQuery, { mode: "append" })
 }
 
 
