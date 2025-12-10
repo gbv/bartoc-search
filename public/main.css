@@ -128,6 +128,8 @@ button:focus-visible {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 
   justify-content: center;
+
+  height: 50px;
 }
 
 .breadcrumb-list {
@@ -180,6 +182,31 @@ button:focus-visible {
   outline: 2px solid var(--color-button-soft);
   outline-offset: 2px;
 }
+
+/* Layout stabile per la search bar */
+.search-bar__wrapper input {
+  font-size: 1.2rem;
+  width: 100%;
+}
+
+/* input: sempre a tutta larghezza della colonna */
+.search-bar__wrapper input {
+  font-size: 1.2rem;
+  width: 360px;
+  margin-right: 12px;
+}
+
+/* select: larghezza fissa, non si restringe */
+.search-bar__wrapper select {
+  min-width: 8rem;
+}
+
+/* bottone: minima larghezza per non ballare */
+.search-bar__wrapper .button {
+  min-width: 6rem;
+}
+
+
 
 @media (hover: hover) {
   a:hover {

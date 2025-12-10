@@ -96,9 +96,5 @@ const isHttpUrl = (v) => {
 </script>
 
 <style>
-.search-bar__wrapper input {
-  font-size: 1.2rem;
-  width: 28rem;
-  margin-right: 0.5rem;
-}
+
 </style>

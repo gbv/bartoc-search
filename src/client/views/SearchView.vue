@@ -11,7 +11,6 @@
  */
 <template>
   <NavBreadcrumb
-    v-if="summary.total > 0"
     :summary="summary" />
 
   <section class="search-view__wrapper">

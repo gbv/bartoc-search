@@ -12,6 +12,9 @@
   color: #003366;
   font-weight: 500;
   margin-bottom: 1.5rem;
+  position: absolute;
+  top: 25rem;
+  left: 20rem;
 }
 .search-view-results__error {
   color: #d32f2f;
