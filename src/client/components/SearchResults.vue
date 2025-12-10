@@ -20,7 +20,8 @@
     <div
       v-for="(doc, idx) in results.docs"
       :ref="cardEl => setItemRef(cardEl, idx)"
-      :key="doc.id">
+      :key="doc.id" 
+      class="result-card-wrapper">
       <VocabularyCard  
         :doc="doc" 
         :sort="sortBy" />
@@ -61,6 +62,9 @@ const cardElements = ref([]) // HTMLElement[]
 function setItemRef (el, i) {
   if (el) {
     cardElements.value[i] = el
+  } else {
+    // When element is unmounted, remove from array
+    cardElements.value.splice(i, 1)
   }
 }
 
@@ -72,7 +76,7 @@ watch(
       return
     }
     await nextTick()
-    const firstNewCard = cardElements.value[oldLen-1]
+    const firstNewCard = cardElements.value[oldLen]
     firstNewCard?.scrollIntoView({ behavior: "smooth", block: "start" })
   },
   { flush: "post" },
@@ -84,5 +88,8 @@ watch(
 .load-more__button {
   display: block;
   margin: 2rem auto;
+}
+.result-card-wrapper {
+  scroll-margin-top: 80px; /*visual offset when scrolling to element */
 }
 </style>
