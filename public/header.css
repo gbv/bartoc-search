@@ -1,10 +1,9 @@
 .header {
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-  border-bottom: 2px solid var(--red);
+  background: var(--red);
   position: sticky;
   top: 0;
   z-index: 100;
-  background: var(--bg-mute);
   color: var(--color-text-light-1);
 }
 .header__container {
