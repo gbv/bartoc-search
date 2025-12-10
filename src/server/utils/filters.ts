@@ -109,9 +109,9 @@ export function parseRepeatableFilters(
     if (key === "ddc") {
       // For each provided value, decide which Solr field to target by inspecting its shape.
       // We accept both plain notations ("4", "42", "420", "32.1") and DDC URIs.
-      const roots: string[] = [];     // single digit 0..9 → ddc_root_ss
-      const ancestors: string[] = []; // two digits or ≥3 digits integer → ddc_ancestors_ss
-      const exact: string[] = [];     // decimal forms (e.g., "32.1") → ddc_ss
+      const roots: string[] = [];
+      const ancestors: string[] = [];
+      const exact: string[] = [];
 
       for (const v of vals) {
         const m = DDC_URI_RE.exec(v);
@@ -120,24 +120,43 @@ export function parseRepeatableFilters(
         if (!/^\d+(\.\d+)?$/.test(notation)) continue;
 
         if (/^\d$/.test(notation)) {
+          // 0–9 → root
           roots.push(notation);
-        } else if (/^\d{2}$/.test(notation)) {
-          ancestors.push(notation);
-        } else if (/^\d{3,}$/.test(notation)) {
-          ancestors.push(notation);
         } else if (/^\d+\.\d+$/.test(notation)) {
+          // e.g. 32.1 → exact
+          exact.push(notation);
+        } else {
+          // 2+ integer digits (42, 420, 943, …) → exact
           exact.push(notation);
         }
       }
 
-      // dedupe and merge
-      out["ddc_root_ss"] = Array.from(new Set([...(out["ddc_root_ss"] ?? []), ...roots]));
-      out["ddc_ancestors_ss"] = Array.from(new Set([...(out["ddc_ancestors_ss"] ?? []), ...ancestors]));
-      out["ddc_ss"] = Array.from(new Set([...(out["ddc_ss"] ?? []), ...exact]));
+      // merge roots
+      const mergedRoots = Array.from(
+        new Set([...(out["ddc_root_ss"] ?? []), ...roots]),
+      );
+      if (mergedRoots.length) {
+        out["ddc_root_ss"] = mergedRoots;
+      }
+
+      // merge ancestors
+      const mergedAncestors = Array.from(
+        new Set([...(out["ddc_ancestors_ss"] ?? []), ...ancestors]),
+      );
+      if (mergedAncestors.length) {
+        out["ddc_ancestors_ss"] = mergedAncestors;
+      }
+
+      // merge exact
+      const mergedExact = Array.from(
+        new Set([...(out["ddc_ss"] ?? []), ...exact]),
+      );
+      if (mergedExact.length) {
+        out["ddc_ss"] = mergedExact;
+      }
 
       continue;
     }
-
 
     // --------------------------------
     // GENERIC HANDLING FOR OTHER KEYS

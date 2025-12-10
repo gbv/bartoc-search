@@ -178,6 +178,10 @@ export async function createApp(opts?: {
     
     // TODO(bartoc-search): consider VuFind-style facets using tag/exclude
     // Dynamically register each facet field
+    
+    // Always add ddc_root_ss to support DDC 1-digit facets
+    facetFilters.ddc_root_ss = facetFilters.ddc_root_ss ?? [];
+
     for (const facetName of Object.keys(facetFilters)) {
 
       op.facetOnField(facetName);

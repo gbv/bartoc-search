@@ -5,18 +5,28 @@ import { parseRepeatableFilters } from "../../server/utils/filters"; // adjust p
 describe("parseRepeatableFilters - DDC routing", () => {
   it("routes 1-digit to ddc_root_ss", () => {
     const out = parseRepeatableFilters(["ddc:4"]);
-    expect(out).toEqual({ ddc_root_ss: ["4"], ddc_ancestors_ss: [], ddc_ss: [] });
+    expect(out.ddc_root_ss).toEqual(["4"]);
+    // other buckets should be empty / undefined
+    expect(out.ddc_ancestors_ss ?? []).toEqual([]);
+    expect(out.ddc_ss ?? []).toEqual([]);
   });
 
-  it("routes 2-digit to ddc_ancestors_ss", () => {
+  it("routes 2-digit to ddc_ss (exact)", () => {
     const out = parseRepeatableFilters(["ddc:42"]);
-    expect(out).toEqual({ ddc_ancestors_ss: ["42"], ddc_root_ss: [], ddc_ss: [] });
+
+    // 2-digit integer notation is treated as an exact DDC code
+    expect(out.ddc_ss).toEqual(["42"]);
+
+    // No root or ancestors for this simple case
+    expect(out.ddc_root_ss ?? []).toEqual([]);
+    expect(out.ddc_ancestors_ss ?? []).toEqual([]);
   });
 
-  it("routes 3+ integer digits to ddc_ancestors_ss", () => {
+  it("routes 3+ integer digits to ddc_ss (exact)", () => {
     const out = parseRepeatableFilters(["ddc:420,453"]);
-    // order not guaranteed; compare as sets
-    expect(new Set(out.ddc_ancestors_ss)).toEqual(new Set(["420", "453"]));
+    expect(new Set(out.ddc_ss)).toEqual(new Set(["420", "453"]));
+    expect(out.ddc_root_ss ?? []).toEqual([]);
+    expect(out.ddc_ancestors_ss ?? []).toEqual([]);
   });
 
   it("routes decimals to ddc_ss (exact)", () => {
@@ -28,19 +38,20 @@ describe("parseRepeatableFilters - DDC routing", () => {
     const out = parseRepeatableFilters([
       "ddc:http://dewey.info/class/420/e23/,http://dewey.info/class/32.1/e23/",
     ]);
-    // 420 -> ancestors, 32.1 -> exact
-    expect(out.ddc_ancestors_ss).toEqual(["420"]);
-    expect(out.ddc_ss).toEqual(["32.1"]);
+    expect(new Set(out.ddc_ss)).toEqual(new Set(["420", "32.1"]));
+    expect(out.ddc_root_ss ?? []).toEqual([]);;
+    expect(out.ddc_ancestors_ss ?? []).toEqual([]);
   });
 
   it("merges across multiple filter instances and dedupes", () => {
     const out = parseRepeatableFilters([
-      "ddc:4,420",
-      "ddc:42,420,32.1", // re-adding 420, mixed types
+      "ddc:4",
+      "ddc:4,42,http://dewey.info/class/420/e23/,http://dewey.info/class/32.1/e23/",
     ]);
+
     expect(new Set(out.ddc_root_ss)).toEqual(new Set(["4"]));
-    expect(new Set(out.ddc_ancestors_ss)).toEqual(new Set(["42", "420"]));
-    expect(out.ddc_ss).toEqual(["32.1"]);
+    expect(new Set(out.ddc_ss)).toEqual(new Set(["42", "420", "32.1"]));
+    expect(out.ddc_ancestors_ss ?? []).toEqual([]);
   });
 
   it("passes through other facets unchanged and deduped", () => {
