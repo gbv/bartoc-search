@@ -323,6 +323,11 @@ function onClearFilters() {
   clearAllBuckets()       // no pending "bucket-only" request
   resetFiltersRequested() // with this facets will reload fully
   resetOpenGroups()       // close all the groups in the sidebar
+
+
+  // reset pagination to first page
+  limit.value = pageSize
+
   const base = { ...route.query }
 
   // deleteing previous filters & pagination
@@ -333,7 +338,7 @@ function onClearFilters() {
   const newQuery = {
     ...base,
     search: base.search ?? "",
-    limit: String(limit.value)  }
+    limit: String(pageSize)  }
 
   router.push({ name: "search", query: newQuery })
 
@@ -350,6 +355,9 @@ function onRemoveFilter({ field, value }) {
   setFilters(next)
 
   const filterParams = buildRepeatableFiltersFromState()
+
+  // reset pagination to first page
+  limit.value = pageSize
 
   // update URL + fetch
   const base = { ...route.query }
