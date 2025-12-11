@@ -232,10 +232,14 @@ export async function createApp(opts?: {
   });
 
   app.get("/api/record", async (req: Request, res: Response): Promise<void> => {
-    const { uri = "", format = "solr" } = req.query as Partial<SearchParams>;
+    const { uri = "", format = "jskos" } = req.query as Partial<SearchParams>;
 
     if (!uri) {
       res.status(400).json({"message": "Missing query parameter: uri"});
+      return;
+    }
+    if (format != "jskos" && format != "solr") {
+      res.status(400).json({"message": "Expected response format jskos or solr"});
       return;
     }
 
