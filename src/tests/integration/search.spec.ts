@@ -55,18 +55,19 @@ describe("GET /api/search", () => {
     expect(first).toHaveProperty("created", "2013-08-14T10:23:00Z");
   });
 
-  it("GET /api/record", async () => {
+  it("GET /api/data", async () => {
     const uri = "http://bartoc.org/en/node/10";
     const expected = seededDocs.find(d => d.id === uri)!;
 
-    res = await request(app).get("/api/record").query({ uri: "non:existing" });
-    expect(res.status).toBe(404);
-
-    var res = await request(app).get("/api/record").query({ uri, format: "solr" });
+    res = await request(app).get("/api/data").query({ uri: "non:existing" });
     expect(res.status).toBe(200);
-    expectJSON(res.body.fullrecord, expected.fullrecord)
+    expectJSON(res.body, "[]")
 
-    var res = await request(app).get("/api/record").query({ uri });
+    var res = await request(app).get("/api/data").query({ uri, format: "solr" });
+    expect(res.status).toBe(200);
+    expectJSON(res.body[0].fullrecord, expected.fullrecord)
+
+    var res = await request(app).get("/api/data").query({ uri });
     expect(res.status).toBe(200);
     expectJSON(res.body, expected.fullrecord)
   });

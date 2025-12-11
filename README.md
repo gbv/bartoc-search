@@ -13,6 +13,7 @@ This application extracts JSKOS data with metadata about terminologies from [BAR
 - [API](#api)
   - [GET /](#get-)
   - [GET /api/search](#get-apisearch)
+  - [GET /api/data](#get-apidata)
   - [GET /api/status](#get-apistatus)
 - [Architecture](#architecture)
   - [Solr](#solr)
@@ -180,7 +181,7 @@ This service exposes four HTTP endpoints:
 
 - **[GET /](#get-)** - web interface (HTML)
 - **[GET /api/search](#get-apisearch)** - search API (JSON)
-- **[GET /api/record](#get-apirecord)** - record API (JSON)
+- **[GET /api/data](#get-apidata)** - record API (JSON)
 - **[GET /api/status](#get-apistatus)** - service status (JSON)
 
 ### GET /
@@ -594,14 +595,16 @@ This is intended for UI interactions (e.g., expanding a facet to load all choice
 
 ...
 
-### GET /api/record
+### GET /api/data
 
 Returns a record from search index, retrieved by its URI. Expects one query parameter `uri`. Optional query parameter `format` controls the response format:
 
 - `format=jskos` JSKOS record stored in the search index (default)
 - `format=solr` full record stored in the search index (for debugging)
 
-Response code is 404 if record was not found and 500 if search index could not be queried.
+The response is wrapped in a JSON array so this API can be used like [GET /data from JSKOS API](https://github.com/gbv/jskos-server#get-data).
+
+Response code is always 200, also if the record was not found, and 500 if search index could not be queried.
 
 ### GET /api/status
 
@@ -802,7 +805,7 @@ This gives high confidence without relying on external services.
 
 * `GET /api/search` returns docs & facets
 * `GET /api/search?format=jskos` returns json of jskos data
-* `GET /api/record?uri=...` echoes the seeded `fullrecord`
+* `GET /api/data?uri=...` echoes the seeded `fullrecord`
 * Facet filtering via `filter=language:en`, `filter=in:http://…`, `filter=api:-` (NO_VALUE)
 * SSR page: `GET /` responds 200 + HTML
 

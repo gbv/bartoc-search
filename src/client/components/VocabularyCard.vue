@@ -116,10 +116,10 @@ const shortDescription = computed(() => {
 })
 
 const getSolrRecord = id =>
-  `${import.meta.env.BASE_URL}api/record?uri=${encodeURIComponent(id)}&format=solr`
+  `${import.meta.env.BASE_URL}api/data?uri=${encodeURIComponent(id)}&format=solr`
 
 const getJskosRecord = id =>
-  `${import.meta.env.BASE_URL}api/record?uri=${encodeURIComponent(id)}`
+  `${import.meta.env.BASE_URL}api/data?uri=${encodeURIComponent(id)}`
 
 </script>
 

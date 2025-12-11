@@ -231,11 +231,11 @@ export async function createApp(opts?: {
     }
   });
 
-  app.get("/api/record", async (req: Request, res: Response): Promise<void> => {
+  app.get("/api/data", async (req: Request, res: Response): Promise<void> => {
     const { uri = "", format = "jskos" } = req.query as Partial<SearchParams>;
 
     if (!uri) {
-      res.status(400).json({"message": "Missing query parameter: uri"});
+      res.json([]);
       return;
     }
     if (format != "jskos" && format != "solr") {
@@ -261,9 +261,9 @@ export async function createApp(opts?: {
         if (format === "jskos") {
           doc = JSON.parse(doc.fullrecord);
         }
-        res.json(doc);
+        res.json([doc]);
       } else {
-        res.status(404).json({"message": "Record not found"});
+        res.json([]);
       }
     } catch (err) {
       res.status(500).json({ error: "Failed to fetch Solr record" + (err instanceof Error ? `: ${err.message}` : "") });
