@@ -19,7 +19,12 @@
     "live:seed": "npx ts-node ./src/data/seedTerminologies.ts",
     "update-data": "tsx ./src/server/utils/updateFromBartoc.ts",
     "reindex": "tsx ./src/server/solr/index-once.ts",
-    "prepare": "husky || true"
+    "prepare": "husky || true",
+    "yesno": "node ./scripts/yesno.mjs",
+    "release": "bash ./scripts/release.sh",
+    "release:patch": "SEMVER=patch npm run release",
+    "release:minor": "SEMVER=minor npm run release",
+    "release:major": "SEMVER=major npm run release"
   },
   "keywords": [],
   "author": "",
