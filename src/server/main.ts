@@ -13,7 +13,6 @@ import { getStatus } from "./routes/status.js";
 import { startVocChangesListener } from "./composables/useVocChanges";
 import expressWs from "express-ws";
 import { loadNkosConcepts } from "./utils/nskosService";
-import { getTerminologiesQueue } from "./queue/worker.js";
 import { createBullBoard } from "@bull-board/api";
 import { ExpressAdapter } from "@bull-board/express";
 import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
@@ -25,12 +24,25 @@ import { parseRepeatableFilters } from "./utils/filters.ts";
 
 const isProduction = process.env.NODE_ENV === "production";
 const isTest = process.env.NODE_ENV === "test";
+
+// Default for workers in the queue processing system with Redis: 
+//  - dev → workers ON
+//  - test → OFF
+//  - production → OFF,
+const ENABLE_WORKERS_ENV = process.env.BARTOC_SEARCH_ENABLE_WORKERS;
+const DEFAULT_WITH_WORKERS =
+  !isTest &&
+  (typeof ENABLE_WORKERS_ENV !== "undefined"
+    ? ENABLE_WORKERS_ENV === "true"
+    : !isProduction);
+
+
 const base = process.env.VIRTUAL_PATH || "/";
 const DATA_DIR = process.env.DATA_DIR ?? "data";
 
 // Cached production template
 const templateHtml = isProduction
-  ? await fs.readFile("./dist/client/index.html", "utf-8")
+  ? await fs.readFile("./dist/index.html", "utf-8")
   : "";
 
 async function fileExists(p: string) { try { await fsPromises.access(p); return true; } catch { return false; } }
@@ -67,7 +79,7 @@ export async function createApp(opts?: {
 }) {
   const {
     withVite = !isProduction && !isTest,
-    withWorkers = !isTest,
+    withWorkers = DEFAULT_WITH_WORKERS,
     withUpdater = !isTest,
     withFrontend = !isTest,
   } = opts ?? {};
@@ -107,7 +119,7 @@ export async function createApp(opts?: {
       const compression = (await import("compression")).default;
       const sirv = (await import("sirv")).default;
       app.use(compression());
-      app.use(base, sirv("./dist/client", { extensions: [] }));
+      app.use(base, sirv("./dist", { extensions: [] }));
     }
   }
 
@@ -278,6 +290,8 @@ export async function createApp(opts?: {
     const serverAdapter = new ExpressAdapter();
     serverAdapter.setBasePath("/admin/queues");
 
+    const { getTerminologiesQueue } = await import("./queue/worker.js");
+
     // 2) Create Bull-Board, passing in your BullMQ queues
     getTerminologiesQueue().then((terminologiesQueue) => {
       if (terminologiesQueue) {
@@ -322,7 +336,7 @@ export async function createApp(opts?: {
       } else {
         template = templateHtml;
         //@ts-expect-error TO DO
-        render = (await import("./dist/server/entry-server.js")).render;
+        render = (await import("../../dist/server/entry-server.js")).render;
       }
 
       const { stream } = await render(url);
@@ -371,6 +385,7 @@ export const startServer = async (opts?: {
   withVite?: boolean;
   withWorkers?: boolean;
   withUpdater?: boolean;
+  withFrontend?: boolean;
 }) => {
   const app = await createApp(opts);
   if (config.env === "test") {

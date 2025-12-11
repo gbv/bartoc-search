@@ -44,6 +44,10 @@ const solrPort = process.env.SOLR_PORT
   ? Number(process.env.SOLR_PORT)
   : config.solr.port;
 
+
+config.solr.host = solrHost;
+config.solr.port = solrPort;
+
 // Build solr url, basic only for local development
 config.solr.url = `http://${solrHost}:${solrPort}/solr`;
 

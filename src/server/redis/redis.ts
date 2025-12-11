@@ -31,11 +31,12 @@ let redisClient: Redis | undefined;
  * Factory that only creates the Redis instance when first needed.
  */
 function getRedisClient(): Redis {
+  if (!workersEnabled()) {
+    throw new Error("Redis client requested but workers are disabled (DISABLE_WORKERS=1).");
+  }
+
   if (!redisClient) {
-    // Avoid noisy logs when disabled
-    if (workersEnabled()) {
-      console.log("🔥 Instantiating Redis client");
-    }
+    console.log("🔥 Instantiating Redis client");
     redisClient = new Redis(redisOptions);
 
     redisClient.on("error", (err) => {
@@ -52,8 +53,10 @@ function getRedisClient(): Redis {
       }
     });
   }
+
   return redisClient;
 }
+
 
 /**
  * Attempt to connect if not already connecting/connected.
