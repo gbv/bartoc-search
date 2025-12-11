@@ -55,13 +55,7 @@ async function onSearch() {
   if (limit.value) {
     query.limit = limit.value
   } 
-  // Default sorting to relevance
-  if (!query.sort) {
-    query.sort = "relevance"
-  }
-  if (!query.order) {
-    query.order = "desc" // from most relevant to less
-  }
+  
   emit("search", query)
 }
 

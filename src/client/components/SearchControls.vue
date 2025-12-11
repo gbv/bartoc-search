@@ -54,36 +54,21 @@ import FilterBadge from "./FilterBadge.vue"
 
 import { state } from "../stores/filters.js"
 import { FACET_FIELD_LABELS } from "../constants/facetFieldLabels.js"
-
+import {
+  SORT_OPTIONS,
+  SORT_KEY_TO_SOLR,
+  DEFAULT_SORT_KEY,
+} from "../constants/sort.js"
 
 
 // Sort options 
-const options = [
-  { key: "relevance",    label: "Relevance" },
-  { key: "created desc", label: "Created latest" },
-  { key: "created asc",  label: "Created first" },
-  { key: "modified desc",label: "Modified latest" },
-  { key: "modified asc", label: "Modified first" },
-  { key: "title asc",    label: "Title (A–Z)" },
-  { key: "title desc",   label: "Title (Z–A)" },
-]
-
-const sortObj = {
-  relevance: {sort: "relevance", order: "desc"},
-  "created desc": {sort: "created", order: "desc"},
-  "created asc": {sort: "created", order: "asc"},
-  "modified desc": {sort: "modified", order: "desc"},
-  "modified asc": {sort: "modified", order: "asc"},
-  "title asc": {sort: "title", order: "asc"},
-  "title desc": {sort: "title", order: "desc"},
-}
-
+const options = SORT_OPTIONS
 
 // Single v-model binding: the selected option key (e.g. "created desc")
 const props = defineProps({
   modelValue: {
     type: String,
-    default: "relevance",
+    default: DEFAULT_SORT_KEY,
   },
   lookupUri:{ 
     type: Object, 
@@ -130,13 +115,11 @@ watch(
 
 function onChange() {
   if (!selectedSort.value) {
-    selectedSort.value = "relevance"
+    selectedSort.value = DEFAULT_SORT_KEY
   }
 
-  const sortValue = { sort: sortObj[selectedSort.value].sort, 
-    order: sortObj[selectedSort.value].order || "asc" }
-    
-  emit("sort", sortValue)
+  const sortValue = SORT_KEY_TO_SOLR[selectedSort.value] || SORT_KEY_TO_SOLR[DEFAULT_SORT_KEY]    
+  emit("sort", { sort: sortValue.sort, order: sortValue.order })
 }
 
 function onRemoveBadge(badge) {

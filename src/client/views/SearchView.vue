@@ -65,6 +65,8 @@ import { state, setFilters, resetFiltersRequested,
   buildRepeatableFiltersFromState, filtersToRepeatableForUrl, 
   setFiltersFromRepeatable, openGroupsForActiveFilters, clearAllBuckets } from "../stores/filters.js"
 import { parseFilterMap, serializeFilterMap, splitMultiParam, extractDdcFromSubject, mapLicenseUrisToGroups } from "../utils/legacy.js"
+import { normalizeSort } from "../utils/sortDefaults.js"
+
 
 // Router hooks
 const router = useRouter()
@@ -93,13 +95,13 @@ const summary = computed(() => ({
 
 // derive the select-option key from the route
 const sortKey = computed(() => {
-  const s = route.query.sort || "relevance"
+  const { sort, order } = normalizeSort(route.query)
   // relevance is a special one–word case
-  if (s === "relevance") {
+  if (sort === "relevance") {
     return "relevance"
   }
-  const o = (route.query.order || "asc").toLowerCase()
-  return `${s} ${o}`
+  
+  return `${sort} ${String(order).toLowerCase()}`
 })
 
 async function fetchResults(query, opts = {}) {
@@ -119,7 +121,8 @@ async function fetchResults(query, opts = {}) {
   try {
     
     const { filter, ...rest } = query || {}
-    const base = { ...rest }
+    const { sort, order } = normalizeSort(rest)
+    const base = { ...rest, sort, order }
 
     // Normalize `filter` from query into an array for the API
     const apiFilterList = Array.isArray(filter)
