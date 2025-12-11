@@ -19,7 +19,6 @@ import { ExpressAdapter } from "@bull-board/express";
 import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
 import { parseFacetFields } from "./utils/utils.js";
 import { SearchFilter } from "./solr/search/SearchFilter.js";
-import _ from "lodash";
 import { runUpdateOnce } from "./utils/updateFromBartoc";
 import fsPromises from "node:fs/promises";
 import { parseRepeatableFilters } from "./utils/filters.ts";
@@ -236,13 +235,13 @@ export async function createApp(opts?: {
     const { uri = "", format = "solr" } = req.query as Partial<SearchParams>;
 
     if (!uri) {
-      res.status(400).json({"message": "Missing query parameter: uri"})
-      return
+      res.status(400).json({"message": "Missing query parameter: uri"});
+      return;
     }
 
     const query = new LuceneQuery()
       .term(uri)
-      .in("id")
+      .in("id");
 
     try {
       const solrQueryBuilder = new SolrClient()
@@ -253,14 +252,14 @@ export async function createApp(opts?: {
         .for(query)
         .limit(1)
         .execute<SolrSearchResponse>();
-      var doc = results.response.docs[0]
+      let doc = results.response.docs[0];
       if (doc) {
         if (format === "jskos") {
           doc = JSON.parse(doc.fullrecord);
         }
-        res.json(doc)
+        res.json(doc);
       } else {
-        res.status(404).json({"message": "Record not found"})
+        res.status(404).json({"message": "Record not found"});
       }
     } catch (err) {
       res.status(500).json({ error: "Failed to fetch Solr record" + (err instanceof Error ? `: ${err.message}` : "") });
