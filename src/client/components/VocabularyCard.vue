@@ -174,7 +174,7 @@ const JskosRecord = id =>
 }
 
 .result-title a {
-  color: var(--color-heading);
+  color: var(--red);
   font-weight: 600;
 }
 
