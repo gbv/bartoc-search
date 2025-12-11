@@ -1,8 +1,8 @@
 <template>
   <footer>
     <div v-if="apiStatus.solr.connected">
-      search in <b>{{ apiStatus.solr.indexedRecords }}</b> terminologies, most recent update
-      <b>{{ apiStatus.solr.lastIndexedAt }}</b>, live updates <b>{{ apiStatus.jskosServer.connected ? 'enabled' : 'disabled' }}</b>
+      search in <b>{{ apiStatus.solr.indexedRecords }}</b> terminologies
+      (as of <b>{{ apiStatus.solr.lastIndexedAt }}</b>, live updates <b>{{ apiStatus.jskosServer.connected ? 'enabled' : 'disabled' }}</b>)
     </div>
     <div v-else>
       Search index not available!
