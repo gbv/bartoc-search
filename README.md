@@ -27,7 +27,7 @@ This application extracts JSKOS data with metadata about terminologies from [BAR
 
 - an URL to download database dumps with JSKOS concept schemes (by default <https://bartoc.org/data/dumps/latest.ndjson>)
 - a Solr search server instance with configured scheme as expected by BARTOC search
-- a jskos-server instance with `/voc/changes` API endpoint (by default the BARTOC instance available at <https://bartoc.org/api>) for live updates 
+- a jskos-server instance with `/voc/changes` API endpoint (by default the BARTOC instance available at <https://bartoc.org/api>) for live updates
 - either Docker to run from a Docker image or Node.js >= 18 and Redis to run from sources
 
 ### With Docker (all)
@@ -137,7 +137,7 @@ SOLR_PORT=8983
 # - If you are running the Jskos server in a Docker container, you can use the
 #   container name as the host, e.g., `ws://jskos-server:3000`
 # - If you are running the Jskos server on your local machine, you can use
-#   `ws://localhost:3000` or `ws://127.0.0.   
+#   `ws://localhost:3000` or `ws://127.0.0.
 WS_HOST=ws://jskos-server:3000
 ```
 
@@ -176,13 +176,12 @@ The web interface is currently being developed. Feedback is welcome!
 
 ## API
 
-This service exposes three HTTP endpoints:
+This service exposes four HTTP endpoints:
 
-- **[GET /](#get-)** – web interface (HTML)
-- **[GET /api/search](#get-apisearch)** – search API (JSON)
-- **[GET /api/status](#get-apistatus)** – service status (JSON)
-
-The HTTP response code should always be 200 except for endpoint `/api/search` if there is an error with the Solr backend.
+- **[GET /](#get-)** - web interface (HTML)
+- **[GET /api/search](#get-apisearch)** - search API (JSON)
+- **[GET /api/record](#get-apirecord)** - record API (JSON)
+- **[GET /api/status](#get-apistatus)** - service status (JSON)
 
 ### GET /
 
@@ -223,12 +222,12 @@ For old BARTOC links, several legacy query params are supported and mapped to th
 **Supported legacy params**
 
 | Legacy param | Example (legacy) | Internally mapped to… | Notes |
-| - | - | - | - | 
+| - | - | - | - |
 | `partOf` | `?partOf=http://bartoc.org/en/node/18926`| `filter=in:<uri>`| One or many values.|  |  |
-| `languages` | `?languages=de` or `?languages=it,en` | `filter=language:<codes>` | ISO codes, multiple allowed. |  
-| `country`| `?country=Italy` or `?country=Italy,Germany`| `filter=country:<labels>` | Verbatim country labels; multiple allowed. | 
-| `type` | `?type=http://w3id.org/nkos/nkostype#thesaurus` | `filter=type:<uri(s)>` | NKOS/SKOS type URIs; multiple allowed. | 
-| `access` | `?access=http://bartoc.org/en/Access/Free` | `filter=access:<uri(s)>` | Access policy URIs; multiple allowed. | 
+| `languages` | `?languages=de` or `?languages=it,en` | `filter=language:<codes>` | ISO codes, multiple allowed. |
+| `country`| `?country=Italy` or `?country=Italy,Germany`| `filter=country:<labels>` | Verbatim country labels; multiple allowed. |
+| `type` | `?type=http://w3id.org/nkos/nkostype#thesaurus` | `filter=type:<uri(s)>` | NKOS/SKOS type URIs; multiple allowed. |
+| `access` | `?access=http://bartoc.org/en/Access/Free` | `filter=access:<uri(s)>` | Access policy URIs; multiple allowed. |
 | `subject` | `?subject=http://dewey.info/class/3/e23/` | `filter=ddc:3` | DDC URIs are normalized to their root digit. Pipes/commas supported. |
 | `license` | `?license=http://creativecommons.org/licenses/by/4.0/` | `filter=license:<group>` | Exact URI is always applied; if known, its group (e.g. “Apache-2.0”, “CC BY”) is also added as a facet filter. |
 
@@ -241,30 +240,30 @@ For old BARTOC links, several legacy query params are supported and mapped to th
 #### Faceted filtering with repeatable `filter=` param
 
 - Use repeatable `filter` params in the URL:
-  
+
   ```
   &filter=<publicKey>:<comma,separated,values>
   ```
-  
+
 - OR within a facet (comma-separated values), AND across facets (repeat each facet):
-  
+
   ```
   &filter=language:en,es&filter=ddc:3,9
   ```
-  
+
 - Missing (“no value”) bucket: use a single dash `-` as a value:
-  
+
   ```
   &filter=api:-
   ```
-  
+
 - Full bucket (no restriction, just return buckets): empty after the colon
-  
+
   ```
   &filter=language:
   ```
-  
-- For shareable URLs, include only facets with actual values (and `-` when needed).  
+
+- For shareable URLs, include only facets with actual values (and `-` when needed).
   The empty form (`facet:`) is primarily for UI bucket-loading and is usually omitted from shared links.
 
 
@@ -319,38 +318,38 @@ You can override the snapshot path explicitly with `DDC_CONCEPTS_FILE` – absol
 
 The following Solr fields are populated from the DDC expansion:
 
-- `ddc_ss`  
+- `ddc_ss`
   Exact DDC notations assigned to the terminology.
-  
+
   Example (languages & literatures of Romance languages):
-  
+
   ```json
   "ddc_ss": ["440", "450", "460", "840", "850", "860"]
   ```
-  
-- `ddc_ancestors_ss`  
+
+- `ddc_ancestors_ss`
   Intermediate ancestor notations (excluding the root and the main class).
-  
+
   For the example above:
-  
+
   ```json
   "ddc_ancestors_ss": ["44", "45", "46", "84", "85", "86"]
   ```
-  
-- `ddc_root_ss`  
+
+- `ddc_root_ss`
   Root notations (top-level DDC classes derived from the ancestor chain).
-  
+
   For the same terminology:
-  
+
   ```json
   "ddc_root_ss": ["4", "8"]
   ```
-  
+
   where `4` = *Language*, `8` = *Literature*.
-  
-- `ddc_label_rank1_t`  
+
+- `ddc_label_rank1_t`
   Labels of the main DDC classes assigned to the terminology.
-  
+
   ```json
   "ddc_label_rank1_t": [
     "Romance languages; French",
@@ -361,12 +360,12 @@ The following Solr fields are populated from the DDC expansion:
     "Spanish & Portuguese literatures"
   ]
   ```
-  
-- `ddc_label_rank2_t`  
+
+- `ddc_label_rank2_t`
   Labels of **immediate ancestors** and **memberSet components**.
-  
+
   Example for a vocabulary with subjects `3`, `305`, and `971`:
-  
+
   ```json
   "ddc_label_rank2_t": [
     "Social sciences, sociology & anthropology",  // ancestor of 305
@@ -375,19 +374,19 @@ The following Solr fields are populated from the DDC expansion:
     "Canada"                                      // memberSet component (table notation 2--71)
   ]
   ```
-  
-- `ddc_label_rank3_t`  
+
+- `ddc_label_rank3_t`
   Labels of **root ancestors** (most general DDC classes involved).
-  
+
   For the same example:
-  
+
   ```json
   "ddc_label_rank3_t": [
     "Social sciences",
     "History & geography"
   ]
   ```
-  
+
 All three label buckets are also copied into the general `allfields` full-text field, so they influence query matching and scoring.
 
 ##### Special cases
@@ -413,7 +412,7 @@ To ask the server to **return the full bucket** for a facet **without restrictin
 This is intended for UI interactions (e.g., expanding a facet to load all choices). For public, shareable links prefer including only facets with actual values (and `-` when needed).
 
 #### Example of Response
-  
+
 ```json
 {
   "responseHeader": {
@@ -594,7 +593,16 @@ This is intended for UI interactions (e.g., expanding a facet to load all choice
 #### Error Responses
 
 ...
-  
+
+### GET /api/record
+
+Returns a record from search index, retrieved by its URI. Expects one query parameter `uri`. Optional query parameter `format` controls the response format:
+
+- `format=jskos` JSKOS record stored in the search index (default)
+- `format=solr` full record stored in the search index (for debugging)
+
+Response code is 404 if record was not found and 500 if search index could not be queried.
+
 ### GET /api/status
 
 Returns a concise health check of the service, including environment and Solr index status.
@@ -627,12 +635,12 @@ The response may temporarily include additional fields for debugging.
     "title": "BARTOC Search (dev)"
   },
   "solr": {
-    "connected": true 
-    "indexedRecords": 3782, 
+    "connected": true
+    "indexedRecords": 3782,
     "lastIndexedAt": "2025-07-13T10:28:27"
   },
   "jskosServer": {
-    "connected": true 
+    "connected": true
   }
 }
 ```
@@ -688,14 +696,14 @@ The application requires a [jskos-server] with Changes API to get live updates. 
 
 The backend service listens for vocabulary change events from the JSKOS server using a WebSocket connection. This is handled in `src/server/composables/useVocChanges.ts`. See also from `jskos-server` repository, [here](https://github.com/gbv/jskos-server?tab=readme-ov-file#real-time-change-stream-endpoints) some reference
 
-- **Purpose:**  
+- **Purpose:**
   The WebSocket connection allows the backend to receive real-time notifications about vocabulary changes (create, update, delete) and enqueue them for processing in Solr.
-- **Configuration:**  
+- **Configuration:**
   You can override the WebSocket endpoint by setting `WS_HOST` in your environment (e.g., in your `.env` file or defined in `/config/config.default.json` as `webSocket` field.).
 
 ### Solr
 
-This section is about getting running the Solr service in a dockerized environment. 
+This section is about getting running the Solr service in a dockerized environment.
 
 - [Environment Variables (`.env`)](#environment-variables-env)
 - [Docker Compose Setup](#docker-compose-setup)
@@ -705,7 +713,7 @@ This section is about getting running the Solr service in a dockerized environme
 - [Troubleshooting](#troubleshooting)
 
 
-#### Docker 
+#### Docker
 
 See `docker-compose.yml` in directory `docker` for boilerplate.
 
@@ -719,7 +727,7 @@ When `indexDataAtBoot` is enabled, the app will automatically:
 4. Batch and index them into Solr
 
 This is handled by `connectToSolr()` and `bootstrapIndexSolr()`—no manual steps required.
-  
+
 #### Solr Schema
 
 Read the documentation [here](solr_schema.md).
@@ -776,7 +784,7 @@ See `docker-compose-backends.yml` in directory `docker` to quickly set up Solr a
     docker compose -f docker-compose-backends.yml up -V
 
 
-#### Testing 
+#### Testing
 
 BARTOC Search uses **Vitest** for unit/smoke/integration tests and **Testcontainers** to spin up a real **Solr 8** during integration tests. For the moment Redis/workers are disabled in tests.
 
@@ -794,7 +802,7 @@ This gives high confidence without relying on external services.
 
 * `GET /api/search` returns docs & facets
 * `GET /api/search?format=jskos` returns json of jskos data
-* `GET /api/solr?id=...` echoes the seeded `fullrecord`
+* `GET /api/record?uri=...` echoes the seeded `fullrecord`
 * Facet filtering via `filter=language:en`, `filter=in:http://…`, `filter=api:-` (NO_VALUE)
 * SSR page: `GET /` responds 200 + HTML
 

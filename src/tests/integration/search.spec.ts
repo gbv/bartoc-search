@@ -11,6 +11,10 @@ const DDC_FIXTURE = "src/tests/fixtures/solr/ddc-seed.json";
 const getIds = (res: any) =>
   (res.body.response?.docs ?? []).map((d: any) => d.id).sort();
 
+const expectJSON = (got: string, expected: string) => {
+  expect(JSON.parse(got)).toEqual(JSON.parse(expected));
+}
+
 beforeAll(async () => {
   process.env.NODE_ENV = "test";
   process.env.DISABLE_WORKERS = "1";
@@ -51,18 +55,20 @@ describe("GET /api/search", () => {
     expect(first).toHaveProperty("created", "2013-08-14T10:23:00Z");
   });
 
-  // Get a fullrecord Solr document by ID
-  it("GET /api/solr?id=... returns the seeded fullrecord", async () => {
-    const ID = "http://bartoc.org/en/node/10";
-    const expectedDoc = seededDocs.find(d => d.id === ID)!;
+  it("GET /api/record", async () => {
+    const uri = "http://bartoc.org/en/node/10";
+    const expected = seededDocs.find(d => d.id === uri)!;
 
-    const res = await request(app).get("/api/solr").query({ id: ID });
+    res = await request(app).get("/api/record").query({ uri: "non:existing" });
+    expect(res.status).toBe(404);
+
+    var res = await request(app).get("/api/record").query({ uri, format: "solr" });
     expect(res.status).toBe(200);
+    expectJSON(res.body.fullrecord, expected.fullrecord)
 
-    // compare parsed objects to avoid string formatting diffs
-    const got = JSON.parse(res.body.fullrecord);
-    const expected = JSON.parse(expectedDoc.fullrecord);
-    expect(got).toEqual(expected);
+    var res = await request(app).get("/api/record").query({ uri });
+    expect(res.status).toBe(200);
+    expectJSON(res.body, expected.fullrecord)
   });
 
   // Apply a single-value facet filter
@@ -96,10 +102,10 @@ describe("GET /api/search", () => {
     const res = await request(app).get("/api/search")
       .query({ search: "British Columbia First Nations Subject Headings", limit: 10, filter: "publisher:-" }); // NO_VALUE
     expect(res.status).toBe(200);
-    
+
     const docs = res.body.response?.docs ?? [];
     expect(docs.length).toBeGreaterThan(0);
-  
+
     for (const d of docs) {
       expect(d.publisher_labels_ss).toBeUndefined();
     }
@@ -127,10 +133,9 @@ describe("GET /api/search", () => {
     it("filters by single legacy languages value de", async () => {
       const legacy = await request(app).get("/api/search")
         .query({ search: "", languages: "de" });
-      
+
       const current = await request(app).get("/api/search")
         .query({ search: "", filter: "language:de" });
-      
 
       expect(legacy.status).toBe(200);
       expect(current.status).toBe(200);

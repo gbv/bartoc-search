@@ -70,7 +70,7 @@ export async function createApp(opts?: {
     withVite = !isProduction && !isTest,
     withWorkers = !isTest,
     withUpdater = !isTest,
-    withFrontend = !isTest,  
+    withFrontend = !isTest,
   } = opts ?? {};
 
   const app = express();
@@ -95,7 +95,7 @@ export async function createApp(opts?: {
   // ==========================
   /** @type {import('vite').ViteDevServer | undefined} */
   let vite: ViteDevServer | undefined;
-  if (withFrontend) { 
+  if (withFrontend) {
     if (!isProduction && withVite) {
       const { createServer } = await import("vite");
       vite = await createServer({
@@ -111,7 +111,7 @@ export async function createApp(opts?: {
       app.use(base, sirv("./dist/client", { extensions: [] }));
     }
   }
-  
+
   // ==========================
   // Health check
   // ==========================
@@ -121,13 +121,11 @@ export async function createApp(opts?: {
   // Search endpoint
   // ==========================
   app.get("/api/search", async (req: Request, res: Response): Promise<void> => {
-    const { search = "", 
-      field = "allfields", 
-      limit = 10, 
-      sort = SortField.RELEVANCE, 
-      order = SortOrder.ASC , 
-      format = "",
-      uri = ""
+    const { search = "",
+      field = "allfields",
+      limit = 10,
+      sort = SortField.RELEVANCE,
+      order = SortOrder.ASC
     } = req.query as Partial<SearchParams>;
 
     // Building the query
@@ -137,7 +135,7 @@ export async function createApp(opts?: {
     //    - The numbers (3, 2) are weights/params used by your builder (e.g. phrase vs. terms).
     //    - keeping the operator as OR to allow partial matches across tokens.
     const base = LuceneQuery.fromText(search, field, 3, 2).operator("OR");
-    
+
     // Convert to a final Lucene string for Solr.
     const baseLucene = base.toString();
 
@@ -170,15 +168,10 @@ export async function createApp(opts?: {
         .limit(limit)
         .facetMissing(true);
 
-      // If we're only returning JSKOS, ask Solr to only fetch the `fullrecord` field
-      if (format === "jskos") {
-        op.field("fullrecord");
-      }
-   
-    
+
     // TODO(bartoc-search): consider VuFind-style facets using tag/exclude
     // Dynamically register each facet field
-    
+
     // Always add ddc_root_ss to support DDC 1-digit facets
     facetFilters.ddc_root_ss = facetFilters.ddc_root_ss ?? [];
 
@@ -202,14 +195,14 @@ export async function createApp(opts?: {
             .raw(`-${facetName}:[* TO *]`)
         );
         continue;
-      } 
+      }
 
       facetValues = facetValues.filter(v => v !== NO_VALUE);
 
       if (facetValues.length == 1 && !facetValues.includes(NO_VALUE)) {
         op.filter(
           new SearchFilter(facetName)
-            .equals(facetValues[0])    
+            .equals(facetValues[0])
         );
       } else {
         op.filter(
@@ -221,32 +214,6 @@ export async function createApp(opts?: {
     // Execute query
     //
     const solrRes = await op.execute<SolrSearchResponse>();
-
-    // JSKOS output requested
-    if (format === "jskos") {
-      const jskosRecords = (solrRes.response.docs || []).map((doc) => {
-        try {
-          return JSON.parse(doc.fullrecord);
-        } catch {
-          return doc.fullrecord; // in case it wasn't valid JSON
-        }
-      });
-
-      if (!_.isEmpty(uri)) {
-        const jskosRecord = jskosRecords.filter(j => j.uri === uri);
-         res.json({
-          ...jskosRecord,
-        });
-        return;
-      }
-
-      res.json({
-        ...jskosRecords,
-      });
-      return;
-    }
-
-    // If we reach here, we are returning Solr's raw response
     const rawFacetFields = solrRes.facet_counts?.facet_fields;
     const facets = parseFacetFields(rawFacetFields);
 
@@ -265,14 +232,17 @@ export async function createApp(opts?: {
     }
   });
 
-  // ====== /api/solr ======
-  app.get("/api/solr", async (req: Request, res: Response): Promise<void> => {
-    const id = req.query.id as string;
+  app.get("/api/record", async (req: Request, res: Response): Promise<void> => {
+    const { uri = "", format = "solr" } = req.query as Partial<SearchParams>;
+
+    if (!uri) {
+      res.status(400).json({"message": "Missing query parameter: uri"})
+      return
+    }
 
     const query = new LuceneQuery()
-      .term(id)
-      .in("id") // <— field name
-      .operator("AND");
+      .term(uri)
+      .in("id")
 
     try {
       const solrQueryBuilder = new SolrClient()
@@ -283,7 +253,15 @@ export async function createApp(opts?: {
         .for(query)
         .limit(1)
         .execute<SolrSearchResponse>();
-      res.json(results.response.docs[0]);
+      var doc = results.response.docs[0]
+      if (doc) {
+        if (format === "jskos") {
+          doc = JSON.parse(doc.fullrecord);
+        }
+        res.json(doc)
+      } else {
+        res.status(404).json({"message": "Record not found"})
+      }
     } catch (err) {
       res.status(500).json({ error: "Failed to fetch Solr record" + (err instanceof Error ? `: ${err.message}` : "") });
     }
@@ -292,7 +270,7 @@ export async function createApp(opts?: {
   // ==========================
   // Build BullMQ UI board
   // ==========================
-  if (withWorkers) { 
+  if (withWorkers) {
     // 1) Create the Express adapter and mount path
     const serverAdapter = new ExpressAdapter();
     serverAdapter.setBasePath("/admin/queues");

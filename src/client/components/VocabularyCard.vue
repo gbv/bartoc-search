@@ -36,7 +36,7 @@
     <div class="result-metadata">
       <span
         v-if="doc.created_dt"
-        :class="{ highlighted: sort == 'created' }">       
+        :class="{ highlighted: sort == 'created' }">
         created {{ doc.created_dt.replace(/[T ].*/,"") }}
       </span>
       <span
@@ -45,7 +45,7 @@
         modified {{ doc.modified_dt.replace(/[T ].*/,"") }}
       </span>
       <a
-        :href="JskosRecord(doc.id)"
+        :href="getJskosRecord(doc.id)"
         target="_blank">JSKOS</a>
       <a
         :href="getSolrRecord(doc.id)"
@@ -57,9 +57,6 @@
 <script setup lang="js">
 import { SupportedLang } from "../types/lang.js"
 import { computed } from "vue"
-import { useRoute } from "vue-router"
-
-const route = useRoute()
 
 /// <reference path="../types/solr.js" />
 
@@ -119,17 +116,10 @@ const shortDescription = computed(() => {
 })
 
 const getSolrRecord = id =>
-  `${import.meta.env.BASE_URL}api/solr?id=${encodeURIComponent(id)}`
+  `${import.meta.env.BASE_URL}api/record?uri=${encodeURIComponent(id)}&format=solr`
 
-const serializeQuery = params =>
-  Object.entries(params)
-    .map(([key, val]) =>
-      `${encodeURIComponent(key)}=${encodeURIComponent(val)}`,
-    )
-    .join("&")
-
-const JskosRecord = id =>
-  `${import.meta.env.BASE_URL}api/search?${serializeQuery(route.query)}&format=jskos&uri=${encodeURIComponent(id)}`
+const getJskosRecord = id =>
+  `${import.meta.env.BASE_URL}api/record?uri=${encodeURIComponent(id)}`
 
 </script>
 
