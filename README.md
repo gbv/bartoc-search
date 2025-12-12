@@ -186,15 +186,23 @@ This service exposes four HTTP endpoints:
 
 ### GET /
 
-Returns the discovery interface in form of an HTML page with an experimental Vue client.
+Returns the discovery interface in form of an HTML page based on VueJS. The page is also available at `/search` for backwards compatibility. The endpoint accepts the [query parameter of search API](#get-apisearch). In addition, the following legacy parameters are supported and mapped to the current form:
 
-#### Query Parameters
+| legacy param | example | mapped to | notes |
+| - | - | - | - |
+| `partOf` | `?partOf=http://bartoc.org/en/node/18926`| `filter=in:<uri>`| One or many values |  |  |
+| `languages` | `?languages=de` or `?languages=it,en` | `filter=language:<codes>` | ISO codes, multiple allowed |
+| `country`| `?country=Italy` or `?country=Italy,Germany`| `filter=country:<labels>` | Verbatim country labels; multiple allowed |
+| `type` | `?type=http://w3id.org/nkos/nkostype#thesaurus` | `filter=type:<uri(s)>` | NKOS/SKOS type URIs; multiple allowed |
+| `access` | `?access=http://bartoc.org/en/Access/Free` | `filter=access:<uri(s)>` | Access policy URIs; multiple allowed |
+| `subject` | `?subject=http://dewey.info/class/3/e23/` | `filter=ddc:3` | DDC URIs are normalized to their root digit. Pipes/commas supported |
+| `license` | `?license=http://creativecommons.org/licenses/by/4.0/` | `filter=license:<group>` | Exact URI is always applied; if known, its group (e.g. “Apache-2.0”, “CC BY”) is also added as a facet filter |
 
-...
+Multiple values in legacy parameters can be separated with both `|` and `,`, for instance`?languages=it,en` and `?subject=http://dewey.info/class/3/e23/|http://dewey.info/class/6/e23/`. Trailing separators are ignored.
 
 ### GET /api/search
 
-Performs a search query against the Solr index, returning results along with query metrics.
+Performs a search query against the Solr index, returning results along with query metrics. Details of the response format may change with future versions of this service!
 
 #### Query Parameters
 
@@ -204,39 +212,12 @@ All query parameters are optional.
 | Name            | Type     |  Default     | Description                                                                                  |
 | --------------- | -------- |  ----------- | -------------------------------------------------------------------------------------------- |
 | **search**      | `string` |  —           | Full-text search terms (e.g. `Film`).                                                        |
-| **limit**       | `number` | `10`        | Maximum number of results to return.                                                         |
-| **sort**        | `string` |`relevance` | Sort field (e.g. `relevance`, `created`, `modified`).                                        |
-| **order**       | `string` | `desc`      | Sort direction: `asc` or `desc`.                                                             |
-| **start**       | `number` |  `0`         | Zero-based index of first result to return (for paging).                                     |
+| **limit**       | `number` | `10`         | Maximum number of results to return.                                                         |
+| **sort**        | `string` | `relevance`  | Sort field (e.g. `relevance`, `created`, `modified`).                                        |
+| **order**       | `string` | `desc`       | Sort direction: `asc` or `desc`.                                                             |
+| **start**       | `number` | `0`          | Zero-based index of first result to return (for paging).                                     |
 | **rows**        | `number` |  matches `limit` if omitted | Alias for `limit` — number of rows to return.                                            |
-| **filter**     | `repeatable string` |  -        | Facet filters as `filter=<publicKey>:<csvValues>`. Repeat for multiple facets. See the mapping table below |
-| **format**     | `string` |  -        |If set to `jskos`, returns the raw JSKOS records (from the `fullrecord` field) instead of the usual Solr docs.  |
-| **uri**     | `string` |  -        | `format=jskos&uri=<ConceptURI>` When both are included, the endpoint returns the raw JSKOS record for that exact URI instead of the list of JSKOS records.|
-
-
----
-
-#### Legacy parameters (backwards compatibility)
-
-For old BARTOC links, several legacy query params are supported and mapped to the new faceted API automatically.
-
-**Supported legacy params**
-
-| Legacy param | Example (legacy) | Internally mapped to… | Notes |
-| - | - | - | - |
-| `partOf` | `?partOf=http://bartoc.org/en/node/18926`| `filter=in:<uri>`| One or many values.|  |  |
-| `languages` | `?languages=de` or `?languages=it,en` | `filter=language:<codes>` | ISO codes, multiple allowed. |
-| `country`| `?country=Italy` or `?country=Italy,Germany`| `filter=country:<labels>` | Verbatim country labels; multiple allowed. |
-| `type` | `?type=http://w3id.org/nkos/nkostype#thesaurus` | `filter=type:<uri(s)>` | NKOS/SKOS type URIs; multiple allowed. |
-| `access` | `?access=http://bartoc.org/en/Access/Free` | `filter=access:<uri(s)>` | Access policy URIs; multiple allowed. |
-| `subject` | `?subject=http://dewey.info/class/3/e23/` | `filter=ddc:3` | DDC URIs are normalized to their root digit. Pipes/commas supported. |
-| `license` | `?license=http://creativecommons.org/licenses/by/4.0/` | `filter=license:<group>` | Exact URI is always applied; if known, its group (e.g. “Apache-2.0”, “CC BY”) is also added as a facet filter. |
-
-**Multiple values**
-
-* Legacy params accept **`|`** or **`,`** as separators, e.g.
-  `?languages=it,en` or `?subject=http://dewey.info/class/3/e23/|http://dewey.info/class/6/e23/|`
-* Trailing separators are ignored.
+| **filter**      | `string` |  -           | Facet filters as `filter=<publicKey>:<csvValues>`. Repeat for multiple facets. See the mapping table below |
 
 #### Faceted filtering with repeatable `filter=` param
 
