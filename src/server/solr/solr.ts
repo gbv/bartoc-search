@@ -21,7 +21,7 @@ import readline from "readline";
 import { extractDdc, buildDdcAncestorsFromSubjects } from "../utils/ddc";
 import { applyLangMap } from "../utils/utils";
 import { getNkosConcepts, loadNkosConcepts } from "../utils/nskosService";
-import { ensureSnapshotForIndexing } from "../utils/updateFromBartoc";
+import { ensureSnapshotForIndexing, BARTOC_DUMP } from "../utils/updateFromBartoc";
 
 
 // DDC enricher: loads the precomputed DDC snapshot once at startup.
@@ -101,7 +101,6 @@ export async function connectToSolr(): Promise<void> {
 // Initializes the Solr core with daily dump data from Database even if that is not empty
 export async function bootstrapIndexSolr() {
   config.log?.("Proceeding with initial indexing...");
-  const REMOTE_URL = "https://bartoc.org/data/dumps/latest.ndjson";
 
   // 1) Pick input stream: local snapshot (preferred) or remote fallback
   let input: NodeJS.ReadableStream;
@@ -116,13 +115,13 @@ export async function bootstrapIndexSolr() {
 
     } catch {
     // Fallback: stream from remote
-    const res = await axios.get(REMOTE_URL, {
+    const res = await axios.get(BARTOC_DUMP, {
       responseType: "stream",
       headers: { "User-Agent": "bartoc-solr-bootstrap/1.0", Connection: "close" },
     });
     input = res.data as NodeJS.ReadableStream;
-    source = REMOTE_URL;
-    config.log?.(`Using remote NDJSON vocs: ${REMOTE_URL}`);
+    source = BARTOC_DUMP;
+    config.log?.(`Using remote NDJSON vocs: ${BARTOC_DUMP}`);
   }
    
   // 2) Stream line-by-line → transform → batch to Solr

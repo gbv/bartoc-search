@@ -20,7 +20,7 @@ services:
       - BASE_URL=http://localhost:3883/
       # updater/indexer envs
       - DATA_DIR=/usr/src/app/data
-      - BARTOC_NDJSON_URL=https://bartoc.org/data/dumps/latest.ndjson
+      - BARTOC_DUMP=https://bartoc.org/data/dumps/latest.ndjson
     working_dir: /usr/src/app
 
   redis:

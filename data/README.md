@@ -14,7 +14,7 @@
 
 ### Environment variables (optional)
 
-* `BARTOC_NDJSON_URL` — default: `https://bartoc.org/data/dumps/latest.ndjson`
+* `BARTOC_DUMP` — default: `https://bartoc.org/data/dumps/latest.ndjson`
 * `DATA_DIR` — default: `data` (root for snapshots/artifacts)
 
 
@@ -112,7 +112,7 @@ data/
 
   * `data/artifacts/current/vocs.enriched.ndjson` (preferred)
   * else the latest `vocs` NDJSON snapshot
-  * else remote `BARTOC_NDJSON_URL` (streamed)
+  * else remote `BARTOC_DUMP` (streamed)
 
 ---
 

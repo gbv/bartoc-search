@@ -33,6 +33,9 @@ const BARTOC_BASE =
 const BARTOC_API_BASE =
   process.env.BARTOC_API_BASE_URL ?? `${BARTOC_BASE}/api`;
 
+export const BARTOC_DUMP =
+  process.env.BARTOC_DUMP ?? `${BARTOC_BASE}/data/dumps/latest.ndjson`;
+
 type Source = {
   key: "vocs" | "registries" | "apiTypes" | "accessTypes" | "ddcConcepts";
   url: string;
@@ -45,9 +48,7 @@ type Source = {
 const SOURCES: Record<Source["key"], Source> = {
   vocs: {
     key: "vocs",
-    url:
-      process.env.BARTOC_NDJSON_URL ??
-      `${BARTOC_BASE}/data/dumps/latest.ndjson`,
+    url: BARTOC_DUMP,
     kind: "ndjson",
     snapDir: path.join(DATA_DIR, "snapshots", "vocs"),
     metaPath: path.join(DATA_DIR, "artifacts", "vocs.last.json"),
