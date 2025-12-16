@@ -67,7 +67,7 @@
               </h2>
               <button
                 type="button"
-                class="facet-modal__close"
+                class="facet-modal-close"
                 aria-label="Close"
                 @click="closeModal">
                 <vue-feather
@@ -80,31 +80,32 @@
             </header>
 
             <div class="facet-modal__body">
-              <!-- Optional facet-internal search -->
               <input
                 v-if="valuesRef.length > 20"
                 v-model="searchTerm"
                 type="search"
-                class="facet-modal__search"
+                class="facet-modal-search"
                 :placeholder="`Filter ${facetItemTitle.toLowerCase()}…`">
-
-              <ul class="facet-modal__list">
+              <ul
+                v-if="filteredValues"
+                class="facet-modal-list">
                 <li
                   v-for="facet in filteredValues"
                   :key="facet.value">
-                  <label class="facet-modal__item">
-                    <input
-                      type="checkbox"
-                      :value="facet.value"
-                      :checked="selected.includes(facet.value)"
-                      @change="onCheckbox">
-                    <span class="facet-value">
-                      {{ facetValues[facet.value] ?? (facet.value === '-' ? 'no value' : facet.value) }}
-                    </span>
-                    <span class="facet-count">{{ facet.count }}</span>
-                  </label>
+                  <input
+                    type="checkbox"
+                    :value="facet.value"
+                    :checked="selected.includes(facet.value)"
+                    @change="onCheckbox">
+                  <span class="facet-value">
+                    {{ facetValues[facet.value] ?? (facet.value === '-' ? 'no value' : facet.value) }}
+                  </span>
+                  <span class="facet-count">{{ facet.count }}</span>
                 </li>
               </ul>
+              <div v-else>
+                Nothing found
+              </div>
             </div>
           </div>
         </div>
@@ -385,7 +386,7 @@ ul {
   color: var(--gray-800);
 }
 
-.facet-modal__close {
+.facet-modal-close {
   border: none;
   border-radius: 50px;
   padding: 0;
@@ -401,7 +402,7 @@ ul {
   color: var(--gray-700);
 }  
 
-.facet-modal__close:hover {
+.facet-modal-close:hover {
   outline: none;
   background: var(--white);
 }
@@ -412,7 +413,7 @@ ul {
   background: var(--color-surface);
 }
 
-.facet-modal__search {
+.facet-modal-search {
   width: 100%;
   margin-bottom: 0.5rem;
   border-radius: 3px;
@@ -422,17 +423,17 @@ ul {
   height: 30px;
 }
 
-.facet-modal__search::placeholder {
+.facet-modal-search::placeholder {
   color: var(--gray-500);
 }
 
-.facet-modal__list {
+.facet-modal-list {
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-.facet-modal__item {
+.facet-modal-list li {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -442,21 +443,12 @@ ul {
   cursor: pointer;
 }
 
-.facet-modal__item:hover {
+.facet-modal-list li:hover {
   background: var(--white);
 }
 
-.facet-modal__item .facet-value {
+.facet-modal-list li .facet-value {
   flex: 1;
-}
-
-.facet-modal__item .facet-count {
-  margin-left: auto;
-  color: var(--gray-600);
-}
-
-.facet-modal__list li:last-child {
- border-bottom: 1px solid var(--color-text-light-1);
 }
 
 </style>

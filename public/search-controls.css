@@ -10,13 +10,8 @@
   font-size: 15px;
 }
 
-.search-controls__badges {
-  padding-top: 24px;
-  display: flex;
-  justify-content: left;
-  width: 60%;
+.search-filters {
   margin: 0 auto;
-  flex-direction: column;
 }
 
 .badges-title {

@@ -23,11 +23,10 @@
       :uri="lookupUri.uri"
       :name="lookupUri.name" />
 
-
     <!-- Active filter badges -->
     <div
       v-if="badges.length > 0"
-      class="search-controls__badges">
+      class="search-filters">
       <div class="badges__wrapper">
         <FilterBadge
           v-for="badge in badges"
