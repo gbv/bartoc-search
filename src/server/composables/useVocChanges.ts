@@ -5,8 +5,6 @@ import { getTerminologiesQueue } from "../queue/worker";
 import { VocChangeEvent, OperationType } from "../types/ws";
 import { VocChangeEventSchema } from "../validation/vocChangeEvent";
 
-const WS_URL = config.WS_HOST;
-
 // **Example buffering logic**: collect up to BATCH_SIZE docs then flush as one job
 const BATCH_SIZE = config.solr.batchSize;
 const BATCH_TIMEOUT =
@@ -45,11 +43,11 @@ export async function isWebsocketConnected(): Promise<boolean> {
 }
 
 export async function startVocChangesListener(): Promise<void> {
-  const socket = new WebSocket(WS_URL);
+  const socket = new WebSocket(config.WS_URL);
 
   socket.on("open", () => {
     isVocChangesConnected = true;
-    config.log?.(`[WS] Websocket connected to ${WS_URL}`);
+    config.log?.(`[WS] Websocket connected to ${config.WS_URL}`);
   });
 
   socket.on("message", async (data) => {
