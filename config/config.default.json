@@ -1,5 +1,4 @@
 {
-  "baseUrl": null,
   "closedWorldAssumption": true,
   "indexDataAtBoot": true,
   "port": 3883,

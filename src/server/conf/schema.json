@@ -26,7 +26,6 @@
     "version": { "type": ["string", "null"] },
     "webSocket": { "$ref": "#/$defs/WebSocketConfig" }
   },
-  "required": ["port", "redis", "solr", "webSocket"],
   "additionalProperties": false,
   "$defs": {
     "Verbosity": {
