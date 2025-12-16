@@ -2,12 +2,6 @@ import axios from "axios";
 import qs from "qs";
 import config from "../conf/conf";
 
-function getSolrBaseUrl(): string {
-  const host = process.env.SOLR_HOST ?? config.solr.host ?? "127.0.0.1";
-  const port = Number(process.env.SOLR_PORT ?? config.solr.port ?? 8983);
-  return `http://${host}:${port}/solr`;
-}
-
 export abstract class SolrRequest {
   /**
    * The path that should be called on the endpoint
@@ -32,7 +26,7 @@ export abstract class SolrRequest {
   protected abstract httpBody(): unknown;
 
   public async execute<T = unknown>(
-    baseUrl: string = getSolrBaseUrl(),
+    baseUrl: string = config.solr.url,
   ): Promise<T> {
     const url = `${baseUrl}${this.absolutePath()}`;
     const method = this.httpMethod();

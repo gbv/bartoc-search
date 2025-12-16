@@ -22,26 +22,23 @@ import { runUpdateOnce } from "./utils/updateFromBartoc";
 import fsPromises from "node:fs/promises";
 import { parseRepeatableFilters } from "./utils/filters.ts";
 
-const isProduction = process.env.NODE_ENV === "production";
-const isTest = process.env.NODE_ENV === "test";
-
 // Default for workers in the queue processing system with Redis: 
 //  - dev → workers ON
 //  - test → OFF
 //  - production → OFF,
 const ENABLE_WORKERS_ENV = process.env.BARTOC_SEARCH_ENABLE_WORKERS;
 const DEFAULT_WITH_WORKERS =
-  !isTest &&
+  config.env !== "test" &&
   (typeof ENABLE_WORKERS_ENV !== "undefined"
     ? ENABLE_WORKERS_ENV === "true"
-    : !isProduction);
+    : config.env !== "production");
 
 
 const base = process.env.VIRTUAL_PATH || "/";
-const DATA_DIR = process.env.DATA_DIR ?? "data";
+const DATA_DIR = config.DATA_DIR;
 
 // Cached production template
-const templateHtml = isProduction
+const templateHtml = config.env === "production"
   ? await fs.readFile("./dist/index.html", "utf-8")
   : "";
 
@@ -78,10 +75,10 @@ export async function createApp(opts?: {
   withFrontend?: boolean;
 }) {
   const {
-    withVite = !isProduction && !isTest,
+    withVite = config.env !== "production" && config.env !== "test",
     withWorkers = DEFAULT_WITH_WORKERS,
-    withUpdater = !isTest,
-    withFrontend = !isTest,
+    withUpdater = config.env !== "test",
+    withFrontend = config.env !== "test",
   } = opts ?? {};
 
   const app = express();
@@ -97,7 +94,7 @@ export async function createApp(opts?: {
   app.use(express.json());
 
   // Initialize WebSocket support, not in tests for simplicity
-  if (!isTest) {
+  if (config.env !== "test") {
     expressWs(app);
   }
 
@@ -107,7 +104,7 @@ export async function createApp(opts?: {
   /** @type {import('vite').ViteDevServer | undefined} */
   let vite: ViteDevServer | undefined;
   if (withFrontend) {
-    if (!isProduction && withVite) {
+    if (config.env !== "production" && withVite) {
       const { createServer } = await import("vite");
       vite = await createServer({
         server: { middlewareMode: true },
@@ -325,7 +322,7 @@ export async function createApp(opts?: {
       let template;
       /** @type {import('../client/entry-server.ts').render} */
       let render;
-      if (!isProduction) {
+      if (config.env !== "production") {
         // Always read fresh template in development
         template = await fs.readFile("./index.html", "utf-8");
         if (!vite) {

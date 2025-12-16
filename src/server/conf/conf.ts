@@ -27,6 +27,7 @@ const config = loadConfig(defaultFilePath, configFilePath);
 
 config.env = env;
 
+// Add configuration from environment variables
 config.DATA_DIR = process.env.DATA_DIR ?? "data";
 config.ARTIFACTS = path.join(config.DATA_DIR, "artifacts");
 config.BARTOC_BASE =
@@ -41,6 +42,8 @@ config.BARTOC_API =
 config.BARTOC_DUMP =
   process.env.BARTOC_DUMP ?? `${config.BARTOC_BASE}/data/dumps/latest.ndjson`;
 
+config.WS_URL = 
+  process.env.WS_HOST ?? config.webSocket.host + config.webSocket.path;
 
 // Set composed config variables
 const redisHost = process.env.REDIS_HOST ?? config.redis.host;
@@ -52,18 +55,11 @@ const redisPort = process.env.REDIS_PORT
 // Build redis url for local development
 config.redis.url = `redis://${redisHost}:${redisPort}`;
 
-const solrHost = process.env.SOLR_HOST ?? config.solr.host;
+// Solr
+config.solr.host = process.env.SOLR_HOST ?? config.solr.host ?? "localhost";
+config.solr.port = Number(process.env.SOLR_PORT ?? config.solr.port ?? 8983);
+config.solr.url = `http://${config.solr.host}:${config.solr.port}/solr`;
 
-const solrPort = process.env.SOLR_PORT
-  ? Number(process.env.SOLR_PORT)
-  : config.solr.port;
-
-
-config.solr.host = solrHost;
-config.solr.port = solrPort;
-
-// Build solr url, basic only for local development
-config.solr.url = `http://${solrHost}:${solrPort}/solr`;
 
 // Build ndJson data path, from latest.ndjson
 if (config.indexDataAtBoot && config.indexDataAtBoot === true) {

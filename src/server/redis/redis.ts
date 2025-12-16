@@ -4,7 +4,7 @@ import config from "../conf/conf";
 
 function workersEnabled() {
   // Disable in tests and when explicitly opted out
-  return process.env.NODE_ENV !== "test" && process.env.DISABLE_WORKERS !== "1";
+  return config.env !== "test" && process.env.DISABLE_WORKERS !== "1";
 }
 
 // Use the configured ping timeout (fallback to 10s)

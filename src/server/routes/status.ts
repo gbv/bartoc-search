@@ -36,13 +36,13 @@ export const getStatus = async (
 
   // app title
   const title = config.title
-    ? `${config.title}${process.env.NODE_ENV === "development" ? " (dev)" : ""}`
+    ? `${config.title}${config.env === "development" ? " (dev)" : ""}`
     : "BARTOC Search";
 
   const statusResponse: StatusResponse = {
     ok: true,
     config: {
-      env: process.env.NODE_ENV ?? "development",
+      env: config.env,
       serverVersion,
       title,
     },

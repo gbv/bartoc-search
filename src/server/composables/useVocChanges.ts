@@ -1,15 +1,11 @@
-// src/vocChangesClient.ts
 import WebSocket from "ws";
-import dotenv from "dotenv";
 import config from "../conf/conf";
 import { SolrDeletePayload, SolrUpsertPayload } from "../types/solr";
 import { getTerminologiesQueue } from "../queue/worker";
 import { VocChangeEvent, OperationType } from "../types/ws";
 import { VocChangeEventSchema } from "../validation/vocChangeEvent";
 
-dotenv.config();
-const WS_URL =
-  process.env.WS_HOST ?? config.webSocket.host + config.webSocket.path;
+const WS_URL = config.WS_HOST;
 
 // **Example buffering logic**: collect up to BATCH_SIZE docs then flush as one job
 const BATCH_SIZE = config.solr.batchSize;

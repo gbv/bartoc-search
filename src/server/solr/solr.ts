@@ -363,12 +363,8 @@ export function transformConceptSchemeToSolr(
 
 // TODO better this with OOP approach in SolrClient.ts, this is minimal and not well done
 export async function addDocuments(coreName: string, docs: SolrDocument[]) {
-  let url = `${config.solr.url}/${coreName}/update?commit=true`;
+  const url = `${config.solr.url}/${coreName}/update?commit=true`;
 
-  if (process.env.NODE_ENV == "test") {
-    url = `http://${process.env.SOLR_HOST}:${process.env.SOLR_PORT}/solr/${coreName}/update?commit=true`;
-  }
-  
   try {
     const response = await axios.post(url, docs, {
       headers: {
