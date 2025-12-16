@@ -1,10 +1,12 @@
 # BARTOC Search
 
+[![License](https://img.shields.io/github/license/gbv/bartoc-search.svg)](https://github.com/gbv/bartoc-search/blob/master/LICENSE)
+[![Docker](https://img.shields.io/badge/Docker-ghcr.io%2Fgbv%2Fjskos--server-informational)](https://github.com/gbv/bartoc-search/blob/master/docker/README.md)
 [![Test](https://github.com/gbv/bartoc-search/actions/workflows/test.yml/badge.svg)](https://github.com/gbv/bartoc-search/actions/workflows/test.yml)
 
-> Experimental BARTOC Search engine with indexing pipeline and discovery interface
+> BARTOC search index and discovery interface
 
-This application extracts JSKOS data with metadata about terminologies from [BARTOC] knowledge organization systems registry (managed in [jskos-server]), transforms and enriches the data and loads it in into a [Solr] search index. The index is then made available via a search API and a discovery interface.
+This application extracts JSKOS data with metadata about terminologies from [BARTOC] knowledge organization systems registry (managed in [jskos-server]), transforms and enriches the data and loads it in into a [Solr] search index. The index is then made available via a [search API](#API) and a discovery interface with relevance ranking a facetted search.
 
 ## Table of Contents
 
@@ -15,10 +17,10 @@ This application extracts JSKOS data with metadata about terminologies from [BAR
   - [GET /api/search](#get-apisearch)
   - [GET /api/data](#get-apidata)
   - [GET /api/status](#get-apistatus)
+- [Development](#development)
 - [Architecture](#architecture)
   - [Solr](#solr)
   - [Redis](#redis)
-- [Development](#development)
 - [Maintainers](#maintainers)
 - [License](#license)
 
@@ -628,6 +630,19 @@ The response may temporarily include additional fields for debugging.
 }
 ```
 
+## Development
+
+See `docker-compose-backends.yml` in directory `docker` to quickly set up Solr and Redis for development.
+
+    cd docker
+    docker compose -f docker-compose-backends.yml up -V
+
+Please use ESLint and Prettier (`npm run lint` and `npm run fix`) to enforce TypeScript strict mode!
+
+We use **Vitest** for unit/smoke/integration tests and **Testcontainers** to spin up a real **Solr 8** during integration tests. The search index is seed with a tiny set of JSON docs tailored for assertions.
+
+For the moment Redis/workers are disabled and the discovery interface (UI) is not tested.
+
 ## Architecture
 
 ~~~mermaid
@@ -744,50 +759,6 @@ Replace `myQueue` with your actual BullMQ queue instance(s) and the board will b
 - Monitor queue and worker status in real time
 
 For more details, see the [bull-board documentation](https://github.com/felixmosh/bull-board).
-
-## Development
-
-### Project Goals
-
-- Provide a reliable pipeline to synchronize BARTOC database with a Solr index
-- Enrich data before to improve search
-- Experiment with relevance ranking and facetted search
-
-###  Technologies
-
-- Node.js + TypeScript
-- TypeScript strict mode enabled. Please use ESLint and Prettier (`npm run lint` and `npm run fix`)
-- Vite for build tooling
-- Docker & Docker Compose for containerization
-- Vitest for unit/smoke/integration tests
-
-See `docker-compose-backends.yml` in directory `docker` to quickly set up Solr and Redis for development.
-
-    cd docker
-    docker compose -f docker-compose-backends.yml up -V
-
-
-#### Testing
-
-BARTOC Search uses **Vitest** for unit/smoke/integration tests and **Testcontainers** to spin up a real **Solr 8** during integration tests. For the moment Redis/workers are disabled in tests.
-
-###### How integration tests work
-
-1. Start `solr:8` container and copy project configset (terminologies).
-2. Create core `terminologies`.
-3. Seed a tiny set of JSON docs tailored for assertions.
-4. Boot the app with frontend/workers disabled.
-5. Hit HTTP routes via `supertest`.
-
-This gives high confidence without relying on external services.
-
-###### Tests
-
-* `GET /api/search` returns docs & facets
-* `GET /api/search?format=jskos` returns json of jskos data
-* `GET /api/data?uri=...` echoes the seeded `fullrecord`
-* Facet filtering via `filter=language:en`, `filter=in:http://…`, `filter=api:-` (NO_VALUE)
-* SSR page: `GET /` responds 200 + HTML
 
 ## Maintainers
 
