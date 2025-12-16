@@ -1,8 +1,7 @@
 import * as dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
-import type { AppConfig, Verbosity } from "../types/conf";
-import { loadConfig } from "../utils/loadConfig";
+import { loadConfig } from "./loadConfig";
 import packageInfo from "../../../package.json";
 
 // Prepare environment
@@ -24,9 +23,24 @@ if (env !== "test" && !fs.existsSync(configFilePath)) {
 }
 
 // Merging config.default.json and config.json
-const config: AppConfig = loadConfig(defaultFilePath, configFilePath);
+const config = loadConfig(defaultFilePath, configFilePath);
 
 config.env = env;
+
+config.DATA_DIR = process.env.DATA_DIR ?? "data";
+config.ARTIFACTS = path.join(config.DATA_DIR, "artifacts");
+config.BARTOC_BASE =
+  process.env.BARTOC_BASE_URL ??
+  (process.env.NODE_ENV === "production"
+    ? "https://bartoc.org"
+    : "https://dev.bartoc.org");
+
+config.BARTOC_API =
+  process.env.BARTOC_API_URL ?? `${config.BARTOC_BASE}/api`;
+
+config.BARTOC_DUMP =
+  process.env.BARTOC_DUMP ?? `${config.BARTOC_BASE}/data/dumps/latest.ndjson`;
+
 
 // Set composed config variables
 const redisHost = process.env.REDIS_HOST ?? config.redis.host;
@@ -54,17 +68,6 @@ config.solr.url = `http://${solrHost}:${solrPort}/solr`;
 // Build ndJson data path, from latest.ndjson
 if (config.indexDataAtBoot && config.indexDataAtBoot === true) {
   config.ndJsonDataPath = dataFilePath;
-}
-
-// Logging section
-function isValidVerbosity(v: unknown): v is Verbosity {
-  return [true, false, "log", "warn", "error"].includes(v as string);
-}
-
-if (!isValidVerbosity(config.verbosity)) {
-  console.warn(
-    `Invalid verbosity value "${config.verbosity}", defaulting to "${config.verbosity}" instead.`,
-  );
 }
 
 // Logging methods

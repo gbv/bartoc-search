@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", 
+  "title": "BARTOC Search configuration",
+  "type": "object",
+  "properties": {
+    "baseUrl": { "type": "string" },
+    "closedWorldAssumption": { "type": "boolean" },
+    "env": { "type": "string" },
+    "indexDataAtBoot": { "type": "boolean" },
+    "logLevel": { "type": "string", "default": "info" },
+    "ndJsonDataPath": { "type": "string" },
+    "port": { "type": "number" },
+    "proxies": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "queues": {
+      "type": "object",
+      "description": "Mapping of queue names to queue configurations",
+      "additionalProperties": { "$ref": "#/$defs/QueueConfig" }
+    },
+    "redis": { "$ref": "#/$defs/RedisConfig" },
+    "solr": { "$ref": "#/$defs/SolrConfig" },
+    "title": { "type": "string" },
+    "verbosity": { "$ref": "#/$defs/Verbosity" },
+    "version": { "type": ["string", "null"] },
+    "webSocket": { "$ref": "#/$defs/WebSocketConfig" }
+  },
+  "required": ["port", "redis", "solr", "webSocket"],
+  "additionalProperties": false,
+  "$defs": {
+    "Verbosity": {
+      "anyOf": [
+        { "type": "boolean" },
+        {
+          "type": "string",
+          "enum": ["log", "warn", "error"]
+        }
+      ]
+    },
+    "SolrConfig": {
+      "type": "object",
+      "properties": {
+        "batchSize": { "type": "number" },
+        "coreName": { "type": "string" },
+        "host": { "type": "string" },
+        "pingTimeout": { "type": "number" },
+        "pingRetries": { "type": "number" },
+        "pingRetryDelay": { "type": "number" },
+        "port": { "type": "number" },
+        "url": { "type": "string" },
+        "version": { "type": "number" }
+      },
+      "required": ["batchSize", "coreName", "host", "port", "version"],
+      "additionalProperties": false
+    },
+    "RedisConfig": {
+      "type": "object",
+      "properties": {
+        "host": { "type": "string" },
+        "pingTimeout": { "type": "number" },
+        "pingRetries": { "type": "number" },
+        "pingRetryDelay": { "type": "number" },
+        "port": { "type": "number" },
+        "url": { "type": "string" }
+      },
+      "required": ["host", "port"],
+      "additionalProperties": false
+    },
+    "Limiter": {
+      "type": "object",
+      "properties": {
+        "max": { "type": "integer", "minimum": 0 },
+        "duration": { "type": "integer", "minimum": 0 }
+      },
+      "required": ["max", "duration"],
+      "additionalProperties": false
+    },
+    "QueueConfig": {
+      "type": "object",
+      "properties": {
+        "concurrency": { "type": "integer", "minimum": 1 },
+        "limiter": { "$ref": "#/$defs/Limiter" }
+      },
+      "additionalProperties": false
+    },
+    "WebSocketConfig": {
+      "type": "object",
+      "properties": {
+        "host": { "type": "string" },
+        "port": { "type": "number" },
+        "path": { "type": "string" },
+        "pingTimeout": { "type": "number" },
+        "pingRetries": { "type": "number" },
+        "pingRetryDelay": { "type": "number" }
+      },
+      "required": ["host", "path"],
+      "additionalProperties": false
+    }
+  }
+}

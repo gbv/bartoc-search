@@ -169,7 +169,7 @@ Currently, there are only two environment variables:
 
 You can either provide the environment variables during the command to start the server, or in a `.env` file in the root folder.
 
-All missing keys will be defaulted from `config/config.default.json`:
+All missing keys will be defaulted from [config/config.default.json](config/config.default.json). Configuration must be valid against [configuration JSON Schema](src/server/conf/schema.json).
 
 ## Usage
 

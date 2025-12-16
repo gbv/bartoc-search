@@ -16,25 +16,12 @@ import { runJskosEnrich } from "./runJskosEnrich";
 import { spawn } from "node:child_process";
 
 
-/** Base configuration with sensible defaults */
-const DATA_DIR = process.env.DATA_DIR ?? "data";
-export const ART_DIR = path.join(DATA_DIR, "artifacts");
-const META_PATH = path.join(ART_DIR, "vocs.last.json"); // metadata persisted between runs
+import config from "../conf/conf.ts";
+const { DATA_DIR, ARTIFACTS, BARTOC_BASE, BARTOC_API, BARTOC_DUMP } = config;
+
+
+const META_PATH = path.join(ARTIFACTS, "vocs.last.json"); // metadata persisted between runs
 const ENRICH_OUT_NAME = "vocs.enriched.ndjson";
-
-// Base URLs for BARTOC in dev/prod.
-// Can be overridden via env if needed.
-const BARTOC_BASE =
-  process.env.BARTOC_BASE_URL ??
-  (process.env.NODE_ENV === "production"
-    ? "https://bartoc.org"
-    : "https://dev.bartoc.org");
-
-const BARTOC_API_BASE =
-  process.env.BARTOC_API_BASE_URL ?? `${BARTOC_BASE}/api`;
-
-export const BARTOC_DUMP =
-  process.env.BARTOC_DUMP ?? `${BARTOC_BASE}/data/dumps/latest.ndjson`;
 
 type Source = {
   key: "vocs" | "registries" | "apiTypes" | "accessTypes" | "ddcConcepts";
@@ -64,7 +51,7 @@ const SOURCES: Record<Source["key"], Source> = {
   },
   apiTypes: {
     key: "apiTypes",
-    url: `${BARTOC_API_BASE}/voc/top?uri=http://bartoc.org/en/node/20002`,
+    url: `${BARTOC_API}/voc/top?uri=http://bartoc.org/en/node/20002`,
     kind: "json",
     snapDir: path.join(DATA_DIR, "snapshots", "apiTypes"),
     metaPath: path.join(DATA_DIR, "artifacts", "apiTypes.last.json"),
@@ -72,7 +59,7 @@ const SOURCES: Record<Source["key"], Source> = {
   },
   accessTypes: {
     key: "accessTypes",
-    url: `${BARTOC_API_BASE}/voc/top?uri=http://bartoc.org/en/node/20001`,
+    url: `${BARTOC_API}/voc/top?uri=http://bartoc.org/en/node/20001`,
     kind: "json",
     snapDir: path.join(DATA_DIR, "snapshots", "accessTypes"),
     metaPath: path.join(DATA_DIR, "artifacts", "accessTypes.last.json"),
@@ -80,7 +67,7 @@ const SOURCES: Record<Source["key"], Source> = {
   },
   ddcConcepts: {
     key: "ddcConcepts",
-    url: `${BARTOC_API_BASE}/voc/concepts?uri=http://bartoc.org/en/node/241&limit=1500`,  
+    url: `${BARTOC_API}/voc/concepts?uri=http://bartoc.org/en/node/241&limit=1500`,  
     kind: "json",
     snapDir: path.join(DATA_DIR, "snapshots", "ddcConcepts"),
     metaPath: path.join(DATA_DIR, "artifacts", "ddcConcepts.last.json"),
@@ -261,7 +248,7 @@ export async function selectVocsInput({
   properties?: string[];
 }): Promise<{ path: string; meta: EnrichMeta }> { 
 
-  const currentEnriched = path.join(ART_DIR, "current", ENRICH_OUT_NAME);
+  const currentEnriched = path.join(ARTIFACTS, "current", ENRICH_OUT_NAME);
   const mustEnrich = !notModifiedVocs || !(await pathExists(currentEnriched));
 
   if (mustEnrich) {
@@ -337,7 +324,7 @@ async function main(): Promise<void> {
     .replace(/[^A-Za-z0-9._-]+/g, "-") // sanitize
     .slice(0, 120);// keep it short-ish
 
-  const versionDir = path.join(ART_DIR, versionName);
+  const versionDir = path.join(ARTIFACTS, versionName);
   const tempDir    = `${versionDir}__tmp`;
   await fs.mkdir(tempDir, { recursive: true });
   console.log(`▶️  Building artifacts in temporary dir: ${tempDir}`);

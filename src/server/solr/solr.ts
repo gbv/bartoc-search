@@ -21,7 +21,7 @@ import readline from "readline";
 import { extractDdc, buildDdcAncestorsFromSubjects } from "../utils/ddc";
 import { applyLangMap } from "../utils/utils";
 import { getNkosConcepts, loadNkosConcepts } from "../utils/nskosService";
-import { ensureSnapshotForIndexing, BARTOC_DUMP } from "../utils/updateFromBartoc";
+import { ensureSnapshotForIndexing } from "../utils/updateFromBartoc";
 
 
 // DDC enricher: loads the precomputed DDC snapshot once at startup.
@@ -115,13 +115,13 @@ export async function bootstrapIndexSolr() {
 
     } catch {
     // Fallback: stream from remote
-    const res = await axios.get(BARTOC_DUMP, {
+    source = config.BARTOC_DUMP;
+    const res = await axios.get(source, {
       responseType: "stream",
       headers: { "User-Agent": "bartoc-solr-bootstrap/1.0", Connection: "close" },
     });
     input = res.data as NodeJS.ReadableStream;
-    source = BARTOC_DUMP;
-    config.log?.(`Using remote NDJSON vocs: ${BARTOC_DUMP}`);
+    config.log?.(`Using remote NDJSON vocs: ${source}`);
   }
    
   // 2) Stream line-by-line → transform → batch to Solr

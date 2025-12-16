@@ -13,12 +13,11 @@ import { SolrClient } from "./SolrClient";
 import config from "../conf/conf";
 import { bootstrapIndexSolr } from "./solr";
 import { PingResponse } from "../types/solr";
-import { ART_DIR } from "../utils/updateFromBartoc";
 
 
 // Where data lives.
-const CURRENT_DIR = path.join(ART_DIR, "current");
-const LOCK_PATH = path.join(ART_DIR, ".index.lock");
+const CURRENT_DIR = path.join(config.ARTIFACTS, "current");
+const LOCK_PATH = path.join(config.ARTIFACTS, ".index.lock");
 
 /** Sleep helper */
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));

@@ -88,6 +88,8 @@
     "express": "^5.1.0",
     "feather-icons": "^4.29.2",
     "jskos-vue": "^0.3.18",
+    "json-schema": "^0.4.0",
+    "jsonschema": "^1.5.0",
     "morgan": "^1.10.0",
     "namespace-lookup": "^0.2.1",
     "sirv": "^3.0.1",
