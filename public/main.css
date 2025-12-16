@@ -65,6 +65,7 @@ button {
   font-weight: 500;
   font-family: inherit;
   background-color: var(--color-button-background);
+  color: var(--color-button-text);
   cursor: pointer;
   transition: border-color 0.25s;
 }
@@ -175,11 +176,11 @@ button:focus-visible {
   transform: translateY(-1px);
 }
 .button:active {
-  background-color: var(--color-button-light);;
+  outline: 2px solid var(--color-button-active);
   transform: translateY(0);
 }
 .button:focus {
-  outline: 2px solid var(--color-button-soft);
+  background-color: var(--color-button-hover);
   outline-offset: 2px;
 }
 
