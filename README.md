@@ -216,7 +216,6 @@ All query parameters are optional.
 | **sort**        | `string` | `relevance`  | Sort field (e.g. `relevance`, `created`, `modified`).                                        |
 | **order**       | `string` | `desc`       | Sort direction: `asc` or `desc`.                                                             |
 | **start**       | `number` | `0`          | Zero-based index of first result to return (for paging).                                     |
-| **rows**        | `number` |  matches `limit` if omitted | Alias for `limit` — number of rows to return.                                            |
 | **filter**      | `string` |  -           | Facet filters as `filter=<publicKey>:<csvValues>`. Repeat for multiple facets. See the mapping table below |
 
 #### Faceted filtering with repeatable `filter=` param

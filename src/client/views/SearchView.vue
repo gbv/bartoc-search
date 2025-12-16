@@ -167,7 +167,7 @@ async function fetchResults(query, opts = {}) {
       }
     })
     params.set("start", "0")
-    params.set("rows", String(limit.value))
+    params.set("limit", String(limit.value))
 
     // For the actual API call, use the same effective filters
     apiFilterList.forEach(f => params.append("filter", f))
@@ -224,11 +224,8 @@ function onSearch(query) {
   resetOpenGroups()
   
   const base = { ...route.query }
-
-  // deleteing previous filters & pagination
   delete base.filter
   delete base.start
-  delete base.rows
 
   const newQuery = {
     ...base,
@@ -274,7 +271,7 @@ function loadMore(opts = {}) {
     ...(filterParams.length ? { filter: filterParams } : {}),
   }
 
-  router.push({ name: "search", query: newQuery })
+  router.push({ path: "/", query: newQuery })
   fetchResults(newQuery, { mode: "append" })
 }
 
@@ -303,7 +300,6 @@ function onFilterChange(filters, opts = {}) {
   const base = { ...route.query }
   delete base.filter
   delete base.start
-  delete base.rows
 
   const newQuery = {
     ...base,
@@ -331,11 +327,8 @@ function onClearFilters() {
   limit.value = pageSize
 
   const base = { ...route.query }
-
-  // deleteing previous filters & pagination
   delete base.filter
   delete base.start
-  delete base.rows
 
   const newQuery = {
     ...base,
@@ -365,7 +358,6 @@ function onRemoveFilter({ field, value }) {
   const base = { ...route.query }
   delete base.filter
   delete base.start
-  delete base.rows
 
   const newQuery = {
     ...base,
