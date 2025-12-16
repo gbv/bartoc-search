@@ -5,7 +5,7 @@
       type="button"
       :aria-expanded="open"
       @click="toggleOpen">
-      <span class="facet-item__title">{{ facetItemTitle }}</span>
+      {{ facetItemTitle }}
       <span
         class="arrow"
         :class="{ open }"
@@ -41,7 +41,6 @@
             class="facet-show-more">
             <button
               type="button"
-              class="facet-show-more__button"
               @click.stop="openModal">
               see all {{ valuesRef.length }}
             </button>
@@ -244,13 +243,14 @@ ul {
 }
 
 .arrow {
-  position: relative;
+  color: white;
+  position: relative;  
   content: "";
   display: inline-block;
   width: 8px;
   height: 8px;
-  border-right: 0.2em solid black;
-  border-top: 0.2em solid black;
+  border-right: 0.2em solid var(--color-button-text);;
+  border-top: 0.2em solid var(--color-button-text);;
   transform: rotate(135deg);
 }
 
@@ -318,10 +318,11 @@ ul {
   padding: 5px;
 }
 
-.facet-show-more__button {
+.facet-show-more button {
   background: none;
   border: none;
   padding: 0;
+  color: var(--link-color);
   cursor: pointer;
   text-decoration: none;
   padding-left: 4px; /* visual alignment with facet values */

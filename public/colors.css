@@ -33,6 +33,8 @@
   --color-text-light-2: rgba(60, 60, 60, 0.66);
   --color-text-dark-1: var(--white);
 
+  --link-color: #2b6cb0;
+
   /*  Semantic background variables using the bg-* family */
   --color-background: var(--bg-main);
   --color-background-soft: var(--bg-soft);

@@ -35,7 +35,7 @@
 /* Global element rules */
 a {
   font-weight: 500;
-  color: #2b6cb0;
+  color: var(--link-color)
   text-decoration: none;
 }
 
