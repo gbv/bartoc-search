@@ -1,4 +1,3 @@
-// src/utils/nkosService.ts
 import path from "path";
 import { fileURLToPath } from "url";
 import readAndValidateNdjson from "../utils/loadNdJson";

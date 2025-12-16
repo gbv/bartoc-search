@@ -1,4 +1,3 @@
-// src/server/utils/buildListedIn.ts
 import fs from "node:fs/promises";
 import path from "node:path";
 import { LangMap } from "../types/jskos";
@@ -82,4 +81,3 @@ export async function buildListedInLabels(
 
   return Object.keys(out).length;
 }
-

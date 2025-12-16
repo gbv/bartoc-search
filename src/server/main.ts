@@ -220,7 +220,6 @@ export async function createApp(opts?: {
     }
 
     // Execute query
-    //
     const solrRes = await op.execute<SolrSearchResponse>();
     const rawFacetFields = solrRes.facet_counts?.facet_fields;
     const facets = parseFacetFields(rawFacetFields);
@@ -394,5 +393,3 @@ export const startServer = async (opts?: {
   });
   return app;
 };
-
-

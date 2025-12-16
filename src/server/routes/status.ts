@@ -11,15 +11,10 @@ import {
 import { StatusResponse } from "../types/status";
 import config from "../conf/conf";
 import { isWebsocketConnected } from "../composables/useVocChanges.js";
+import packageInfo from "../../../package.json";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __dirname = dirname(fileURLToPath(import.meta.url));
 const LAST_INDEX_FILE = join(__dirname, "../../../data/lastIndexedAt.txt");
-
-// read version dal package.json
-const { version: serverVersion } = JSON.parse(
-  readFileSync(join(__dirname, "../../../package.json"), "utf-8"),
-);
 
 export const getStatus = async (
   _req: Request,
@@ -43,7 +38,7 @@ export const getStatus = async (
     ok: true,
     config: {
       env: config.env,
-      serverVersion,
+      serverVersion: packageInfo.version,
       title,
     },
     solr: solrStatusResult,

@@ -1,4 +1,3 @@
-// src/validation/vocChangeEvent.ts
 import { z } from "zod";
 import { OperationType } from "../types/ws";
 import { conceptSchemeZodSchema } from "./conceptScheme";

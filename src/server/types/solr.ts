@@ -1,4 +1,3 @@
-// types/solr.ts
 import { ConceptSchemeDocument } from "./jskos";
 import { OperationType } from "./ws";
 

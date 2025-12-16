@@ -1,4 +1,3 @@
-// src/server/start-prod.ts
 import { startServer } from "./main";
 import * as solr from "./solr/solr";
 import config from "./conf/conf";
@@ -24,4 +23,3 @@ async function startSolr() {
     });
 
 })();
-

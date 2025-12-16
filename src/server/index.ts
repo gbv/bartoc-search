@@ -20,7 +20,3 @@ const startSolr = async () => {
 })();
 
 export {};
-
-
-
-

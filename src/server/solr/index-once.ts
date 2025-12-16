@@ -1,10 +1,7 @@
-// src/server/bin/index-once.ts
-//
 // One-shot, CLI indexer.
 // - Waits until Solr is reachable (ping).
 // - Runs existing bootstrapIndexSolr() (streams NDJSON → Solr).
 // - Uses a simple filesystem lock so two indexers never run at once.
-//
 
 import fs from "node:fs/promises";
 import { constants as FS } from "node:fs";

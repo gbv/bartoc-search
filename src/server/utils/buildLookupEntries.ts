@@ -91,4 +91,3 @@ function pickLabels(
   }
   return out;
 }
-

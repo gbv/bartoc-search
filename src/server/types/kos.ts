@@ -1,5 +1,3 @@
-// types/kos.ts
-
 /**
  * The high-level KOS groups, per ISKO 4.1
  */
