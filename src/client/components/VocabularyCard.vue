@@ -56,7 +56,6 @@ import { SupportedLang } from "../types/lang.js"
 import { computed } from "vue"
 const isDev = import.meta.env.DEV
 const envLabel = computed(() => (isDev ? "dev" : "prod"))
-console.log(`VocabularyCard component loaded (${envLabel.value})`)
 
 /// <reference path="../types/solr.js" />
 
