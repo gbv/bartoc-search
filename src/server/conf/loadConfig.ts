@@ -6,12 +6,15 @@ import schema from "./schema.json";
 
 function parseConfig(file: string) {
   const data = JSON.parse(fs.readFileSync(file, "utf-8"));
-  if (validate(data, schema)) {
-    return data;
-  } else {
-    // TODO: we could add error details when using Validator class
-    throw Error(`Configuration in ${file} is not valid`);
+  // validate does return ValidatorResult, not a boolean
+  const result = validate(data, schema);
+  
+  if (!result.valid) {
+    const msg = result.errors.map(e => `- ${e.stack}`).join("\n");
+    throw new Error(`Configuration in ${file} is not valid:\n${msg}`);
   }
+
+  return data;
 }
 
 export function loadConfig(defaultPath: string, userPath: string) {
