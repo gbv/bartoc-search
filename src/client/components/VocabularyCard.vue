@@ -1,16 +1,13 @@
 <template>
   <div class="result-card">
     <h2 class="result-title">
-      <a
-        :href="doc.id"
-        target="_blank">
+      <a :href="titleHref">
         {{ title }}
       </a>
       <a
         v-if="doc.api_url_ss?.length"
         class="api-link"
-        :href="doc.id + '#access'"
-        target="_blank">API</a>
+        :href="titleHref + '#access'">API</a>
     </h2>
     <p
       v-if="shortDescription"
@@ -57,6 +54,9 @@
 <script setup lang="js">
 import { SupportedLang } from "../types/lang.js"
 import { computed } from "vue"
+const isDev = import.meta.env.DEV
+const envLabel = computed(() => (isDev ? "dev" : "prod"))
+console.log(`VocabularyCard component loaded (${envLabel.value})`)
 
 /// <reference path="../types/solr.js" />
 
@@ -120,6 +120,16 @@ const getSolrRecord = id =>
 
 const getJskosRecord = id =>
   `${import.meta.env.BASE_URL}api/data?uri=${encodeURIComponent(id)}`
+
+const titleHrefFor = (id) => {
+  const u = new URL(id)
+  u.hostname = "dev.bartoc.org"
+  return u.href
+}
+
+const titleHref = computed(() => {
+  return envLabel.value === "dev" ? titleHrefFor(props.doc.id) : props.doc.id
+})
 
 </script>
 
