@@ -7,6 +7,7 @@ export function createRouterInstance(url, isClient) {
     routes: [
       {
         path: "/",
+        name: "search",
         component: SearchView,
       },
       {
