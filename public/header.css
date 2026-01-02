@@ -43,6 +43,18 @@
 .header__nav a:hover {
   color: var(--gray-700);
 }
+
+.header__logo-text {
+  margin-left: 0.8rem;
+  color: var(--gray-300);
+  font-size: 16px;
+}
+
+.header__logo-text:hover {
+  color: var(--white);
+  text-decoration: underline;
+}
+
 @media (max-width: 768px) {
   .header__container {
     flex-direction: column;
