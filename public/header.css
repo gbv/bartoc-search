@@ -33,27 +33,35 @@
 .header__nav {
   display: flex;
   gap: 2rem;
+  width: 100%;
+  justify-content: space-between;
+  padding-left: 24px;
 }
-.header__nav a {
+
+.header__nav-left {
+  display: flex;
+  gap: 1.5rem;  
+}
+
+.header__nav-left a, 
+.header__nav-right a {
   color: var(--color-text-light-1);
   text-decoration: none;
   font-size: 1rem;
   transition: color 0.2s;
 }
-.header__nav a:hover {
-  color: var(--gray-700);
-}
 
 .header__logo-text {
-  margin-left: 0.8rem;
   color: var(--gray-300);
   font-size: 16px;
 }
 
-.header__logo-text:hover {
-  color: var(--white);
+.header__nav-left > a:hover,
+.header__nav-right > a:hover  {
   text-decoration: underline;
-}
+  background-color: transparent;
+  color: var(--white-mute);
+} 
 
 @media (max-width: 768px) {
   .header__container {
