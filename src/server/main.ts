@@ -116,6 +116,11 @@ export async function createApp(opts?: {
       const compression = (await import("compression")).default;
       const sirv = (await import("sirv")).default;
       app.use(compression());
+
+      // Serve static a root path
+      app.use(sirv("./dist", { extensions: [] }));
+
+      // Serve static under base path
       app.use(base, sirv("./dist", { extensions: [] }));
     }
   }
