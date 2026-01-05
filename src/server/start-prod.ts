@@ -7,7 +7,6 @@ async function startSolr() {
     await solr.connectToSolr();
   } catch (error) {
     config.error?.("Error connecting to Solr" + error);
-    // in prod è meglio non “andare avanti lo stesso”
     process.exit(1);
   }
 }

@@ -9,6 +9,7 @@
     "build:ssr": "vite build --ssr src/client/entry-server.js --outDir dist/server",
     "build": "npm run build:client && npm run build:ssr",
     "start:prod": "cross-env NODE_ENV=production DISABLE_WORKERS=1 tsx ./src/server/start-prod.ts",
+    "start:staging": "cross-env NODE_ENV=production BARTOC_SEARCH_ENABLE_WORKERS=true tsx ./src/server/start-prod.ts",
     "start:prod:local": "cross-env NODE_ENV=production DISABLE_WORKERS=1 SOLR_HOST=localhost SOLR_PORT=8983 tsx ./src/server/start-prod.ts",
     "test": "vitest run",
     "test:cov": "vitest run --coverage",
