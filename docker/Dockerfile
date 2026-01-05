@@ -36,6 +36,9 @@ RUN apk add --no-cache tzdata
 
 WORKDIR /usr/src/app
 
+ARG VIRTUAL_PATH=/
+ENV VIRTUAL_PATH=${VIRTUAL_PATH}
+
 # Reuse the already installed dependencies from the deps stage.
 COPY --from=deps /usr/src/app/node_modules ./node_modules
 
