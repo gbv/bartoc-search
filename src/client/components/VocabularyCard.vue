@@ -54,8 +54,24 @@
 <script setup lang="js">
 import { SupportedLang } from "../types/lang.js"
 import { computed } from "vue"
-const isDev = import.meta.env.DEV
-const envLabel = computed(() => (isDev ? "dev" : "prod"))
+const envLabel = computed(() => {
+  // local development (vite dev server)
+  if (import.meta.env.DEV) {
+    return "local"
+  }
+
+  // SSR guard: during server render there is no window
+  if (typeof window === "undefined") {
+    return "prod"
+  }
+
+  const host = window.location.hostname.toLowerCase()
+  if (host === "dev.bartoc.org" || host.endsWith(".dev.bartoc.org")) {
+    return "staging"
+  }
+
+  return "prod"
+})
 
 /// <reference path="../types/solr.js" />
 
@@ -120,14 +136,26 @@ const getSolrRecord = id =>
 const getJskosRecord = id =>
   `${import.meta.env.BASE_URL}api/data?uri=${encodeURIComponent(id)}`
 
-const titleHrefFor = (id) => {
-  const u = new URL(id)
-  u.hostname = "dev.bartoc.org"
-  return u.href
-}
-
 const titleHref = computed(() => {
-  return envLabel.value === "dev" ? titleHrefFor(props.doc.id) : props.doc.id
+  const id = props.doc?.id
+  if (!id) {
+    return "#"
+  }
+
+  // in staging/local, rewrite bartoc.org -> dev.bartoc.org
+  if (envLabel.value === "staging" || envLabel.value === "local") {
+    try {
+      const u = new URL(id)
+      if (u.hostname === "bartoc.org") {
+        u.hostname = "dev.bartoc.org"
+      }
+      return u.toString()
+    } catch {
+      return id
+    }
+  }
+
+  return id
 })
 
 </script>
