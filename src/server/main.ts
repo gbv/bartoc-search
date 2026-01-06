@@ -22,17 +22,12 @@ import { runUpdateOnce } from "./utils/updateFromBartoc";
 import fsPromises from "node:fs/promises";
 import { parseRepeatableFilters } from "./utils/filters.ts";
 
-// Default for workers in the queue processing system with Redis: 
-//  - dev → workers ON
+// Default for workers in the queue processing system with Redis:
 //  - test → OFF
-//  - production → OFF,
-const ENABLE_WORKERS_ENV = process.env.BARTOC_SEARCH_ENABLE_WORKERS;
-const DEFAULT_WITH_WORKERS =
-  config.env !== "test" &&
-  (typeof ENABLE_WORKERS_ENV !== "undefined"
-    ? ENABLE_WORKERS_ENV === "true"
-    : config.env !== "production");
-
+//  - local development → workers ON
+//  - staging/production → ON,
+const DEFAULT_WITH_WORKERS = config.env !== "test" && process.env.DISABLE_WORKERS !== "1";
+config.log?.(`Background workers are ${DEFAULT_WITH_WORKERS ? "Enabled" : "Disabled"}`);
 
 const base = process.env.VIRTUAL_PATH || "/";
 const DATA_DIR = config.DATA_DIR;
