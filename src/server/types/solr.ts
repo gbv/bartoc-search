@@ -199,7 +199,7 @@ export enum SortField {
   RELEVANCE = "relevance",
   CREATED   = "created",
   MODIFIED  = "modified",
-  TITLE = "title",
+  LABEL = "label",
 }
 
 
@@ -235,7 +235,7 @@ export const SortFieldMap: Record<SortField, string> = {
   [SortField.RELEVANCE]: "score",
   [SortField.CREATED]:   "created_dt",
   [SortField.MODIFIED]:  "modified_dt",
-  [SortField.TITLE]:     "title_sort", // This is a custom field for sorting titles
+  [SortField.LABEL]:     "title_sort", // This is a custom field for sorting titles
 };
 
 /**

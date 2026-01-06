@@ -7,8 +7,8 @@ export const SORT_OPTIONS = [
   { key: "created asc",  label: "Created first" },
   { key: "modified desc",label: "Modified latest" },
   { key: "modified asc", label: "Modified first" },
-  { key: "title asc",    label: "Title (A–Z)" },
-  { key: "title desc",   label: "Title (Z–A)" },
+  { key: "label asc",    label: "Title (A–Z)" },
+  { key: "label desc",   label: "Title (Z–A)" },
 ]
 
 // How each option maps to Solr fields
@@ -18,8 +18,8 @@ export const SORT_KEY_TO_SOLR = {
   "created asc":   { sort: "created",   order: "asc"  },
   "modified desc": { sort: "modified",  order: "desc" },
   "modified asc":  { sort: "modified",  order: "asc"  },
-  "title asc":     { sort: "title",     order: "asc"  },
-  "title desc":    { sort: "title",     order: "desc" },
+  "label asc":     { sort: "label",     order: "asc"  },
+  "label desc":    { sort: "label",     order: "desc" },
 }
 
 // Defaults
