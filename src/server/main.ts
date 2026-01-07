@@ -56,6 +56,39 @@ async function ensureArtifactsAtBoot() {
   }
 }
 
+function makeMorganSkip({ base = "/" } = {}) {
+  // normalize base
+  const b = base.endsWith("/") ? base : `${base}/`;
+
+  return (req: Request): boolean => {
+    const url = req.originalUrl || "";
+
+    // never log bull-board noise
+    if (url.startsWith("/admin/queues")) return true;
+
+    // keep API logs
+    if (url.startsWith("/api/")) return false;
+
+    // (optional) keep the HTML entry request (SSR page)
+    if (url === b || url === base || url.startsWith(`${b}?`) || url.startsWith(`${base}?`)) {
+      return false;
+    }
+
+    // hide Vite dev chatter & source modules
+    if (url.startsWith("/@vite")) return true;
+    if (url.startsWith("/src/")) return true;
+    if (url.startsWith("/node_modules/")) return true;
+
+    // hide typical static assets (Vite / public)
+    if (url.startsWith("/assets/")) return true;
+    if (url.startsWith("/data/")) return true;
+    if (/\.(css|js|map|svg|png|jpg|jpeg|gif|ico|woff2?)($|\?)/.test(url)) return true;
+
+    // default: hide
+    return true;
+  };
+}
+
 /**
  * Create and configure the app without starting it.
  * Flags:
@@ -78,10 +111,10 @@ export async function createApp(opts?: {
 
   const app = express();
   app.disable("x-powered-by");
-  // only log requests _not_ under /admin/queues
+  // Logging only dedicated requests
   app.use(
-    morgan("dev", {
-      skip: (req) => req.originalUrl.startsWith("/admin/queues"),
+    morgan("dev" as never, {
+      skip:  makeMorganSkip({ base }),
     }),
   );
 
