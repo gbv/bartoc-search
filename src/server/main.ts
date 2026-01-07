@@ -361,7 +361,7 @@ export async function createApp(opts?: {
     }
   });
 
-  // ====== bootstrap opzionali ======
+  // ====== Optional bootstrap ======
   if (withUpdater) {
     await ensureArtifactsAtBoot();
   }
