@@ -1,5 +1,5 @@
 import { ConceptSchemeDocument } from "./jskos";
-import { OperationType } from "./ws";
+import { OperationType } from "./wsNormalized";
 
 export type TitleFields = Partial<Record<`title_${string}`, string>>;
 
@@ -278,19 +278,20 @@ export interface SolrStatusResult {
 
 interface BasePayload {
   id: string;
-  receivedAt: number;
+  receivedAt: string;
 }
 
 export interface SolrDeletePayload extends BasePayload {
-  operation: OperationType.Delete;
+  operation: typeof OperationType.Delete;
   // no document field
 }
 
 export interface SolrUpsertPayload extends BasePayload {
   operation:
-    | OperationType.Create
-    | OperationType.Replace
-    | OperationType.Update;
+    | typeof OperationType.Create
+    | typeof OperationType.Replace
+    | typeof OperationType.Update;
+
   document: ConceptSchemeDocument;
 }
 

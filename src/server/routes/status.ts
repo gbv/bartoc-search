@@ -10,11 +10,12 @@ import {
 } from "../types/solr";
 import { StatusResponse } from "../types/status";
 import config from "../conf/conf";
-import { isWebsocketConnected } from "../composables/useVocChanges.js";
+import { getWsStatus } from "../composables/useVocChanges.js";
 import packageInfo from "../../../package.json";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const LAST_INDEX_FILE = join(__dirname, "../../../data/lastIndexedAt.txt");
+
 
 export const getStatus = async (
   _req: Request,
@@ -26,8 +27,7 @@ export const getStatus = async (
   const solrStatus = await solr.solrStatus();
   const solrStatusResult: SolrStatusResult = mapSolrToStatus(solrStatus);
 
-  // jskos status
-  const jskosStatus = await isWebsocketConnected();
+  const ws = await getWsStatus();              
 
   // app title
   const title = config.title
@@ -43,7 +43,8 @@ export const getStatus = async (
     },
     solr: solrStatusResult,
     jskosServer: {
-      connected: jskosStatus,
+      connected: ws.connected,
+      ws
     },
   };
 

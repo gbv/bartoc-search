@@ -1,119 +1,293 @@
 import WebSocket from "ws";
 import config from "../conf/conf";
-import { SolrDeletePayload, SolrUpsertPayload } from "../types/solr";
+import { SolrUpsertPayload } from "../types/solr";
 import { getTerminologiesQueue } from "../queue/worker";
-import { VocChangeEvent, OperationType } from "../types/ws";
-import { VocChangeEventSchema } from "../validation/vocChangeEvent";
+import { normalizeWsMessage, shouldProcess, toOperationType, OperationType } from "../types/wsNormalized";
+import { coerceConceptSchemeDocument } from "../utils/coerceConceptScheme";
 
-// **Example buffering logic**: collect up to BATCH_SIZE docs then flush as one job
-const BATCH_SIZE = config.solr.batchSize;
-const BATCH_TIMEOUT =
-  config.queues?.terminologiesQueue?.limiter?.duration ?? 1000;
+const BATCH_SIZE = config.queues?.terminologiesQueue?.batchSize ?? 50;
+const BATCH_TIMEOUT = config.queues?.terminologiesQueue?.limiter?.duration ?? 1000;
+const empty: string = "<empty>";
+
 const documentsBuffer: SolrUpsertPayload[] = [];
 
-async function flushBuffer() {
-  if (documentsBuffer.length === 0) {
-    return;
-  }
+let flushInterval: NodeJS.Timeout | null = null;
+let pingInterval: NodeJS.Timeout | null = null;
+let reconnectTimeout: NodeJS.Timeout | null = null;
 
-  // Remove everything from the buffer
-  const batch = documentsBuffer.splice(0, documentsBuffer.length);
+let socket: WebSocket | null = null;
+let starting = false;
+let flushing = false;
 
-  // Map each payload to a BulkJobOptions<SolrJobPayload>
-  const jobs = batch.map((payload) => ({
-    name: payload.operation, // "create" | "update" | "replace"
-    data: payload,
-  }));
+/**
+ * Connection + processing telemetry.
+ * This is what you can expose on /api/status.
+ */
+const wsStatus = {
+  url: config.WS_URL,
 
-  // Get the queue instance
-  const queue = await getTerminologiesQueue();
-  if (!queue) {
-    config.error?.("terminologiesQueue unavailable: Redis not connected");
-    return;
-  }
-  // Pipeline them in one Redis call
-  await queue.addBulk(jobs);
+  connected: false,
+
+  connectCount: 0,
+  reconnectCount: 0,
+
+  lastOpenAt: empty,
+  lastCloseAt: empty,
+  lastCloseCode: 0,
+  lastCloseReason: "",
+
+  lastErrorAt: empty,
+  lastError: "",
+
+  lastPingAt: empty,
+  lastPongAt: empty,
+
+  lastMessageAt: empty,
+
+  receivedEvents: 0,
+  enqueuedJobs: 0,
+  enqueuedBatches: 0,
+  legacySkipped: 0,
+
+  lastEvent: null as null | { type: string; id?: string; receivedAt: string },
+};
+
+function toIso(ms: number) {
+  return ms ? new Date(ms).toISOString() : empty;
 }
 
-const flushInterval = setInterval(flushBuffer, BATCH_TIMEOUT);
-let isVocChangesConnected: boolean = false;
+export async function getWsStatus() {
+  // bufferSize is dynamic, so compute it at read time
+  return {
+    ...wsStatus,
+    bufferSize: documentsBuffer.length,
+  };
+}
 
+// Backward compatible helper you already use in status.ts
 export async function isWebsocketConnected(): Promise<boolean> {
-  return isVocChangesConnected;
+  return wsStatus.connected;
+}
+
+async function flushBuffer() {
+  if (flushing) return;
+  if (documentsBuffer.length === 0) return;
+
+  flushing = true;
+  try {
+    const batch = documentsBuffer.splice(0, documentsBuffer.length);
+    const jobs = batch.map((payload) => ({
+      name: payload.operation,
+      data: payload,
+      opts: { removeOnComplete: false, removeOnFail: false },
+    }));
+    
+    const queue = await getTerminologiesQueue();
+    if (!queue) {
+      config.error?.("terminologiesQueue unavailable: Redis not connected");
+      documentsBuffer.unshift(...batch);
+      return;
+    }
+
+    await queue.addBulk(jobs);
+    config.log?.(`[WS] addBulk() queued ${jobs.length} jobs`);
+
+    const counts = await queue.getJobCounts("wait", "active", "completed", "failed", "delayed");
+    config.log?.(`[WS] queue counts: ${JSON.stringify(counts)}`);
+
+    wsStatus.enqueuedBatches += 1;
+    wsStatus.enqueuedJobs += jobs.length;
+  } finally {
+    flushing = false;
+  }
+}
+
+function startFlushTimer() {
+  if (flushInterval) clearInterval(flushInterval);
+  flushInterval = setInterval(() => {
+    void flushBuffer();
+  }, BATCH_TIMEOUT);
+}
+
+function startHeartbeat(ws: WebSocket) {
+  if (pingInterval) clearInterval(pingInterval);
+
+  // Baseline: consider "alive" from now; pongs will update later
+  wsStatus.lastPingAt = toIso(Date.now());
+
+  pingInterval = setInterval(() => {
+    if (ws.readyState !== WebSocket.OPEN) return;
+
+    wsStatus.lastPingAt = toIso(Date.now());
+    ws.ping();
+  }, 30_000);
+}
+
+function stopTimers() {
+  if (pingInterval) clearInterval(pingInterval);
+  pingInterval = null;
+
+  if (reconnectTimeout) clearTimeout(reconnectTimeout);
+  reconnectTimeout = null;
+}
+
+function scheduleReconnect() {
+  if (reconnectTimeout) return; // already scheduled
+  reconnectTimeout = setTimeout(() => {
+    reconnectTimeout = null;
+    void startVocChangesListener();
+  }, 5000);
 }
 
 export async function startVocChangesListener(): Promise<void> {
-  const socket = new WebSocket(config.WS_URL);
+  console.log("Starting VOC changes listener...");
+  if (starting) return;
+  starting = true;
 
-  socket.on("open", () => {
-    isVocChangesConnected = true;
-    config.log?.(`[WS] Websocket connected to ${config.WS_URL}`);
-  });
+  try {
+    startFlushTimer();
 
-  socket.on("message", async (data) => {
-    try {
-      const dataRaw = JSON.parse(data.toString());
-      const event: VocChangeEvent = VocChangeEventSchema.parse(dataRaw); // throws error if invalid
-      config.log?.("[WS] Change received:", event.type);
+    // Close previous socket if still around
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      try {
+        socket.close(1000, "restarting listener");
+      } catch {
+        /* ignore */
+      }
+    }
 
-      if (event.type === OperationType.Delete) {
-        // DeleteChangeEvent has no `document`
-        const payloadDelete: SolrDeletePayload = {
-          operation: OperationType.Delete,
-          id: event.id,
-          receivedAt: Date.now(),
-        };
-        const queue = await getTerminologiesQueue();
-        if (!queue) {
-          config.error?.("terminologiesQueue unavailable: Redis not connected");
-          return;
-        }
-        await queue.add(payloadDelete.operation, payloadDelete); // Add job to solr queue for deleting
+    socket = new WebSocket(config.WS_URL);
+
+    socket.on("open", () => {
+      // reconnectCount counts successful opens after the first one
+      if (wsStatus.connectCount > 0) wsStatus.reconnectCount += 1;
+
+      wsStatus.connected = true;
+      wsStatus.connectCount += 1;
+      wsStatus.lastOpenAt = toIso(Date.now());
+
+      // Treat open as “alive”; pong will refine it
+      wsStatus.lastPongAt = toIso(Date.now());
+
+      config.log?.(`[WS] connected to ${config.WS_URL}`);
+      startHeartbeat(socket!);
+    });
+
+    // ws emits 'pong' when it receives a pong reply to ping()
+    socket.on("pong", () => {
+      wsStatus.lastPongAt = toIso(Date.now());
+    });
+
+    socket.on("message", (data) => {
+      wsStatus.lastMessageAt = toIso(Date.now());
+
+      const text = data.toString();
+      let raw: unknown;
+
+      try {
+        raw = JSON.parse(text);
+      } catch (err: unknown) {
+        const message =
+          err instanceof Error
+            ? (err.stack ?? err.message)
+            : typeof err === "string"
+              ? err
+              : JSON.stringify(err);
+
+        wsStatus.lastErrorAt = toIso(Date.now());
+        wsStatus.lastError = message;
+
+        config.error?.(`[WS] message parse error: ${message}`);
+        config.error?.(`[WS] raw payload: ${text}`);
+        return; // critical: don't continue
+      }
+
+      const ev = normalizeWsMessage(raw);
+      if (!ev) return;
+
+      // ignore legacy broadcasts (no type)
+      if (!ev.op) {
+        wsStatus.legacySkipped = (wsStatus.legacySkipped ?? 0) + 1;
         return;
       }
 
-      // 6) Buffer upsert payloads for bulk enqueue
-      const upsert: SolrUpsertPayload = {
-        operation: event.type,
-        document: event.document!,
-        id: event.id,
-        receivedAt: Date.now(),
-      };
-      documentsBuffer.push(upsert);
+      if (!shouldProcess(ev)) return;
 
+      const op = toOperationType(ev.op);
       config.log?.(
-        `[Buffer] Added upsert for id=${upsert.id} (buffer=${documentsBuffer.length})`,
+        `[WS] ${op} id=${ev.id} modified=${ev.modified ?? "<none>"} legacy=${ev.legacy}`,
       );
 
-      // If we’ve hit our size threshold, flush immediately
-      if (documentsBuffer.length >= BATCH_SIZE) {
-        await flushBuffer();
+      wsStatus.receivedEvents += 1;
+      wsStatus.lastEvent = {
+        type: op,
+        id: ev.id,
+        receivedAt: toIso(Date.now()),
+      };
+
+      // TODO Delete: ignore for now (rare) or handle separately later
+      if (op === OperationType.Delete) return;
+
+      const doc = coerceConceptSchemeDocument(ev.doc);
+      if (!doc) {
+        config.warn?.(`[WS] skipping event id=${ev.id}: cannot coerce ConceptSchemeDocument`);
+        return;
       }
-    } catch (err: unknown) {
-      // Normalize to an Error, then grab the message or fallback to a string
-      const message =
-        err instanceof Error
-          ? (err.stack ?? err.message)
-          : typeof err === "string"
-            ? err
-            : JSON.stringify(err);
 
-      config.error?.(`[WS] Websocket Error parsing message: ${message}`);
-      config.error?.(`[WS] Websocket Raw payload was: ${data.toString()}`);
-    }
-  });
+      // Need a document for upsert
+      if (!doc) {
+        wsStatus.lastErrorAt = toIso(Date.now());
+        wsStatus.lastError = "Missing document on non-delete event";
+        config.warn?.(`[WS] skip: missing document for op=${op} id=${ev.id}`);
+        return;
+      }
 
-  socket.on("close", () => {
-    isVocChangesConnected = false;
-    config.warn?.("[WS] Websocket Connection closed. Reconnecting in 5s...");
-    // Clean up our timer, then restart the listener
-    clearInterval(flushInterval);
-    setTimeout(() => startVocChangesListener(), 5000);
-  });
+      const upsert: SolrUpsertPayload = {
+        operation: op,
+        document: doc,
+        id: ev.id,
+        receivedAt: toIso(Date.now()),
+      };
 
-  socket.on("error", (err) => {
-    isVocChangesConnected = false;
-    config.error?.("[WS] Websocket Error:", err.message);
-    socket.close();
-  });
+      documentsBuffer.push(upsert);
+
+      if (documentsBuffer.length >= BATCH_SIZE) {
+        void flushBuffer();
+      }
+    });
+
+
+    socket.on("close", (code, reason) => {
+      wsStatus.connected = false;
+      wsStatus.lastCloseAt = toIso(Date.now());
+      wsStatus.lastCloseCode = code;
+      wsStatus.lastCloseReason = reason?.toString() || "";
+
+      stopTimers();
+
+      config.warn?.(
+        `[WS] closed code=${code} reason=${wsStatus.lastCloseReason || "(none)"}; reconnecting in 5s...`,
+      );
+
+      scheduleReconnect();
+    });
+
+    socket.on("error", (err) => {
+      wsStatus.connected = false;
+      wsStatus.lastErrorAt = toIso(Date.now());
+      wsStatus.lastError = err.message;
+
+      stopTimers();
+      config.error?.(`[WS] error: ${err.message}`);
+
+      // Ensure close happens once; close will schedule reconnect
+      try {
+        socket?.close();
+      } catch {
+        /* ignore */
+      }
+    });
+  } finally {
+    starting = false;
+  }
 }
