@@ -9,6 +9,7 @@ const BATCH_SIZE = config.queues?.terminologiesQueue?.batchSize ?? 50;
 const BATCH_TIMEOUT = config.queues?.terminologiesQueue?.limiter?.duration ?? 1000;
 const empty: string = "<empty>";
 
+const bufferById = new Map<string, SolrUpsertPayload>(); // for coalescing by id
 const documentsBuffer: SolrUpsertPayload[] = [];
 
 let flushInterval: NodeJS.Timeout | null = null;
@@ -69,23 +70,27 @@ export async function isWebsocketConnected(): Promise<boolean> {
   return wsStatus.connected;
 }
 
+// flushBuffer that coalesces by id
 async function flushBuffer() {
   if (flushing) return;
-  if (documentsBuffer.length === 0) return;
+  if (bufferById.size === 0) return;
 
   flushing = true;
   try {
-    const batch = documentsBuffer.splice(0, documentsBuffer.length);
+    const batch = Array.from(bufferById.values());
+    bufferById.clear();
+
     const jobs = batch.map((payload) => ({
       name: payload.operation,
       data: payload,
       opts: { removeOnComplete: false, removeOnFail: false },
     }));
-    
+
     const queue = await getTerminologiesQueue();
     if (!queue) {
       config.error?.("terminologiesQueue unavailable: Redis not connected");
-      documentsBuffer.unshift(...batch);
+      // put back best-effort
+      for (const p of batch) bufferById.set(p.id, p);
       return;
     }
 
@@ -178,7 +183,7 @@ export async function startVocChangesListener(): Promise<void> {
       wsStatus.lastPongAt = toIso(Date.now());
     });
 
-    socket.on("message", (data) => {
+    socket.on("message", async (data) => {
       wsStatus.lastMessageAt = toIso(Date.now());
 
       const text = data.toString();
@@ -249,10 +254,11 @@ export async function startVocChangesListener(): Promise<void> {
         receivedAt: toIso(Date.now()),
       };
 
-      documentsBuffer.push(upsert);
+      // approach with coalescing
+      bufferById.set(upsert.id, upsert);
 
-      if (documentsBuffer.length >= BATCH_SIZE) {
-        void flushBuffer();
+      if (bufferById.size >= BATCH_SIZE) {
+        await flushBuffer();
       }
     });
 
