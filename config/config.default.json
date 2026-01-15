@@ -6,6 +6,7 @@
   "queues": {
     "terminologiesQueue": {
       "concurrency": 20,
+      "batchSize": 50,
       "limiter" : {
         "max": 100,
         "duration": 1000
@@ -33,7 +34,7 @@
   "verbosity": "log",
   "version": null,
   "webSocket": {
-    "host": "wss://coli-conc.gbv.de/dev-api",
+    "host": "wss://dev.bartoc.org/api",
     "port": 443,
     "path": "/voc/changes",
     "pingTimeout": 10000,

@@ -79,6 +79,7 @@
       "type": "object",
       "properties": {
         "concurrency": { "type": "integer", "minimum": 1 },
+        "batchSize": { "type": "integer", "minimum": 1 }, 
         "limiter": { "$ref": "#/$defs/Limiter" }
       },
       "additionalProperties": false

@@ -7,7 +7,7 @@ import type {
   SolrDeletePayload,
   SolrUpsertPayload,
 } from "../types/solr";
-import { OperationType } from "../types/ws";
+import { OperationType } from "../types/wsNormalized";
 import {
   addDocuments,
   deleteDocuments,
