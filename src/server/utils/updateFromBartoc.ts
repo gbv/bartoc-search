@@ -14,11 +14,11 @@ import { buildBartocApiLabels } from "./buildBartocApiLabels";
 import { KEEP_LANGS } from "./helpers";
 import { runJskosEnrich } from "./runJskosEnrich";
 import { spawn } from "node:child_process";
-
-
 import config from "../conf/conf.ts";
-const { DATA_DIR, ARTIFACTS, BARTOC_BASE, BARTOC_API, BARTOC_DUMP } = config;
 
+const { DATA_DIR, ARTIFACTS, BARTOC_BASE, BARTOC_API, BARTOC_DUMP } = config;
+const DO_REINDEX = process.env.REINDEX === "1";
+const forceEnrich = process.env.FORCE_ENRICH === "1";
 
 const META_PATH = path.join(ARTIFACTS, "vocs.last.json"); // metadata persisted between runs
 const ENRICH_OUT_NAME = "vocs.enriched.ndjson";
@@ -163,21 +163,46 @@ async function readLastMeta(metaPath: string): Promise<LastMeta> {
 }
 
 /**
- * Publish versioned artifacts to CURRENT atomically:
- * - Write into a temporary directory.
- * - Rename to `current` (atomic on the same filesystem).
+ * Publish artifacts to artifacts/current safely:
+ * - current -> current.prev (best-effort)
+ * - temp    -> current      (atomic rename on same filesystem)
+ * - remove current.prev     (best-effort cleanup)
+ *
+ * If publish fails after moving current -> prev, we try to restore.
  */
 async function publishCurrent(tempDir: string): Promise<void> {
-  const CURRENT_DIR = path.join(DATA_DIR, "artifacts", "current");
+  const currentDir = path.join(DATA_DIR, "artifacts", "current");
+  const prevDir = path.join(DATA_DIR, "artifacts", "current.prev");
 
-  // Remove previous CURRENT (idempotent and keeps the state clean)
-  await fs.rm(CURRENT_DIR, { recursive: true, force: true });
+  // Clean previous backup (best-effort)
+  await fs.rm(prevDir, { recursive: true, force: true });
 
-  // Atomic rename of temp dir into current
-  await fs.rename(tempDir, CURRENT_DIR);
+  const haveCurrent = await pathExists(currentDir);
 
-  console.log("✅ Artifacts published to", CURRENT_DIR);
+  // Move current -> prev (best-effort, only if it exists)
+  if (haveCurrent) {
+    await fs.rename(currentDir, prevDir);
+  }
+
+  try {
+    // temp -> current (atomic on same filesystem)
+    await fs.rename(tempDir, currentDir);
+
+    // Cleanup backup (best-effort)
+    await fs.rm(prevDir, { recursive: true, force: true });
+
+    console.log("Artifacts published to", currentDir);
+  } catch (e) {
+    // Try rollback: restore prev -> current if publish failed
+    if (await pathExists(prevDir)) {
+      await fs.rm(currentDir, { recursive: true, force: true });
+      await fs.rename(prevDir, currentDir);
+      console.warn("publish failed; restored previous artifacts/current");
+    }
+    throw e;
+  }
 }
+
 
 /** Resolve the best available VOCS input for indexing */
 async function resolveVocsInput(): Promise<SnapshotChoice | null> {
@@ -249,7 +274,7 @@ export async function selectVocsInput({
 }): Promise<{ path: string; meta: EnrichMeta }> { 
 
   const currentEnriched = path.join(ARTIFACTS, "current", ENRICH_OUT_NAME);
-  const mustEnrich = !notModifiedVocs || !(await pathExists(currentEnriched));
+  const mustEnrich = forceEnrich || !notModifiedVocs || !(await pathExists(currentEnriched));
 
   if (mustEnrich) {
     try {
@@ -415,14 +440,18 @@ async function main(): Promise<void> {
   // 5) Atomic publish
   await publishCurrent(tempDir);
 
-  // Reindex after update
-	try {
-		console.log("▶️  Reindex after update…");
-		await runReindexOnce();
-		console.log("✅ Reindex completed.");
-	} catch (e) {
-		console.error("❌ Reindex failed:", (e as Error).message);
-	}
+  // Reindex after update, if var is set
+  if (DO_REINDEX) {
+    try {
+      console.log("Reindex after update…");
+      await runReindexOnce();
+      console.log("Reindex completed.");
+    } catch (e) {
+      console.error("Reindex failed:", (e as Error).message);
+    }
+  } else {
+    console.log("ℹREINDEX=0 -> skip reindex");
+  }
 
 }
 

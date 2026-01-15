@@ -17,7 +17,7 @@ async function startSolr() {
   await startServer({
     withVite: false,      // no Vite dev server in production
     withWorkers: process.env.DISABLE_WORKERS !== "1", // enable workers unless explicitly disabled
-    withUpdater: true,    // automatic data updater in production
+    withUpdater: false,    // automatic data updater in production
     withFrontend: true,   // it serves the frontend in production
     });
 

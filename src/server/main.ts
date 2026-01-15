@@ -38,6 +38,9 @@ const templateHtml = config.env === "production"
   : "";
 
 async function fileExists(p: string) { try { await fsPromises.access(p); return true; } catch { return false; } }
+
+let updaterStarted = false;
+
 async function ensureArtifactsAtBoot() {
   const currentDir = path.join(DATA_DIR, "artifacts", "current");
   const metaFile   = path.join(currentDir, "artifacts.meta.json");
@@ -45,15 +48,11 @@ async function ensureArtifactsAtBoot() {
 
   if (haveArtifacts) return;
 
-  const promise = runUpdateOnce();
-  if (!haveArtifacts) {
-    console.log("No artifacts found — running updater before starting server…");
-    await promise;
-    console.log("Artifacts ready.");
-  } else {
-    console.log("Kicking updater in background (artifacts already present).");
-    promise.catch((e) => console.warn("Updater failed in background:", e));
-  }
+  if (updaterStarted) return;
+  updaterStarted = true;
+
+  config.warn?.("No artifacts found — starting updater in background…");
+  runUpdateOnce().catch((e) => config.warn?.("Updater failed:", e));
 }
 
 function makeMorganSkip({ base = "/" } = {}) {
