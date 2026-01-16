@@ -1,0 +1,22 @@
+# Local backend services required to run bartoc-search without persisting volumes
+# Additional backend service jskos-server is optional!
+
+services:
+  redis:
+    image: redis:7
+    container_name: bartoc-redis
+    ports:
+      - "6379:6379"
+    restart: always
+
+  solr:
+    image: solr:8
+    container_name: bartoc-solr
+    ports:
+      - "8983:8983"
+    volumes:
+      - ./solr-config/terminologies-configset:/configsets/terminologies-configset
+    command:
+      - solr-precreate
+      - terminologies
+      - /configsets/terminologies-configset

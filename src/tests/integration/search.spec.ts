@@ -1,0 +1,481 @@
+// tests/integration/search.spec.ts
+import { beforeAll, afterAll, it, expect, describe } from "vitest";
+import { startSolrWithConfigset, seedSolrFromJson, stopSolr } from "../helpers/solr-bootstrap";
+import request from "supertest";
+
+let app: any;
+let seededDocs: any[];
+const FIXTURE = "src/tests/fixtures/solr/seed.json";
+const DDC_FIXTURE = "src/tests/fixtures/solr/ddc-seed.json";
+
+const getIds = (res: any) =>
+  (res.body.response?.docs ?? []).map((d: any) => d.id).sort();
+
+const expectJSON = (got: string, expected: string) => {
+  expect(JSON.parse(got)).toEqual(JSON.parse(expected));
+}
+
+beforeAll(async () => {
+  process.env.NODE_ENV = "test";
+  process.env.DISABLE_WORKERS = "1";
+
+  await startSolrWithConfigset();
+  seededDocs = await seedSolrFromJson(FIXTURE);
+
+  const ddcDocs = await seedSolrFromJson(DDC_FIXTURE);
+  seededDocs = [...seededDocs, ...ddcDocs];
+
+  const { createApp } = await import("../../server/main");
+  app = await createApp({ withVite:false, withFrontend:false, withWorkers:false, withUpdater:false });
+}, 120_000);
+
+afterAll(async () => { await stopSolr(); });
+
+
+describe("GET /api/search", () => {
+    // Perform a search query
+  it("search returns seeded doc", async () => {
+    const res = await request(app).get("/api/search").query({ search: "Australian", limit: 5 });
+    expect(res.status).toBe(200);
+  });
+
+  // Perform a search query with format=jskos
+  it("GET /api/search?format=jskos&uri=... filters by uri", async () => {
+    const res = await request(app)
+      .get("/api/search")
+      .query({ format: "jskos", search: "Australian", uri: "http://bartoc.org/en/node/10", limit: 1 });
+
+    expect(res.status).toBe(200);
+
+    // current impl spreads the array into an object with numeric keys
+    const values = Object.values(res.body);
+    expect(values.length).toBeGreaterThan(0);
+
+    const first: any = values[0];
+    expect(first).toHaveProperty("created", "2013-08-14T10:23:00Z");
+  });
+
+  it("GET /api/data", async () => {
+    const uri = "http://bartoc.org/en/node/10";
+    const expected = seededDocs.find(d => d.id === uri)!;
+
+    res = await request(app).get("/api/data").query({ uri: "non:existing" });
+    expect(res.status).toBe(200);
+    expectJSON(res.body, "[]")
+
+    var res = await request(app).get("/api/data").query({ uri, format: "solr" });
+    expect(res.status).toBe(200);
+    expectJSON(res.body[0].fullrecord, expected.fullrecord)
+
+    var res = await request(app).get("/api/data").query({ uri });
+    expect(res.status).toBe(200);
+    expectJSON(res.body, expected.fullrecord)
+  });
+
+  // Apply a single-value facet filter
+  it("applies single-value facet filter", async () => {
+      const res = await request(app).get("/api/search")
+        .query({ search: "Australian", limit: 5, filter: "language:en" });
+      expect(res.status).toBe(200);
+      const docs = res.body.response?.docs ?? [];
+      expect(docs.length).toBeGreaterThan(0);
+      // every doc has 'en' in languages_ss
+      for (const d of docs) expect(d.languages_ss || []).toContain("en");
+    });
+
+  // Apply a multi-value facet filter via repeated param
+  it("applies multi-value facet filter via repeated param", async () => {
+    const res = await request(app).get("/api/search")
+      .query({ search: "Australian", limit: 10 })
+      .query({ filter: "language:en,de" });
+    expect(res.status).toBe(200);
+    const docs = res.body.response?.docs ?? [];
+    expect(docs.length).toBeGreaterThan(0);
+    // doc language is in {en,de}
+    for (const d of docs) {
+      const langs = d.languages_ss || [];
+      expect(langs.some((x: string) => x === "en" || x === "de")).toBe(true);
+    }
+  });
+
+  // Apply a NO_VALUE bucket filter for missing field
+  it("NO_VALUE bucket filters for missing field", async () => {
+    const res = await request(app).get("/api/search")
+      .query({ search: "British Columbia First Nations Subject Headings", limit: 10, filter: "publisher:-" }); // NO_VALUE
+    expect(res.status).toBe(200);
+
+    const docs = res.body.response?.docs ?? [];
+    expect(docs.length).toBeGreaterThan(0);
+
+    for (const d of docs) {
+      expect(d.publisher_labels_ss).toBeUndefined();
+    }
+  });
+
+  // Legacy query params (languages, subject, etc.) are now normalized
+  // on the client (normalizeLegacyQueryFromRoute) and are no longer
+  // interpreted by /api/search. These integration tests are kept only
+  // as historical reference and are skipped.
+  describe.skip("Testing legacy params", () => {
+    it.only("maps legacy partOf to filter:in (listed_in_ss)", async () => {
+      const legacy = await request(app).get("/api/search")
+        .query({ search: "", limit: 10, sort: "relevance", order: "desc", partOf: "http://bartoc.org/en/node/1734" });
+
+      const current = await request(app).get("/api/search")
+        .query({ search: "", limit: 10, sort: "relevance", order: "desc", filter: "in:http://bartoc.org/en/node/1734" });
+
+      expect(legacy.status).toBe(200);
+      expect(current.status).toBe(200);
+      expect(legacy.body.response?.numFound).toBe(current.body.response?.numFound);
+      // compare IDs:
+      expect(getIds(legacy)).toEqual(getIds(current));
+    });
+
+    it("filters by single legacy languages value de", async () => {
+      const legacy = await request(app).get("/api/search")
+        .query({ search: "", languages: "de" });
+
+      const current = await request(app).get("/api/search")
+        .query({ search: "", filter: "language:de" });
+
+      expect(legacy.status).toBe(200);
+      expect(current.status).toBe(200);
+      expect(legacy.body?.response?.numFound ?? 0).toBeGreaterThan(0);
+      expect(current.body?.response?.numFound ?? 0).toBeGreaterThan(0);
+      expect(legacy.body.response?.numFound).toBe(current.body.response?.numFound);
+      // compare IDs:
+      expect(getIds(legacy)).toEqual(getIds(current));
+    });
+
+    it("filters by multiple legacy languages values de,en", async () => {
+      const legacy  = await request(app).get("/api/search").query({ search: "*", languages: "de,en" });
+      const current = await request(app).get("/api/search").query({ search: "*", filter: "language:de,en" });
+
+      expect(legacy.status).toBe(200);
+      expect(current.status).toBe(200);
+      expect(getIds(legacy)).toEqual(getIds(current));
+    });
+
+    it("maps type legacy param, searching for Thesaurus", async () => {
+      const legacy  = await request(app).get("/api/search").query({ search: "*", type: "http://w3id.org/nkos/nkostype#thesaurus" });
+      const current = await request(app).get("/api/search").query({ search: "*", filter: "type:http://w3id.org/nkos/nkostype#thesaurus" });
+
+      expect(legacy.status).toBe(200);
+      expect(current.status).toBe(200);
+      expect(getIds(legacy)).toEqual(getIds(current));
+    });
+
+    it("maps country legacy param", async () => {
+      const legacy  = await request(app).get("/api/search").query({ search: "*", country: "Austria" });
+      const current = await request(app).get("/api/search").query({ search: "*", filter: "country:austria" });
+
+      expect(legacy.status).toBe(200);
+      expect(current.status).toBe(200);
+      expect(getIds(legacy)).toEqual(getIds(current));
+    });
+
+    it("maps access legacy param", async () => {
+      const legacy  = await request(app).get("/api/search").query({ search: "*", access: "http://bartoc.org/en/Access/Free" });
+      const current = await request(app).get("/api/search").query({ search: "*", filter: "access:http://bartoc.org/en/Access/Free" });
+
+      expect(legacy.status).toBe(200);
+      expect(current.status).toBe(200);
+      expect(getIds(legacy)).toEqual(getIds(current));
+    });
+
+    it("legacy subject (dewey URI) maps to ddc root", async () => {
+      // legacy: subject=http://dewey.info/class/0/e23/|
+      const legacy = await request(app).get("/api/search").query({
+        search: "",
+        subject: "http://dewey.info/class/0/e23/|",
+        limit: 10,
+      });
+
+      // current: filter=ddc:0
+      const current = await request(app).get("/api/search").query({
+        search: "",
+        filter: "ddc:0",
+        limit: 10,
+      });
+
+      expect(legacy.status).toBe(200);
+      expect(current.status).toBe(200);
+
+      const idsLegacy = (legacy.body.response?.docs ?? []).map((d: any) => d.id).sort();
+      const idsCurrent = (current.body.response?.docs ?? []).map((d: any) => d.id).sort();
+
+      // Both non-empty and equivalent
+      expect(idsLegacy.length).toBeGreaterThan(0);
+      expect(idsCurrent.length).toBeGreaterThan(0);
+      expect(idsLegacy).toEqual(idsCurrent);
+    });
+
+    it("legacy subject list (dewey URI) maps to ddc roots", async () => {
+      // legacy: subject=http://dewey.info/class/0/e23/|
+      const legacy = await request(app).get("/api/search").query({
+        search: "",
+        subject: "http://dewey.info/class/0/e23/|http://dewey.info/class/6/e23/|",
+        limit: 10,
+      });
+
+      // current: filter=ddc:0
+      const current = await request(app).get("/api/search").query({
+        search: "",
+        filter: "ddc:0,6",
+        limit: 10,
+      });
+
+      expect(legacy.status).toBe(200);
+      expect(current.status).toBe(200);
+
+      const idsLegacy = (legacy.body.response?.docs ?? []).map((d: any) => d.id).sort();
+      const idsCurrent = (current.body.response?.docs ?? []).map((d: any) => d.id).sort();
+
+      // Both non-empty and equivalent
+      expect(idsLegacy.length).toBeGreaterThan(0);
+      expect(idsCurrent.length).toBeGreaterThan(0);
+      expect(idsLegacy).toEqual(idsCurrent);
+    });
+
+    it("legacy license maps to license group", async () => {
+      // legacy: subject=http://dewey.info/class/0/e23/|
+      const legacy = await request(app).get("/api/search").query({
+        search: "",
+        license: "http://creativecommons.org/licenses/by/4.0/",
+        limit: 10,
+      });
+
+      // current: filter=ddc:0
+      const current = await request(app).get("/api/search").query({
+        search: "",
+        filter: "license:CC BY",
+        limit: 10,
+      });
+
+      expect(legacy.status).toBe(200);
+      expect(current.status).toBe(200);
+
+      const idsLegacy = (legacy.body.response?.docs ?? []).map((d: any) => d.id).sort();
+      const idsCurrent = (current.body.response?.docs ?? []).map((d: any) => d.id).sort();
+
+      // Both non-empty and equivalent
+      expect(idsLegacy.length).toBeGreaterThan(0);
+      expect(idsCurrent.length).toBeGreaterThan(0);
+      expect(idsLegacy).toEqual(idsCurrent);
+    });
+
+    it("legacy list of licenses maps to license groups", async () => {
+      // legacy: subject=http://dewey.info/class/0/e23/|
+      const legacy = await request(app).get("/api/search").query({
+        search: "",
+        license: "http://creativecommons.org/licenses/by/4.0/,http://www.apache.org/licenses/LICENSE-2.0",
+        limit: 10,
+      });
+
+      // current: filter=ddc:0
+      const current = await request(app).get("/api/search").query({
+        search: "",
+        filter: "license:CC BY,Apache 2.0",
+        limit: 10,
+      });
+
+      expect(legacy.status).toBe(200);
+      expect(current.status).toBe(200);
+
+      const idsLegacy = (legacy.body.response?.docs ?? []).map((d: any) => d.id).sort();
+      const idsCurrent = (current.body.response?.docs ?? []).map((d: any) => d.id).sort();
+
+      // Both non-empty and equivalent
+      expect(idsLegacy.length).toBeGreaterThan(0);
+      expect(idsCurrent.length).toBeGreaterThan(0);
+      expect(idsLegacy).toEqual(idsCurrent);
+    });
+
+  });
+
+});
+
+describe("GET /api/search — DDC routing via filter=ddc:", () => {
+  it("routes 1-digit to ddc_root_ss (ddc:4)", async () => {
+    const res = await request(app)
+      .get("/api/search")
+      .query({ search: "", limit: 10, filter: "ddc:4" });
+
+    expect(res.status).toBe(200);
+    const ids = getIds(res);
+    // Should include both root 4-only and the 420 doc (because it also has root 4)
+    expect(ids).toEqual(["doc:eng-420", "doc:root-4"]);
+  });
+
+  it("routes 2-digits to ddc_ancestors_ss (ddc:42)", async () => {
+    const res = await request(app)
+      .get("/api/search")
+      .query({ search: "", limit: 10, filter: "ddc:42" });
+
+    expect(res.status).toBe(200);
+    const ids = getIds(res);
+    expect(ids).toEqual(["doc:eng-420"]);
+  });
+
+  it("routes 3+ digit integers to ddc_ss (ddc:420)", async () => {
+    const res = await request(app)
+      .get("/api/search")
+      .query({ search: "", limit: 10, filter: "ddc:420" });
+
+    expect(res.status).toBe(200);
+    const ids = getIds(res);
+    expect(ids).toEqual(["doc:eng-420"]);
+  });
+
+  it("routes decimal notations to ddc_ss (ddc:32.1)", async () => {
+    const res = await request(app)
+      .get("/api/search")
+      .query({ search: "", limit: 10, filter: "ddc:32.1" });
+
+    expect(res.status).toBe(200);
+    const ids = getIds(res);
+    expect(ids).toEqual(["doc:decimal-32-1"]);
+  });
+
+  it("accepts DDC URI and extracts notation (ddc:http://dewey.info/class/420/e23/)", async () => {
+    const res = await request(app)
+      .get("/api/search")
+      .query({
+        search: "",
+        limit: 10,
+        filter: "ddc:http://dewey.info/class/420/e23/",
+      });
+
+    expect(res.status).toBe(200);
+    const ids = getIds(res);
+    expect(ids).toEqual(["doc:eng-420"]);
+  });
+
+  it("does not emit empty ddc_* keys for empty value (ddc:)", async () => {
+    // This shouldn't crash or constrain results; also shouldn't add empty arrays to Solr query.
+    const res = await request(app)
+      .get("/api/search")
+      .query({ search: "", limit: 10, filter: "ddc:" });
+
+    expect(res.status).toBe(200);
+    // We don't assert IDs here; the main check is that it doesn't 400/500.
+    // (Optionally, you could assert numFound >= 3 because fixture has 3 docs total.)
+    expect((res.body.response?.numFound ?? 0)).toBeGreaterThanOrEqual(3);
+  });
+});
+
+// --- Fuzzy / trigram integration
+describe("GET /api/search – fuzzy/trigram integration", () => {
+  it('typo "Clasification" still finds the “Classification” results (title_search)', async () => {
+    const limit = 25;
+
+    // Baseline: correctly spelled
+    const good = await request(app)
+      .get("/api/search")
+      .query({
+        search: "Classification",
+        field: "title_search",
+        limit,
+        sort: "relevance",
+        order: "desc",
+      });
+
+    expect(good.status).toBe(200);
+    const goodIds = new Set(getIds(good));
+
+    // If your seed set doesn’t contain any “Classification” titles,
+    // don’t fail the whole suite — just skip this assertion gracefully.
+    if (goodIds.size === 0) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        '[fuzzy-test] No baseline results for "Classification" in seed; ' +
+        "skipping fuzzy overlap assertion."
+      );
+      return;
+    }
+
+    // Typo: drop one 's' -> "Clasification"
+    const typo = await request(app)
+      .get("/api/search")
+      .query({
+        search: "Clasification",
+        field: "title_search",
+        limit,
+        sort: "relevance",
+        order: "desc",
+      });
+
+    expect(typo.status).toBe(200);
+    const typoIds = new Set(getIds(typo));
+    expect(typoIds.size).toBeGreaterThan(0); // should recover at least something
+
+    // Require some overlap with the correct spelling’s results.
+    const overlap = [...goodIds].filter(id => typoIds.has(id)).length;
+    expect(overlap).toBeGreaterThan(0);
+
+  });
+
+  it('trigram gate: very short/advanced queries don’t crash (and may not fuzz)', async () => {
+    // Too short < 3, don’t enable trigrams
+    const shortQ = await request(app)
+      .get("/api/search")
+      .query({ search: "cl", field: "title_search", limit: 5 });
+
+    expect(shortQ.status).toBe(200);
+
+    // “Advanced looking” query with wildcard — still must not error.
+    const advanced = await request(app)
+      .get("/api/search")
+      .query({ search: 'class*', field: 'title_search', limit: 5 });
+
+    expect(advanced.status).toBe(200);
+  });
+
+  // Regression: long multi-word query + NO_VALUE facet must not 400
+  it("handles long multi-word + NO_VALUE facet without 400", async () => {
+    const res = await request(app)
+      .get("/api/search")
+      .query({
+        search: "British Columbia First Nations Subject Headings",
+        limit: 10,
+        filter: "publisher:-",
+      });
+
+    expect(res.status).toBe(200);
+    const numFound = res.body?.response?.numFound ?? 0;
+    expect(numFound).toBeGreaterThanOrEqual(0);
+  });
+
+  // Trigram fallback: mild misspelling still returns something if the correct query does
+  it("simple misspelling returns results via trigram fallback", async () => {
+    // Baseline with a known-good token present
+    const baseline = await request(app)
+      .get("/api/search")
+      .query({ search: "Australian", limit: 5 });
+    expect(baseline.status).toBe(200);
+
+    const baseFound = baseline.body?.response?.numFound ?? 0;
+
+    // Mild misspelling
+    const miss = await request(app)
+      .get("/api/search")
+      .query({ search: "Austrailan", limit: 5 });
+    expect(miss.status).toBe(200);
+
+    // Only assert >0 if the baseline actually finds something
+    if (baseFound > 0) {
+      const missFound = miss.body?.response?.numFound ?? 0;
+      expect(missFound).toBeGreaterThan(0);
+    }
+  });
+
+  // Advanced syntax should *not* route to trigram (we just assert it doesn't crash)
+  it("advanced Lucene-ish query does not crash (trigram skipped)", async () => {
+    const res = await request(app)
+      .get("/api/search")
+      .query({ search: 'title:"film"', limit: 5 });
+    expect(res.status).toBe(200);
+  });
+});
+
+

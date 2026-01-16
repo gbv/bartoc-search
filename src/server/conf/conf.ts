@@ -1,0 +1,104 @@
+import * as dotenv from "dotenv";
+import fs from "fs";
+import path from "path";
+import { loadConfig } from "./loadConfig";
+import packageInfo from "../../../package.json";
+
+// Prepare environment
+dotenv.config();
+const env = process.env.NODE_ENV ?? "development";
+const configFile = process.env.CONFIG_FILE || "./config/config.json";
+const defaultFile = "./config/config.default.json";
+const ndJsonFile = "./data/latest.ndjson";
+const configFilePath = path.resolve(process.cwd(), configFile);
+const defaultFilePath = path.resolve(process.cwd(), defaultFile);
+const dataFilePath = path.resolve(process.cwd(), ndJsonFile);
+export const infoPackage = packageInfo;
+export const NO_VALUE: string = "-";
+
+
+// If file doesn't exist, create it with an empty object
+if (env !== "test" && !fs.existsSync(configFilePath)) {
+  fs.writeFileSync(configFilePath, "{}");
+}
+
+// Merging config.default.json and config.json
+const config = loadConfig(defaultFilePath, configFilePath);
+
+config.env = env;
+
+// Add configuration from environment variables
+config.DATA_DIR = process.env.DATA_DIR ?? "data";
+config.ARTIFACTS = path.join(config.DATA_DIR, "artifacts");
+config.BARTOC_BASE =
+  process.env.BARTOC_BASE_URL ??
+  (process.env.NODE_ENV === "production"
+    ? "https://bartoc.org"
+    : "https://dev.bartoc.org");
+
+config.BARTOC_API =
+  process.env.BARTOC_API_URL ?? `${config.BARTOC_BASE}/api`;
+
+config.BARTOC_DUMP =
+  process.env.BARTOC_DUMP ?? `${config.BARTOC_BASE}/data/dumps/latest.ndjson`;
+
+config.WS_URL = 
+  process.env.WS_HOST ?? config.webSocket.host + config.webSocket.path;
+
+// Set composed config variables
+const redisHost = process.env.REDIS_HOST ?? config.redis.host;
+
+const redisPort = process.env.REDIS_PORT
+  ? Number(process.env.REDIS_PORT)
+  : config.redis.port;
+
+// Build redis url for local development
+config.redis.url = `redis://${redisHost}:${redisPort}`;
+
+// Solr
+config.solr.host = process.env.SOLR_HOST ?? config.solr.host ?? "localhost";
+config.solr.port = Number(process.env.SOLR_PORT ?? config.solr.port ?? 8983);
+config.solr.url = `http://${config.solr.host}:${config.solr.port}/solr`;
+
+
+// Build ndJson data path, from latest.ndjson
+if (config.indexDataAtBoot && config.indexDataAtBoot === true) {
+  config.ndJsonDataPath = dataFilePath;
+}
+
+// Logging methods
+config.log = (...args: unknown[]) => {
+  if (
+    config.env !== "test" &&
+    (config.verbosity === true || config.verbosity === "log")
+  ) {
+    console.log(new Date(), ...args);
+  }
+};
+
+config.warn = (...args: unknown[]) => {
+  if (
+    config.env !== "test" &&
+    (config.verbosity === true ||
+      config.verbosity === "log" ||
+      config.verbosity === "warn")
+  ) {
+    console.warn(new Date(), ...args);
+  }
+};
+
+config.error = (...args: unknown[]) => {
+  if (config.env !== "test" && config.verbosity !== false) {
+    console.error(new Date(), ...args);
+  }
+};
+
+// Set baseUrl to localhost if not set
+if (!config.baseUrl) {
+  config.baseUrl = `http://localhost:${config.port}/`;
+}
+if (!config.baseUrl.endsWith("/")) {
+  config.baseUrl += "/";
+}
+
+export default config;

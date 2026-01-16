@@ -1,0 +1,50 @@
+# Node.js dependencies
+node_modules/
+
+# Production build output (Vite build)
+dist/
+
+
+# TypeScript build artifacts
+*.js
+*.js.map
+
+# ...except for those inside src/client
+!src/client/**/*.js
+
+# Temporary files
+tmp/
+temp/
+
+# Logs
+logs/
+*.log
+
+# Local configuration
+.env
+.env.local
+.env.*.local
+config/config.json
+
+# Vite cache
+.vite/
+
+# Editor directories and files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.code-workspace
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Data
+data/snapshots/
+data/artifacts/
+!data/README.md
+data/lastIndexedAt.txt
+
+# Cron
+config/cron

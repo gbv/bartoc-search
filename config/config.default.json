@@ -1,0 +1,44 @@
+{
+  "closedWorldAssumption": true,
+  "indexDataAtBoot": true,
+  "port": 3883,
+  "proxies": [],
+  "queues": {
+    "terminologiesQueue": {
+      "concurrency": 20,
+      "batchSize": 50,
+      "limiter" : {
+        "max": 100,
+        "duration": 1000
+      }
+    }
+  },
+  "redis": {
+    "host": "redis",
+    "pingTimeout": 10000,
+    "pingRetries": 5,
+    "pingRetryDelay": 1000,
+    "port": 6379
+  },
+  "solr": {
+    "batchSize": 500,
+    "coreName": "terminologies",
+    "host": "solr",
+    "pingTimeout": 10000,
+    "pingRetries": 5,
+    "pingRetryDelay": 1000,
+    "port": 8983,
+    "version": 8.1
+  },
+  "title": "BARTOC Search",
+  "verbosity": "log",
+  "version": null,
+  "webSocket": {
+    "host": "wss://dev.bartoc.org/api",
+    "port": 443,
+    "path": "/voc/changes",
+    "pingTimeout": 10000,
+    "pingRetries": 5,
+    "pingRetryDelay": 1000
+  }
+}

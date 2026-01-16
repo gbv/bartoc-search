@@ -1,0 +1,27 @@
+[
+  {
+    "id": "doc:root-4",
+    "title_en": "Generic Linguistics Resource",
+    "languages_ss": ["en"],
+    "ddc_root_ss": ["4"],
+    "fullrecord": "{\"uri\":\"doc:root-4\",\"prefLabel\":{\"en\":\"Generic Linguistics Resource\"}}"
+  },
+  {
+    "id": "doc:eng-420",
+    "title_en": "English Language Thesaurus",
+    "languages_ss": ["en"],
+    "ddc_root_ss": ["4"],
+    "ddc_ancestors_ss": ["42", "420"],
+    "ddc_ss": ["420"],
+    "fullrecord": "{\"uri\":\"doc:eng-420\",\"prefLabel\":{\"en\":\"English Language Thesaurus\"}}"
+  },
+  {
+    "id": "doc:decimal-32-1",
+    "title_en": "Some Decimal DDC Resource",
+    "languages_ss": ["en"],
+    "ddc_root_ss": ["3"],
+    "ddc_ancestors_ss": ["32"],
+    "ddc_ss": ["32.1"],
+    "fullrecord": "{\"uri\":\"doc:decimal-32-1\",\"prefLabel\":{\"en\":\"Some Decimal DDC Resource\"}}"
+  }
+]

@@ -1,0 +1,10 @@
+{
+    "watch": ["src", "config"],
+    "ext": "js,ts,json",
+    "ignore": ["src/**/*.test.ts"],
+    "exec": "npx tsx ./src/server/index.ts",
+    "env": {
+      "NODE_ENV": "development"
+    },
+    "verbose": true
+}

@@ -1,0 +1,116 @@
+[
+  {
+    "key": "cc_by",
+    "label": "CC BY",
+    "uris": [
+      "http://creativecommons.org/licenses/by/3.0/",
+      "http://creativecommons.org/licenses/by/4.0/"
+    ]
+  },
+  {
+    "key": "cc_by_nd",
+    "label": "CC BY-ND",
+    "uris": [
+      "http://creativecommons.org/licenses/by-nd/3.0/",
+      "http://creativecommons.org/licenses/by-nd/4.0/"
+    ]
+  },
+  {
+    "key": "cc_by_sa",
+    "label": "CC BY-SA",
+    "uris": [
+      "http://creativecommons.org/licenses/by-sa/3.0/",
+      "http://creativecommons.org/licenses/by-sa/4.0/"
+    ]
+  },
+  {
+    "key": "cc_by_nc",
+    "label": "CC BY-NC",
+    "uris": [
+      "http://creativecommons.org/licenses/by-nc/3.0/",
+      "http://creativecommons.org/licenses/by-nc/4.0/"
+    ]
+  },
+  {
+    "key": "cc_by_nc_sa",
+    "label": "CC BY-NC-SA",
+    "uris": [
+      "http://creativecommons.org/licenses/by-nc-sa/3.0/",
+      "http://creativecommons.org/licenses/by-nc-sa/4.0/"
+    ]
+  },
+  {
+    "key": "cc_by_nc_nd",
+    "label": "CC BY-NC-ND",
+    "uris": [
+      "http://creativecommons.org/licenses/by-nc-nd/3.0/",
+      "http://creativecommons.org/licenses/by-nc-nd/4.0/"
+    ]
+  },
+  {
+    "key": "cc0",
+    "label": "Public Domain (CC 0)",
+    "uris": [
+      "http://creativecommons.org/publicdomain/zero/1.0/",
+      "https://creativecommons.org/publicdomain/mark/1.0/"
+    ]
+  },
+  {
+    "key": "ogl",
+    "label": "UK Open Government Licence",
+    "uris": [
+      "http://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+    ]
+  },
+  {
+    "key": "rights_statements",
+    "label": "Rights Statements",
+    "uris": [
+      "http://rightsstatements.org/vocab/InC/1.0/",
+      "http://rightsstatements.org/vocab/InC-EDU/1.0/",
+      "http://rightsstatements.org/vocab/NoC-NC/1.0/"
+    ]
+  },
+  {
+    "key": "odc_by",
+    "label": "Open Data Commons BY",
+    "uris": [
+      "http://www.opendatacommons.org/licenses/by/1.0/"
+    ]
+  },
+  {
+    "key": "odc_odbl",
+    "label": "Open Data Commons ODbL",
+    "uris": [
+      "http://opendatacommons.org/licenses/odbl/1.0/"
+    ]
+  },
+  {
+    "key": "odc_pddl",
+    "label": "Open Data Commons PDDL",
+    "uris": [
+      "http://opendatacommons.org/licenses/pddl/1.0/"
+    ]
+  },
+  {
+    "key": "apache2",
+    "label": "Apache 2.0",
+    "uris": [
+      "http://www.apache.org/licenses/LICENSE-2.0"
+    ]
+  },
+  {
+    "key": "w3c_doc",
+    "label": "W3C Document License",
+    "uris": [
+      "https://www.w3.org/Consortium/Legal/2015/doc-license"
+    ]
+  },
+  {
+    "key": "wtfpl",
+    "label": "WTFPL",
+    "uris": [
+      "http://www.wtfpl.net/"
+    ]
+  }
+]

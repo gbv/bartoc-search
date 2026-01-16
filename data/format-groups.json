@@ -1,0 +1,245 @@
+[
+  {
+    "key": "Online",
+    "label": "Online",
+    "uris": [
+      "http://bartoc.org/en/Format/Online"
+    ]
+  },
+  {
+    "key": "PDF",
+    "label": "PDF",
+    "uris": [
+      "http://bartoc.org/en/Format/PDF"
+    ]
+  },
+  {
+    "key": "SKOS",
+    "label": "SKOS",
+    "uris": [
+      "http://bartoc.org/en/Format/SKOS"
+    ]
+  },
+  {
+    "key": "Printed",
+    "label": "Printed",
+    "uris": [
+      "http://bartoc.org/en/Format/Printed"
+    ]
+  },
+  {
+    "key": "XML",
+    "label": "XML",
+    "uris": [
+      "http://bartoc.org/en/Format/XML"
+    ]
+  },
+  {
+    "key": "RDF",
+    "label": "RDF",
+    "uris": [
+      "http://bartoc.org/en/Format/RDF",
+      "http://bartoc.org/en/Format/Turtle",
+      "http://bartoc.org/en/Format/N-Quads",
+      "http://bartoc.org/en/Format/N-Triples",
+      "http://bartoc.org/en/Format/N3",
+      "http://bartoc.org/en/Format/TriX",
+      "http://bartoc.org/en/Format/TriG"
+    ]
+  },
+  {
+    "key": "Spreadsheet",
+    "label": "Spreadsheet (Excel, ODS...)",
+    "uris": [
+      "http://bartoc.org/en/Format/Spreadsheet",
+      "http://bartoc.org/en/Format/XLS",
+      "http://bartoc.org/en/Format/XLSX",
+      "http://bartoc.org/en/Format/ODT"
+    ]
+  },
+  {
+    "key": "HTML",
+    "label": "HTML",
+    "uris": [
+      "http://bartoc.org/en/Format/HTML",
+      "http://bartoc.org/en/Format/XHTML"
+    ]
+  },
+  {
+    "key": "CSV",
+    "label": "CSV",
+    "uris": [
+      "http://bartoc.org/en/Format/CSV",
+      "http://bartoc.org/en/Format/TAB"
+    ]
+  },
+  {
+    "key": "JSON",
+    "label": "JSON",
+    "uris": [
+      "http://bartoc.org/en/Format/JSON"
+    ]
+  },
+  {
+    "key": "JSON-LD",
+    "label": "JSON-LD",
+    "uris": [
+      "http://bartoc.org/en/Format/JSON-LD"
+    ]
+  },
+  {
+    "key": "JSKOS",
+    "label": "JSKOS",
+    "uris": [
+      "http://bartoc.org/en/Format/JSKOS"
+    ]
+  },
+  {
+    "key": "MADS",
+    "label": "MADS",
+    "uris": [
+      "http://bartoc.org/en/Format/MADS"
+    ]
+  },
+  {
+    "key": "OWL",
+    "label": "OWL",
+    "uris": [
+      "http://bartoc.org/en/Format/OWL"
+    ]
+  },
+  {
+    "key": "Zthes",
+    "label": "ZThes",
+    "uris": [
+      "http://bartoc.org/en/Format/Zthes"
+    ]
+  },
+  {
+    "key": "XTM",
+    "label": "Topic Map (XTM, CTM, GTM...)",
+    "uris": [
+      "http://bartoc.org/en/Format/XTM"
+    ]
+  },
+  {
+    "key": "DC",
+    "label": "Dublin Core",
+    "uris": [
+      "http://bartoc.org/en/Format/DC"
+    ]
+  },
+  {
+    "key": "BS8723-5",
+    "label": "BS8723-5",
+    "uris": [
+      "http://bartoc.org/en/Format/BS8723-5"
+    ]
+  },
+  {
+    "key": "VDEX",
+    "label": "VDEX",
+    "uris": [
+      "http://bartoc.org/en/Format/VDEX"
+    ]
+  },
+  {
+    "key": "Microform",
+    "label": "Microform",
+    "uris": [
+      "http://bartoc.org/en/Format/Microform"
+    ]
+  },
+  {
+    "key": "TXT",
+    "label": "Raw Text (ASCII or Unicode)",
+    "uris": [
+      "http://bartoc.org/en/Format/TXT",
+      "http://bartoc.org/en/Format/ASCII",
+      "http://bartoc.org/en/Format/PCC"
+    ]
+  },
+  {
+    "key": "Word",
+    "label": "Word Processor (MS Word, ODT...)",
+    "uris": [
+      "http://bartoc.org/en/Format/Word",
+      "http://bartoc.org/en/Format/DOC",
+      "http://bartoc.org/en/Format/DOCX",
+      "http://bartoc.org/en/Format/RTF",
+      "http://bartoc.org/en/Format/OTD"
+    ]
+  },
+  {
+    "key": "CD-ROM",
+    "label": "CD-ROM",
+    "uris": [
+      "http://bartoc.org/en/Format/CD-ROM"
+    ]
+  },
+  {
+    "key": "XSD",
+    "label": "XML Schema (XSD)",
+    "uris": [
+      "http://bartoc.org/en/Format/XSD"
+    ]
+  },
+  {
+    "key": "OBO",
+    "label": "OBO",
+    "uris": [
+      "http://bartoc.org/en/Format/OBO"
+    ]
+  },
+  {
+    "key": "Floppy-Disc",
+    "label": "Floppy-Disc",
+    "uris": [
+      "http://bartoc.org/en/Format/Floppy-Disc"
+    ]
+  },
+  {
+    "key": "MARC",
+    "label": "MARC Format (MARC21 or other)",
+    "uris": [
+      "http://bartoc.org/en/Format/MARC",
+      "http://bartoc.org/en/Format/UNIMARC",
+      "http://bartoc.org/en/Format/USMARC",
+      "http://bartoc.org/en/Format/MARCXML"
+    ]
+  },
+  {
+    "key": "Database",
+    "label": "Database Dump (MS-Access, MySQL-Dump...)",
+    "uris": [
+      "http://bartoc.org/en/Format/Database",
+      "http://bartoc.org/en/Format/MS-Access",
+      "http://bartoc.org/en/Format/MDB",
+      "http://bartoc.org/en/Format/MySQL-Dump"
+    ]
+  },
+  {
+    "key": "Geodata",
+    "label": "Geographical data (GeoJSON, KML...)",
+    "uris": [
+      "http://bartoc.org/en/Format/Geodata",
+      "http://bartoc.org/en/Format/KML",
+      "http://bartoc.org/en/Format/MapInfo",
+      "http://bartoc.org/en/Format/GeoJSON"
+    ]
+  },
+  {
+    "key": "EPUB",
+    "label": "EPUB",
+    "uris": [
+      "http://bartoc.org/en/Format/EPUB"
+    ]
+  },
+  {
+    "key": "ClaML",
+    "label": "ClaML",
+    "uris": [
+      "http://bartoc.org/en/Format/ClaML"
+    ]
+  }
+]
