@@ -15,8 +15,9 @@ import { createReadStream, writeFileSync, constants as FS } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { ConceptSchemeDocument, GroupEntry } from "../types/jskos";
-import { sleep, loadJSONFile, mapUriToGroups, extractGroups, applyAgents, 
-  applyDistributions, applyPrefLabel, applyPublishers, applySubjectOf, applySubject, pickTitleSort } from "../utils/utils";
+import { sleep, mapUriToGroups, extractGroups, applyAgents, 
+  applyDistributions, applyPrefLabel, applyPublishers, applySubjectOf, applySubject, pickTitleSort, 
+  loadJSONFileSafe} from "../utils/utils";
 import readline from "readline";
 import { extractDdc, buildDdcAncestorsFromSubjects } from "../utils/ddc";
 import { applyLangMap } from "../utils/utils";
@@ -42,8 +43,13 @@ try {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const LAST_INDEX_FILE = join(__dirname, "../../../data/lastIndexedAt.txt");
-export const LICENSE_GROUPS: GroupEntry[] = await loadJSONFile<GroupEntry[]>("data/license-groups.json");
-const FORMAT_GROUPS: GroupEntry[] = await loadJSONFile<GroupEntry[]>("data/format-groups.json");
+
+
+export const LICENSE_GROUPS: GroupEntry[] =
+  await loadJSONFileSafe<GroupEntry[]>("data/license-groups.json", []);
+
+export const FORMAT_GROUPS: GroupEntry[] =
+  await loadJSONFileSafe<GroupEntry[]>("data/format-groups.json", []);
 
 await loadNkosConcepts();
 const nKosConceptsDocs = getNkosConcepts();

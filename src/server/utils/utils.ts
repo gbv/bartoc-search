@@ -4,6 +4,8 @@ import {GroupEntry, GroupResult, Distributions, Subject } from "../types/jskos";
 import { DynamicOut, PerLangOut, FamilyKey, AggOut, UriOut, DistributionsOut, SolrDocument } from "../types/solr";
 import _ from "lodash";
 import {NO_VALUE} from "../conf/conf";
+import config from "../conf/conf";
+import fs from "node:fs/promises";
 
 export type JSONObject =
   | string
@@ -137,6 +139,33 @@ export async function loadJSONFile<T = unknown>(
     throw err;
   }
 }
+
+function isErrnoException(e: unknown): e is NodeJS.ErrnoException {
+  return e instanceof Error && "code" in e;
+}
+
+export async function loadJSONFileSafe<T>(filePath: string, fallback: T): Promise<T> {
+  try {
+    const raw = await fs.readFile(filePath, "utf8");
+    if (!raw.trim()) {
+      config.warn?.(`⚠️ Empty JSON file: ${filePath} -> using fallback`);
+      return fallback;
+    }
+    return JSON.parse(raw) as T;
+  } catch (e: unknown) {
+    const code = isErrnoException(e) ? e.code : undefined;
+    const message = e instanceof Error ? e.message : String(e);
+
+    if (code === "ENOENT") {
+      config.warn?.(`⚠️ Missing ${filePath} -> using fallback`);
+      return fallback;
+    }
+
+    config.warn?.(`⚠️ Failed to load/parse ${filePath} -> using fallback: ${message}`);
+    return fallback;
+  }
+}
+
 
 /**
  * Find the group for a given URI. Used for license URIs, formats, etc.
