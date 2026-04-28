@@ -1,6 +1,6 @@
 {
     "watch": ["src", "config"],
-    "ext": "js,ts,json",
+    "ext": "js,ts,json,vue",
     "ignore": ["src/**/*.test.ts"],
     "exec": "npx tsx ./src/server/index.ts",
     "env": {
