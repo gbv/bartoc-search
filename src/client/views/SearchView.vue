@@ -6,7 +6,7 @@ facets down * into SearchResults and SearchSidebar components. */
 <template>
   <NavBreadcrumb :summary="summary" />
 
-  <section class="search-view__wrapper">
+  <section class="search-view__wrapper app-container">
     <SearchBar
       class="search-bar__area"
       :search-on-mounted="true"
@@ -16,6 +16,7 @@ facets down * into SearchResults and SearchSidebar components. */
       class="search-controls__area"
       :model-value="sortKey"
       :lookup-uri="lookupUri"
+      :download-url="downloadUrl"
       @sort="onSort"
       @remove-badge="onRemoveFilter"
       @clear-filters="onClearFilters" />
@@ -92,6 +93,31 @@ const errorMessage = ref(null)
 const sortBy = ref()
 const lookupUri = ref()
 const booted = ref(false) // useful for ignoring first search event from SearchBar
+
+
+// download URL for current search (used by SearchControls)
+const downloadUrl = computed(() => {
+  const params = new URLSearchParams()
+
+  for (const [key, value] of Object.entries(route.query || {})) {
+    if (value === undefined || value === null || value === "") {
+      continue
+    }
+
+    const values = Array.isArray(value) ? value : [value]
+
+    values.forEach((v) => {
+      if (v !== undefined && v !== null && v !== "") {
+        params.append(key, String(v))
+      }
+    })
+  }
+
+  const base = import.meta.env.BASE_URL || "/"
+  const normalizedBase = base.endsWith("/") ? base : `${base}/`
+
+  return `${normalizedBase}api/search?${params.toString()}`
+})
 
 // Computed summary for breadcrumb data
 const summary = computed(() => ({
@@ -514,6 +540,7 @@ onMounted(() => {
 
 .search-bar__area {
   grid-area: search-bar;
+  justify-self: center;
 }
 .search-results__area {
   grid-area: results;

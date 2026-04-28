@@ -88,7 +88,3 @@ const isHttpUrl = (v) => {
 }
 
 </script>
-
-<style>
-
-</style>
