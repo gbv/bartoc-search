@@ -22,7 +22,7 @@
       v-if="downloadUrl"
       class="download-results"
       :href="downloadUrl"
-      download="bartoc-search-results.json"
+      download="bartoc-search-results.jskos.json"
       type="application/json">
       Download Search Results
     </a>

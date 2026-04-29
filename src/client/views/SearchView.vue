@@ -75,6 +75,7 @@ import {
   mapLicenseUrisToGroups,
 } from "../utils/legacy.js"
 import { normalizeSort } from "../utils/sortDefaults.js"
+import { appendQueryToParams } from "../utils/utils.js"
 
 // Router hooks
 const router = useRouter()
@@ -97,24 +98,11 @@ const booted = ref(false) // useful for ignoring first search event from SearchB
 
 // download URL for current search (used by SearchControls)
 const downloadUrl = computed(() => {
-  const params = new URLSearchParams()
-
-  for (const [key, value] of Object.entries(route.query || {})) {
-    if (value === undefined || value === null || value === "") {
-      continue
-    }
-
-    const values = Array.isArray(value) ? value : [value]
-
-    values.forEach((v) => {
-      if (v !== undefined && v !== null && v !== "") {
-        params.append(key, String(v))
-      }
-    })
-  }
-
+  const params = appendQueryToParams(new URLSearchParams(), route.query)
   const base = import.meta.env.BASE_URL || "/"
   const normalizedBase = base.endsWith("/") ? base : `${base}/`
+
+  params.set("format", "jskos")
 
   return `${normalizedBase}api/search?${params.toString()}`
 })
