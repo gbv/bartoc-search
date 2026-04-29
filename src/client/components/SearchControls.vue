@@ -18,14 +18,6 @@
         </option>
       </select>
     </form>
-    <a
-      v-if="downloadUrl"
-      class="download-results"
-      :href="downloadUrl"
-      download="bartoc-search-results.jskos.json"
-      type="application/json">
-      Download Search Results
-    </a>
     <LookupHint
       v-if="lookupUri"
       :uri="lookupUri.uri"
@@ -80,10 +72,6 @@ const props = defineProps({
   lookupUri:{ 
     type: Object, 
     default: null },
-  downloadUrl: {
-    type: String,
-    default: "",
-  },
 })
 
 
@@ -92,7 +80,6 @@ const emit = defineEmits(["sort" ,"remove-badge", "clear-filters"])
 // Internal ref to track selection
 const selectedSort = ref(props.modelValue)
 const lookupUri = computed(() => props.lookupUri)
-const downloadUrl = computed(() => props.downloadUrl)
 
 // Build badge items from activeFilters { internal: [v1, v2] }
 const badges = computed(() => {

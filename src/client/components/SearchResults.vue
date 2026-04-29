@@ -27,13 +27,27 @@
         :sort="sortBy" />
     </div>
     
-    <!-- Load more button -->
-    <button
-      v-if="results.docs.length < results.numFound && !loading" 
-      class="button load-more__button"
-      @click="$emit('load-more')">
-      More results
-    </button>
+    <!-- Result actions -->
+    <div
+      v-if="results.docs.length > 0"
+      class="search-results__actions">
+      <button
+        v-if="results.docs.length < results.numFound && !loading"
+        class="button result-action__button load-more__button"
+        type="button"
+        @click="$emit('load-more')">
+        More results
+      </button>
+
+      <a
+        v-if="downloadUrl"
+        class="button result-action__button download-results__button"
+        :href="downloadUrl"
+        download="bartoc-search-results.jskos.json"
+        type="application/json">
+        Download Results
+      </a>
+    </div>
   </section>
 </template>
 
@@ -44,13 +58,14 @@ import VocabularyCard from "../components/VocabularyCard.vue"
 
 const props = defineProps({
   results: { type: Object, required: true },
-  loading:      { type: Boolean, default: false },
+  loading: { type: Boolean, default: false },
   errorMessage: { type: String,  default: "" },
-  sort: { type: String, defualt:"" },
+  sort: { type: String, default:"" },
+  downloadUrl: { type: String, default: "" },
 })
 
 // unwrap props into reactive refs
-const { results, loading, errorMessage, sort: sortBy } = toRefs(props)
+const { results, loading, errorMessage, sort: sortBy, downloadUrl } = toRefs(props)
 
 
 // Declare emits for load more event
@@ -85,11 +100,40 @@ watch(
 </script>
 
 <style scoped>
+.search-results__actions {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  width: 100%;
+  margin: 2rem 0;
+}
+
+.result-action__button {
+  margin: 0;
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
 .load-more__button {
-  display: block;
-  margin: 2rem auto;
+  grid-column: 2;
+  justify-self: center;
+}
+
+.download-results__button {
+  grid-column: 3;
+  justify-self: end;
+}
+
+.search-results__actions a.button,
+.search-results__actions a.button:hover,
+.search-results__actions a.button:focus {
+  color: var(--color-button-text, var(--color-text-dark-1));
+  text-decoration: none;
 }
 .result-card-wrapper {
-  scroll-margin-top: 80px; /*visual offset when scrolling to element */
+  scroll-margin-top: 80px;
 }
 </style>

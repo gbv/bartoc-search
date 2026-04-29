@@ -16,7 +16,6 @@ facets down * into SearchResults and SearchSidebar components. */
       class="search-controls__area"
       :model-value="sortKey"
       :lookup-uri="lookupUri"
-      :download-url="downloadUrl"
       @sort="onSort"
       @remove-badge="onRemoveFilter"
       @clear-filters="onClearFilters" />
@@ -27,6 +26,7 @@ facets down * into SearchResults and SearchSidebar components. */
         :loading="loading"
         :error-message="errorMessage"
         :sort="sortBy"
+        :download-url="downloadUrl"
         @load-more="loadMore" />
       <NoResults
         v-else
