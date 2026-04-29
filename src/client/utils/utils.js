@@ -23,3 +23,13 @@ export function appendQueryToParams(params, query = {}) {
 
   return params
 }
+
+// Format DDC facet labels to include notation in the label, e.g. "3 - Social Sciences"
+export function formatDdcFacetLabels(labels = {}) {
+  return Object.fromEntries(
+    Object.entries(labels).map(([notation, label]) => [
+      notation,
+      `${notation} - ${label}`,
+    ]),
+  )
+}

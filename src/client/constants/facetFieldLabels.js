@@ -4,6 +4,7 @@ import { reactive } from "vue"
 import { KOS_TYPE_LABELS} from "./kosTypeMapping"
 import SUPPORTED_LANGUAGES from "../../../data/supported_languages.json"
 import { ensureLabels } from "./facetLabels"
+import { formatDdcFacetLabels } from "../utils/utils"
 
 // Dynamic label sources  build from the snapshot.
 const DYNAMIC_FACETS = {
@@ -55,7 +56,13 @@ if (typeof window !== "undefined") {
     Object.entries(DYNAMIC_FACETS).map(async ([facet, cfg]) => {
       const target = FACET_FIELD_LABELS[facet].values
       const obj = await ensureLabels(facet, `${baseUrl}data/${cfg.file}`)
-      Object.assign(target, obj || {})
+
+      Object.assign(
+        target,
+        facet === "ddc_root_ss"
+          ? formatDdcFacetLabels(obj)
+          : obj || {},
+      )
     }),
   )
 }
