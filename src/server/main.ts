@@ -165,7 +165,8 @@ export async function createApp(opts?: {
       field = "allfields",
       limit = 10,
       sort = SortField.RELEVANCE,
-      order = SortOrder.ASC
+      order = SortOrder.ASC,
+      format = "",
     } = req.query as Partial<SearchParams>;
 
     // Building the query
@@ -253,6 +254,13 @@ export async function createApp(opts?: {
 
     // Execute query
     const solrRes = await op.execute<SolrSearchResponse>();
+
+    if (format === "jskos") {
+      const records = solrRes.response.docs.map((doc) => JSON.parse(doc.fullrecord));
+      res.json(records);
+      return;
+    }
+
     const rawFacetFields = solrRes.facet_counts?.facet_fields;
     const facets = parseFacetFields(rawFacetFields);
 
