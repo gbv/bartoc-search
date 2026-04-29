@@ -129,6 +129,25 @@ describe("GET /api/search", () => {
     }
   });
 
+  it("searches by subject notation", async () => {
+    const res = await request(app)
+      .get("/api/search")
+      .query({
+        search: "001",
+        field: "subject_notation",
+        limit: 10,
+      })
+
+    expect(res.status).toBe(200)
+
+    const docs = res.body.response?.docs ?? []
+    expect(docs.length).toBeGreaterThan(0)
+
+    for (const doc of docs) {
+      expect(doc.subject_notation ?? []).toContain("001")
+    }
+  })
+
   // Legacy query params (languages, subject, etc.) are now normalized
   // on the client (normalizeLegacyQueryFromRoute) and are no longer
   // interpreted by /api/search. These integration tests are kept only

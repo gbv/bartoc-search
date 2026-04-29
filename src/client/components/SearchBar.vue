@@ -16,6 +16,9 @@
       <option value="publisher_en">
         Publisher
       </option>
+      <option value="subject_notation">
+        Subject notation
+      </option>
     </select>
     <button
       class="button" 
