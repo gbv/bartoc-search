@@ -23,5 +23,12 @@
     "ddc_ancestors_ss": ["32"],
     "ddc_ss": ["32.1"],
     "fullrecord": "{\"uri\":\"doc:decimal-32-1\",\"prefLabel\":{\"en\":\"Some Decimal DDC Resource\"}}"
-  }
+  },
+  {
+  "id": "doc:bk-42-90",
+  "title_en": "BK Subject URI Resource",
+  "languages_ss": ["de"],
+  "subject_uri": ["http://uri.gbv.de/terminology/bk/42.90"],
+  "fullrecord": "{\"uri\":\"doc:bk-42-90\",\"prefLabel\":{\"en\":\"BK Subject URI Resource\"}}"
+}
 ]

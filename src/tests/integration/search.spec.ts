@@ -148,6 +148,19 @@ describe("GET /api/search", () => {
     }
   })
 
+  it("searches by subject URI", async () => {
+    const res = await request(app)
+      .get("/api/search")
+      .query({
+        search: "http://uri.gbv.de/terminology/bk/42.90",
+        field: "subject_uri",
+        limit: 10,
+      })
+
+    expect(res.status).toBe(200)
+    expect(getIds(res)).toEqual(["doc:bk-42-90"])
+  })
+
   // Legacy query params (languages, subject, etc.) are now normalized
   // on the client (normalizeLegacyQueryFromRoute) and are no longer
   // interpreted by /api/search. These integration tests are kept only

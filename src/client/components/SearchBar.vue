@@ -19,6 +19,9 @@
       <option value="subject_notation">
         Subject notation
       </option>
+      <option value="subject_uri">
+        Subject URI
+      </option>
     </select>
     <button
       class="button" 

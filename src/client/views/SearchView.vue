@@ -71,7 +71,7 @@ import {
   parseFilterMap,
   serializeFilterMap,
   splitMultiParam,
-  extractDdcFromSubject,
+  splitSubjectParam,
   mapLicenseUrisToGroups,
 } from "../utils/legacy.js"
 import { normalizeSort } from "../utils/sortDefaults.js"
@@ -445,12 +445,21 @@ const normalizeLegacyQueryFromRoute = (route, router) => {
   }
 
   // --- subject (DDC URIs) => filter=ddc:<notations> ---
+  // TODO #126 — this is a bit hacky but we want to support legacy ?subject=... with DDC URIs, 
   if (q.subject) {
-    const ddcs = extractDdcFromSubject(q.subject)
-    if (ddcs.length) {
-      filterMap.ddc = Array.from(new Set([...(filterMap.ddc ?? []), ...ddcs]))
+    const { ddc, subjectUris } = splitSubjectParam(q.subject)
+
+    if (ddc.length) {
+      filterMap.ddc = Array.from(new Set([...(filterMap.ddc ?? []), ...ddc]))
       touched = true
     }
+
+    if (subjectUris.length) {
+      q.search = subjectUris[0]
+      q.field = "subject_uri"
+      touched = true
+    }
+
     delete q.subject
   }
 

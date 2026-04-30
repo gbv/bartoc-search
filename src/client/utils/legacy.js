@@ -82,16 +82,7 @@ export function serializeFilterMap(map) {
  *   → ["2"]
  */
 export function extractDdcFromSubject(rawSubject) {
-  const values = splitMultiParam(rawSubject)
-  const out = []
-  for (const value of values) {
-    const m = /dewey\.info\/class\/([^/]+)\//.exec(String(value))
-    const notation = m ? m[1] : String(value)
-    if (notation && !out.includes(notation)) {
-      out.push(notation)
-    }
-  }
-  return out
+  return splitSubjectParam(rawSubject).ddc
 }
 
 
@@ -114,4 +105,42 @@ export function mapLicenseUrisToGroups(uris = []) {
     }
   }
   return [...out]
+}
+
+// TODO: This is a bit hacky
+// This should be replaced in #126 with a more robust general solution
+const DDC_URI_PATTERN = /^https?:\/\/dewey\.info\/class\/([^/]+)\//i
+const HTTP_URI_PATTERN = /^https?:\/\//i
+
+const pushUnique = (array, value) => {
+  if (value && !array.includes(value)) {
+    array.push(value)
+  }
+}
+
+/**
+ * Split legacy `subject` query values into DDC roots and arbitrary subject URIs.
+ *
+ * DDC URIs are mapped to their root class because the current DDC facet works
+ * on top-level classes, e.g. `http://dewey.info/class/577/e23/` becomes `5`.
+ *
+ * Non-DDC HTTP URIs are kept as subject URIs so they can be searched in the
+ * `subject_uri` Solr field.
+ */
+export function splitSubjectParam(rawSubject) {
+  const ddc = []
+  const subjectUris = []
+
+  for (const value of splitMultiParam(rawSubject)) {
+    const uri = String(value).trim()
+    const ddcMatch = DDC_URI_PATTERN.exec(uri)
+
+    if (ddcMatch) {
+      pushUnique(ddc, ddcMatch[1]?.slice(0, 1))
+    } else if (HTTP_URI_PATTERN.test(uri)) {
+      pushUnique(subjectUris, uri)
+    }
+  }
+
+  return { ddc, subjectUris }
 }
