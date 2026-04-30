@@ -27,7 +27,8 @@ facets down * into SearchResults and SearchSidebar components. */
         :error-message="errorMessage"
         :sort="sortBy"
         :download-url="downloadUrl"
-        @load-more="loadMore" />
+        @load-more="loadMore"
+        @show-all="showAll" />
       <NoResults
         v-else
         :search="route.query.search || ''"
@@ -286,6 +287,28 @@ function loadMore(opts = {}) {
 
   router.push({ path: "/", query: newQuery })
   fetchResults(newQuery, { mode: "append" })
+}
+
+function showAll(opts = {}) {
+  const total = results.value.numFound
+
+  if (!total || results.value.docs.length >= total) {
+    return
+  }
+
+  limit.value = total
+
+  const filterParams = buildRepeatableFiltersFromState(opts)
+
+  const baseQuery = { ...route.query }
+  const newQuery = {
+    ...baseQuery,
+    limit: String(total),
+    ...(filterParams.length ? { filter: filterParams } : {}),
+  }
+
+  router.push({ path: "/", query: newQuery })
+  fetchResults(newQuery, { mode: "results" })
 }
 
 // Accepts:

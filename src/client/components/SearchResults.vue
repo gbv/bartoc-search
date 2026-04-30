@@ -31,14 +31,24 @@
     <div
       v-if="results.docs.length > 0"
       class="search-results__actions">
-      <button
+      <div
         v-if="results.docs.length < results.numFound && !loading"
-        class="button result-action__button load-more__button"
-        type="button"
-        @click="$emit('load-more')">
-        More results
-      </button>
+        class="result-actions__main">
+        <button
+          class="button result-action__button load-more__button"
+          type="button"
+          @click="$emit('load-more')">
+          More results
+        </button>
 
+        <button
+          class="button result-action__button show-all__button"
+          type="button"
+          @click="$emit('show-all')">
+          Show all results
+        </button>
+      </div>
+    
       <a
         v-if="downloadUrl"
         class="button result-action__button download-results__button"
@@ -69,7 +79,7 @@ const { results, loading, errorMessage, sort: sortBy, downloadUrl } = toRefs(pro
 
 
 // Declare emits for load more event
-defineEmits([ "load-more" ])
+defineEmits([ "load-more", "show-all" ])
 
 // store DOM nodes for each rendered card
 const cardElements = ref([]) // HTMLElement[]
@@ -106,6 +116,13 @@ watch(
   align-items: center;
   width: 100%;
   margin: 2rem 0;
+}
+
+.result-actions__main {
+  grid-column: 2;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
 }
 
 .result-action__button {
