@@ -38,14 +38,14 @@
           class="button result-action__button load-more__button"
           type="button"
           @click="$emit('load-more')">
-          More results
+          More
         </button>
 
         <button
           class="button result-action__button show-all__button"
           type="button"
           @click="$emit('show-all')">
-          All results
+          All ({{ results.numFound }})
         </button>
       </div>
     
@@ -55,7 +55,7 @@
         :href="downloadUrl"
         download="bartoc-search-results.jskos.json"
         type="application/json">
-        Download Results
+        Download
       </a>
     </div>
   </section>
