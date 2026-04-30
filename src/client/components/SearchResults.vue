@@ -45,7 +45,7 @@
           class="button result-action__button show-all__button"
           type="button"
           @click="$emit('show-all')">
-          Show all results
+          All results
         </button>
       </div>
     
