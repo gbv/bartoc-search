@@ -4,6 +4,8 @@ services:
       context: ..
       dockerfile: docker/Dockerfile
     container_name: bartoc-search
+    # Local development: run Vite/Express in dev mode 
+    command: npm run dev
     volumes:
       - ../:/usr/src/app
       - /usr/src/app/node_modules

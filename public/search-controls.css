@@ -1,12 +1,21 @@
 .search-controls__wrapper {
   display: flex;
-  justify-content: center;
-  padding-bottom: 10px;
   flex-direction: column;
+  align-items: center;
+  width: 100%;
+  padding-bottom: 10px;
 }
+
+.search-sort {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
 .search-sort label {
   color: var(--color-text-light-1);
-  padding-right: 5px;
   font-size: 15px;
 }
 
@@ -14,13 +23,13 @@
   margin: 0 auto;
 }
 
+.badges__wrapper,
+.badges-title {
+  text-align: left;
+}
+
 .badges-title {
   font-weight: 600;
   color: var(--color-text-light-1);
   width: 200px;
-}
-
-.badges__wrapper, 
-.badges-title {
-  text-align: left;
 }

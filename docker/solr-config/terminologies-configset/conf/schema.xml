@@ -177,7 +177,7 @@
     <field name="subject_of_host_ss" type="lc_keyword" indexed="true" stored="true" multiValued="true"/>
 
     <!-- subject field -->
-    <field name="subject_uri" type="string" indexed="false" stored="true" multiValued="true"/>
+    <field name="subject_uri" type="string" indexed="true" stored="true" multiValued="true"/>
     <field name="subject_notation" type="lc_keyword" indexed="true" stored="true" multiValued="true"/>
     <field name="subject_scheme" type="string" indexed="true" stored="true" multiValued="true"/>
     <field name="subject_labels_ss" type="string" indexed="true" stored="true" multiValued="true"/>

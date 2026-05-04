@@ -1,7 +1,7 @@
 import { GenericContainer, StartedTestContainer, Wait } from "testcontainers";
 import path from "node:path";
 import fs from "node:fs";
-import { addDocuments } from "../../server/solr/solr";
+// import { addDocuments } from "../../server/solr/solr";
 
 let solr: StartedTestContainer | undefined;
 const CORE = "terminologies";
@@ -57,6 +57,10 @@ export async function seedSolrFromJson(fileRelPath: string) {
   if (!Array.isArray(arr)) {
     throw new Error(`JSON fixture must be an array: ${file}`);
   }
+
+  // Import only after startSolrWithConfigset() has set SOLR_HOST/SOLR_PORT.
+  const { addDocuments } = await import("../../server/solr/solr");
+
   await addDocuments(CORE, arr);
   return arr;
 }

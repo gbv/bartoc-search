@@ -82,16 +82,7 @@ export function serializeFilterMap(map) {
  *   → ["2"]
  */
 export function extractDdcFromSubject(rawSubject) {
-  const values = splitMultiParam(rawSubject)
-  const out = []
-  for (const value of values) {
-    const m = /dewey\.info\/class\/([^/]+)\//.exec(String(value))
-    const notation = m ? m[1] : String(value)
-    if (notation && !out.includes(notation)) {
-      out.push(notation)
-    }
-  }
-  return out
+  return splitSubjectParam(rawSubject).ddc
 }
 
 
@@ -114,4 +105,157 @@ export function mapLicenseUrisToGroups(uris = []) {
     }
   }
   return [...out]
+}
+
+// TODO: This is a bit hacky
+// This should be replaced in #126 with a more robust general solution
+const DDC_URI_PATTERN = /^https?:\/\/dewey\.info\/class\/([^/]+)\//i
+const HTTP_URI_PATTERN = /^https?:\/\//i
+
+const pushUnique = (array, value) => {
+  if (value && !array.includes(value)) {
+    array.push(value)
+  }
+}
+
+/**
+ * Split legacy `subject` query values into DDC roots and arbitrary subject URIs.
+ *
+ * DDC URIs are mapped to their root class because the current DDC facet works
+ * on top-level classes, e.g. `http://dewey.info/class/577/e23/` becomes `5`.
+ *
+ * Non-DDC HTTP URIs are kept as subject URIs so they can be searched in the
+ * `subject_uri` Solr field.
+ */
+export function splitSubjectParam(rawSubject) {
+  const ddc = []
+  const subjectUris = []
+
+  for (const value of splitMultiParam(rawSubject)) {
+    const uri = String(value).trim()
+    const ddcMatch = DDC_URI_PATTERN.exec(uri)
+
+    if (ddcMatch) {
+      pushUnique(ddc, ddcMatch[1]?.slice(0, 1))
+    } else if (HTTP_URI_PATTERN.test(uri)) {
+      pushUnique(subjectUris, uri)
+    }
+  }
+
+  return { ddc, subjectUris }
+}
+
+/**
+ * Take the current route, return a normalized query object:
+ *  - All legacy params turned into "filter=..." entries
+ *  - URL updated via Vue Router so child components receive the normalized query
+ */
+export const normalizeLegacyQueryFromRoute = async (route, router) => {
+  const q = { ...route.query }
+
+  // Start from existing filters
+  const filterMap = parseFilterMap(q.filter)
+
+  let touched = false
+
+  // --- languages => filter=language:it,en ---
+  if (q.languages) {
+    const langs = splitMultiParam(q.languages)
+    if (langs.length) {
+      filterMap.language = Array.from(new Set([...(filterMap.language ?? []), ...langs]))
+      touched = true
+    }
+    delete q.languages
+  }
+
+  // --- country => filter=country:Italy,Germany ---
+  if (q.country) {
+    const countries = splitMultiParam(q.country)
+    if (countries.length) {
+      filterMap.country = Array.from(new Set([...(filterMap.country ?? []), ...countries]))
+      touched = true
+    }
+    delete q.country
+  }
+
+  // --- type => filter=type:<URI(s)> ---
+  if (q.type) {
+    const types = splitMultiParam(q.type)
+    if (types.length) {
+      filterMap.type = Array.from(new Set([...(filterMap.type ?? []), ...types]))
+      touched = true
+    }
+    delete q.type
+  }
+
+  // --- access => filter=access:<URI(s)> ---
+  if (q.access) {
+    const accessVals = splitMultiParam(q.access)
+    if (accessVals.length) {
+      filterMap.access = Array.from(new Set([...(filterMap.access ?? []), ...accessVals]))
+      touched = true
+    }
+    delete q.access
+  }
+
+  // --- partOf => filter=in:<URI(s)> ---
+  if (q.partOf) {
+    const partOfVals = splitMultiParam(q.partOf)
+    if (partOfVals.length) {
+      filterMap.in = Array.from(new Set([...(filterMap.in ?? []), ...partOfVals]))
+      touched = true
+    }
+    delete q.partOf
+  }
+
+  // --- subject (DDC URIs) => filter=ddc:<notations> ---
+  // TODO #126 — this is a bit hacky but we want to support legacy ?subject=... with DDC URIs, 
+  if (q.subject) {
+    const { ddc, subjectUris } = splitSubjectParam(q.subject)
+
+    if (ddc.length) {
+      filterMap.ddc = Array.from(new Set([...(filterMap.ddc ?? []), ...ddc]))
+      touched = true
+    }
+
+    if (subjectUris.length) {
+      q.search = subjectUris[0]
+      q.field = "subject_uri"
+      touched = true
+    }
+
+    delete q.subject
+  }
+
+  // --- license (URIs) => filter=license:<group labels> ---
+  // Example:
+  //   ?license=http://creativecommons.org/licenses/by/4.0/,http://www.apache.org/licenses/LICENSE-2.0
+  // → ?filter=license:CC BY,Apache 2.0
+  if (q.license) {
+    const uris = splitMultiParam(q.license)
+    const groups = mapLicenseUrisToGroups(uris)
+
+    if (groups.length) {
+      filterMap.license = Array.from(new Set([...(filterMap.license ?? []), ...groups]))
+      touched = true
+    }
+
+    delete q.license
+  }
+
+  // 2) Re-serialize filter map
+  const newFilter = serializeFilterMap(filterMap)
+  if (newFilter.length) {
+    q.filter = newFilter.length === 1 ? newFilter[0] : newFilter
+  } else {
+    delete q.filter
+  }
+
+  // 3) If we changed something, update the URL through Vue Router so useRoute()
+  // consumers such as SearchBar are updated without requiring a page reload.
+  if (touched) {
+    await router.replace({ name: route.name || "search", query: q })
+  }
+
+  return q
 }
