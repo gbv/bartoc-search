@@ -63,7 +63,7 @@
     "globals": "^16.0.0",
     "happy-dom": "^20.9.0",
     "husky": "^9.1.7",
-    "jskos-cli": "^0.8.3",
+    "jskos-cli": "^0.9.0",
     "jskos-tools": "^1.0.43",
     "lodash": "^4.17.21",
     "namespace-lookup": "^0.2.1",
