@@ -32,7 +32,7 @@
 </template>
 
 <script setup lang="js">
-import { ref, onMounted, inject } from "vue"
+import { ref, onMounted, inject, watch } from "vue"
 import { useRoute } from "vue-router"
 const namespaces = inject("namespaces")
 
@@ -52,6 +52,26 @@ const route = useRoute()
 const search = ref(route.query.search?.toString() || "")
 const field = ref(route.query.field?.toString() || "")
 const limit = ref(route.query.limit?.toString() || "10")
+
+watch(
+  () => [route.query.search, route.query.field, route.query.limit],
+  () => {
+    search.value = queryValue(route.query.search)
+    field.value = queryValue(route.query.field)
+    limit.value = queryValue(route.query.limit, "10")
+
+    lookupUri()
+  },
+  { immediate: true },
+)
+
+function queryValue(value, fallback = "") {
+  if (Array.isArray(value)) {
+    return value[0]?.toString() || fallback
+  }
+
+  return value?.toString() || fallback
+}
 
 async function onSearch() {
   const query = { search: search.value.trim() }
@@ -81,7 +101,7 @@ function lookupUri() {
 
 }
 
-const isHttpUrl = (v) => {
+function isHttpUrl(v) {
   if (typeof v !== "string") {
     return false
   }
