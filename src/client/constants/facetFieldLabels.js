@@ -10,8 +10,8 @@ import { formatDdcFacetLabels } from "../utils/utils"
 const DYNAMIC_FACETS = {
   access_type_ss: { file: "access_type.json", label: "Access Type" },
   ddc_root_ss: { file: "ddc-labels.json", label: "Subject (DDC)" },
-  listed_in_ss: { file: "listed_in.json", label: "Register" },
-  api_type_ss: { file: "bartoc-api-types-labels.json", label: "Api Type" },
+  listed_in_ss: { file: "listed_in.json", label: "Registry" },
+  api_type_ss: { file: "bartoc-api-types-labels.json", label: "API Type" },
 }
 
 const dynamicFacets = {}

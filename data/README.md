@@ -190,7 +190,7 @@ npm run reindex
 
 #### `registries`
 
-**Purpose:** Registry/collection records (things a scheme can be “Register”), used for badges and links in the UI.  
+**Purpose:** Registry/collection records, used for badges and links in the UI.  
 **Format:** JSON.  
 **Key fields:**
 
