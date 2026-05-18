@@ -12,7 +12,7 @@
       <nav class="header__nav">
         <div class="header__nav-left">
           <a href="/vocabularies">
-            <span class="header__logo-text">Vocabularies</span>
+            <span class="header__logo-text">Terminologies</span>
           </a>
           <a href="/registries">
             <span class="header__logo-text">Registries</span>
