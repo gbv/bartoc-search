@@ -3,7 +3,6 @@ import axios from "axios";
 import config from "../conf/conf";
 import { SolrClient } from "./SolrClient";
 import { ContributorOut, CreatorOut, PingResponse, SolrDocument } from "../types/solr";
-import { ConceptZodType } from "../validation/concept";
 import {
   SolrResponse,
   SolrSearchResponse,
@@ -211,7 +210,7 @@ export async function solrStatus(): Promise<SolrResponse> {
 // "terminologies" core. 
 export function transformConceptSchemeToSolr(
   doc: ConceptSchemeDocument,
-  nKosConceptsDocs: ConceptZodType[],
+  nKosConceptsDocs: ReturnType<typeof getNkosConcepts>,
 ): SolrDocument {
   const solrDoc: Partial<SolrDocument> = {
     access_type_ss: doc.ACCESS?.map(a => a.uri) || [],
@@ -304,7 +303,7 @@ export function transformConceptSchemeToSolr(
   );
   
   // type_label, we consider prelabel present in the source file
-  if (nKosConceptsDoc) {
+  if (nKosConceptsDoc?.prefLabel) {
     for (const label of Object.keys(nKosConceptsDoc.prefLabel)) {
       solrDoc[`type_label_${label}`] = nKosConceptsDoc.prefLabel?.[label];
     }

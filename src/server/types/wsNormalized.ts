@@ -21,7 +21,7 @@ export const WS_OPS: ReadonlySet<WsOp> = new Set<WsOp>([
   OperationType.Delete,
 ]);
 
-// A tiny type-guard (no Zod needed, ever get rid of that dependency in the future)
+// A small type guard for normalized WebSocket data.
 export function isWsOp(x: unknown): x is WsOp {
   return (
     x === OperationType.Create ||
