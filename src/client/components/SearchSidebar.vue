@@ -19,6 +19,7 @@
           :selected="state.activeFilters[field] || []"
           :open="state.openGroups[field] || false"
           @toggle="toggleGroup(field)"
+          @modal-toggle="open => emit('modal-toggle', open ? field : null)"
           @change="val => updateFilters(field, val)" />
       </div>
     </div>
@@ -38,7 +39,7 @@ const props = defineProps({
   errorMessage: { type: String,  default: "" },
 })
 
-const emit = defineEmits(["update-filters"])
+const emit = defineEmits(["update-filters", "modal-toggle"])
 const { facets, errorMessage } = toRefs(props)
 
 

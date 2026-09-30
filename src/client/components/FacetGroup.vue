@@ -141,7 +141,7 @@ const facetItemTitle = FACET_FIELD_LABELS[props.field].label
 const facetValues = FACET_FIELD_LABELS[props.field].values || {}
 const hasMore = computed(() => valuesRef.value.length > MAX_INLINE_ITEMS)
 
-const emit = defineEmits(["change", "toggle"])
+const emit = defineEmits(["change", "toggle", "modal-toggle"])
 
 const visibleValues = computed(() => {
   if (hasMore.value) {
@@ -169,11 +169,13 @@ const filteredValues = computed(() => {
 
 function openModal() {
   showModal.value = true
+  emit("modal-toggle", true)
 }
 
 function closeModal() {
   showModal.value = false
   searchTerm.value = ""
+  emit("modal-toggle", false)
 }
 
 function toggleOpen() {
@@ -206,19 +208,10 @@ function toggleValue(value, nextState) {
 
 function onCheckbox(e) {
   toggleValue(e.target.value, e.target.checked)
-
-  // If the user clicked inside the modal, close it right after selection
-  if (showModal.value) {
-    closeModal()
-  }
 }
 
 function onRow(value) {
   toggleValue(value)
-
-  if (showModal.value) {
-    closeModal()
-  }
 }
 
 </script>
@@ -371,6 +364,7 @@ function onRow(value) {
   right: calc(-1 * var(--cc-space-sm));
   color: var(--cc-color-primary);
   border: none;
+  background: transparent;
 }
 
 .facet-modal-close:hover,

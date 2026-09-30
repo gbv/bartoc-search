@@ -51,9 +51,10 @@ facets down * into SearchResults and SearchSidebar components. */
     </div>
     <aside class="search-sidebar__area noprint">
       <SearchSidebar
-        v-if="results.numFound > 0"
+        v-if="results.numFound > 0 || openModalField"
         :facets="results.facets || {}"
         :loading="loading"
+        @modal-toggle="openModalField = $event"
         @update-filters="onFilterChange" />
     </aside>
   </section>
@@ -111,6 +112,7 @@ const activeFilters = state.activeFilters
 
 // results & state
 const results = ref({ docs: [], numFound: 0 })
+const openModalField = ref(null)
 const loading = ref(true)
 const errorMessage = ref(null)
 const sortBy = ref()
