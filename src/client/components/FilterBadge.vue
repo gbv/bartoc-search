@@ -1,28 +1,23 @@
 <template>
-  <span
-    class="filter-badge"
-    :title="`${label}: ${value}`">
-    <span class="filter-badge__text">
-      <span class="filter-badge__label">{{ label }}:</span>
-      <span class="filter-badge__value">{{ displayValue }}</span>
-    </span>
-    <button
-      class="cc-button cc-button-ghost cc-button-sm cc-button-icon filter-badge__close noprint"
-      :aria-label="`Remove Badge ${label}: ${displayValue}`"
-      type="button"
-      @click="emit('remove-badge')" />
-  </span>
+  <label class="filter-badge">
+    <input
+      type="checkbox"
+      class="noprint"
+      checked
+      :aria-label="label + ': ' + displayValue"
+      @change="emit('remove-badge')">
+    <span>{{ displayValue }}</span>
+  </label>
 </template>
 
 <script setup>
-import {computed } from "vue"
+import { computed } from "vue"
 
 const emit = defineEmits(["remove-badge"])
 
-
 const props = defineProps({
-  label: { type: String, required: true },   // public key label (e.g. "language")
-  value: { type: String, required: true },   // raw value (e.g. "en" or "-")
+  label: { type: String, required: true },
+  value: { type: String, required: true },
 })
 
 const displayValue = computed(() => (props.value === "-" ? "No value" : props.value))
@@ -32,28 +27,11 @@ const displayValue = computed(() => (props.value === "-" ? "No value" : props.va
 .filter-badge {
   display: inline-flex;
   align-items: center;
+  gap: var(--cc-space-xs);
   padding: var(--cc-space-xs) 0;
   color: var(--cc-color-text);
   font-size: var(--cc-font-size-sm);
-  margin-right: 0;
+  cursor: pointer;
   text-transform: capitalize;
 }
-.filter-badge__label { 
-    margin-right: 8px;
-}
-.filter-badge__value { 
-    font-weight: var(--cc-font-weight-regular);
-    margin-right: 8px;
-}
-.filter-badge__close {
-  text-align: center;
-}
-.filter-badge__close:hover {
-    background: var(--cc-color-accent);
-}
-
-.filter-badge__close::before {
-  content: "x";
-}
-
 </style>
