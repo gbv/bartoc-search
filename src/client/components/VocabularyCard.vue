@@ -7,7 +7,7 @@
       <a
         v-if="doc.api_url_ss?.length"
         class="api-link"
-        :href="titleHref + '#access'">API</a>
+        :href="titleHref + '#content'">Content</a>
     </h2>
     <p
       v-if="shortDescription"
