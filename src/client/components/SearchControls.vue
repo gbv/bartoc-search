@@ -4,6 +4,17 @@
       v-if="lookupUri"
       :uri="lookupUri.uri"
       :name="lookupUri.name" />
+    <div class="edition-toggle noprint">
+      <label class="edition-toggle__label">
+        <input
+          type="checkbox"
+          :checked="includeVersions"
+          aria-label="Show editions as separate results"
+          @change="onIncludeVersionsChange">
+        <span>Show editions as separate results</span>
+      </label>
+    </div>
+
 
     <!-- Active filter badges -->
     <div
@@ -51,10 +62,14 @@ const props = defineProps({
   lookupUri:{ 
     type: Object, 
     default: null },
+  includeVersions: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 
-const emit = defineEmits(["remove-badge", "clear-filters"])
+const emit = defineEmits(["remove-badge", "clear-filters", "update:includeVersions"])
 
 const lookupUri = computed(() => props.lookupUri)
 
@@ -88,10 +103,24 @@ const filterGroups = computed(() => {
 function onRemoveBadge(badge) {
   emit("remove-badge", { field: badge.field, value: badge.rawValue })
 }
+function onIncludeVersionsChange(event) {
+  emit("update:includeVersions", event.target.checked)
+}
+
 
 </script>
 
 <style scoped>
+.edition-toggle {
+  padding-top: var(--cc-space-md);
+}
+
+.edition-toggle__label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--cc-space-xs);
+}
+
 .search-filters {
   padding-top: var(--cc-space-md);
 }

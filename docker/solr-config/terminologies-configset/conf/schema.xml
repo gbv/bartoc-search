@@ -163,6 +163,9 @@
     <!-- partOf field -->
     <field name="listed_in_ss" type="string" indexed="true" stored="true" multiValued="true"/>
 
+    <!-- versionOf field -->
+    <field name="version_of_s" type="string" indexed="true" stored="true" multiValued="false"/>
+
     <!-- prefLabel field -->
     <field name="pref_labels_ss" type="string" indexed="true" stored="true" multiValued="true"/>
     

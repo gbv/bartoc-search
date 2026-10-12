@@ -22,6 +22,7 @@ import { extractDdc, buildDdcAncestorsFromSubjects } from "../utils/ddc";
 import { applyLangMap } from "../utils/utils";
 import { getNkosConcepts, loadNkosConcepts } from "../utils/nskosService";
 import { ensureSnapshotForIndexing } from "../utils/updateFromBartoc";
+import { getDirectVersionOfUri } from "../utils/editions";
 
 
 // DDC enricher: loads the precomputed DDC snapshot once at startup.
@@ -242,6 +243,7 @@ export function transformConceptSchemeToSolr(
     start_date_i: doc.startDate ? parseInt(doc.startDate) : undefined, 
     type_uri: doc.type,
     url_s: doc.url,
+    version_of_s: getDirectVersionOfUri(doc),
   };
 
   // Extracting License groups

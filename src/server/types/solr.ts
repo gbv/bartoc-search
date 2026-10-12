@@ -125,6 +125,7 @@ export interface SolrDocument
   title_sort?: string;
   type_uri: string[];
   url_s?: string;
+  version_of_s?: string;
 }
 
 // Not used
@@ -226,7 +227,8 @@ export interface SearchParams {
   order?: SortOrder;
   filter?: string[];
   format?: string; // e.g. "jskos",
-  uri?: string
+  uri?: string;
+  includeVersions?: string;
 }
 
 /**

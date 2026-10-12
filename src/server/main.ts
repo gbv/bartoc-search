@@ -179,6 +179,7 @@ export async function createApp(opts?: {
       sort = SortField.RELEVANCE,
       order = SortOrder.ASC,
       format = "",
+      includeVersions = "false",
     } = req.query as Partial<SearchParams>;
     const searchText = String(search ?? "");
     const searchField = String(field ?? "").trim() || "allfields";
@@ -221,6 +222,13 @@ export async function createApp(opts?: {
         .sort(sort, order)
         .limit(limit)
         .facetMissing(true);
+
+      if (includeVersions !== "true") {
+        op.filter(
+          new SearchFilter("version_of_s")
+            .raw("-version_of_s:[* TO *]")
+        );
+      }
 
 
     // TODO(bartoc-search): consider VuFind-style facets using tag/exclude

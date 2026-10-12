@@ -13,8 +13,10 @@ facets down * into SearchResults and SearchSidebar components. */
     <SearchControls
       class="search-controls__area"
       :lookup-uri="lookupUri"
+      :include-versions="includeVersions"
       @remove-badge="onRemoveFilter"
-      @clear-filters="onClearFilters" />
+      @clear-filters="onClearFilters"
+      @update:include-versions="onIncludeVersionsChange" />
     <div class="search-results__area">
       <template v-if="loading || results.numFound > 0">
         <SearchResultActions
@@ -109,6 +111,7 @@ const pageSize = 10
 // drive everything off this `limit`
 const limit = ref(Number(route.query.limit) || pageSize)
 const activeFilters = state.activeFilters
+const includeVersions = computed(() => route.query.includeVersions === "true")
 
 // results & state
 const results = ref({ docs: [], numFound: 0 })
@@ -340,6 +343,25 @@ function onFilterChange(filters, opts = {}) {
     fetchResults(newQuery, { mode: SEARCH_MODE.RESULTS, navigation: NAVIGATION.PUSH })
   }
 }
+
+function onIncludeVersionsChange(include) {
+  limit.value = pageSize
+
+  const newQuery = {
+    ...route.query,
+    limit: String(pageSize),
+  }
+  delete newQuery.start
+
+  if (include) {
+    newQuery.includeVersions = "true"
+  } else {
+    delete newQuery.includeVersions
+  }
+
+  fetchResults(newQuery, { navigation: NAVIGATION.PUSH })
+}
+
 
 // Clear only filters (keep current search/sort/order)
 function onClearFilters() {

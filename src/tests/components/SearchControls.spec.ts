@@ -39,4 +39,17 @@ describe("SearchControls", () => {
       [{ field: "languages_ss", value: "it" }],
     ])
   })
+  it("emits the edition inclusion setting", async () => {
+    const wrapper = mount(SearchControls)
+    const checkbox = wrapper.get(
+      'input[aria-label="Show editions as separate results"]',
+    )
+
+    expect((checkbox.element as HTMLInputElement).checked).toBe(false)
+
+    await checkbox.setValue(true)
+
+    expect(wrapper.emitted("update:includeVersions")).toEqual([[true]])
+  })
+
 })

@@ -1,0 +1,49 @@
+[
+  {
+    "id": "http://bartoc.org/en/node/990001",
+    "title_en": "Edition grouping fixture main",
+    "title_sort": "Edition grouping fixture main",
+    "pref_labels_ss": [
+      "Edition grouping fixture main"
+    ],
+    "languages_ss": [
+      "en"
+    ],
+    "type_uri": [
+      "http://www.w3.org/2004/02/skos/core#ConceptScheme"
+    ],
+    "fullrecord": "{\"@context\":\"https://gbv.github.io/jskos/context.json\",\"uri\":\"http://bartoc.org/en/node/990001\",\"prefLabel\":{\"en\":\"Edition grouping fixture main\"},\"created\":\"2026-01-01\",\"modified\":\"2026-01-01\",\"type\":[\"http://www.w3.org/2004/02/skos/core#ConceptScheme\"]}"
+  },
+  {
+    "id": "http://bartoc.org/en/node/990002",
+    "version_of_s": "http://bartoc.org/en/node/990001",
+    "title_en": "Edition grouping fixture edition only marker",
+    "title_sort": "Edition grouping fixture edition only marker",
+    "pref_labels_ss": [
+      "Edition grouping fixture edition only marker"
+    ],
+    "languages_ss": [
+      "en",
+      "de"
+    ],
+    "type_uri": [
+      "http://www.w3.org/2004/02/skos/core#ConceptScheme"
+    ],
+    "fullrecord": "{\"@context\":\"https://gbv.github.io/jskos/context.json\",\"uri\":\"http://bartoc.org/en/node/990002\",\"prefLabel\":{\"en\":\"Edition grouping fixture edition only marker\"},\"created\":\"2026-01-01\",\"modified\":\"2026-01-01\",\"type\":[\"http://www.w3.org/2004/02/skos/core#ConceptScheme\"],\"versionOf\":[{\"uri\":\"http://bartoc.org/en/node/990001\"}]}"
+  },
+  {
+    "id": "http://bartoc.org/en/node/990003",
+    "title_en": "Edition grouping fixture standalone",
+    "title_sort": "Edition grouping fixture standalone",
+    "pref_labels_ss": [
+      "Edition grouping fixture standalone"
+    ],
+    "languages_ss": [
+      "en"
+    ],
+    "type_uri": [
+      "http://www.w3.org/2004/02/skos/core#ConceptScheme"
+    ],
+    "fullrecord": "{\"@context\":\"https://gbv.github.io/jskos/context.json\",\"uri\":\"http://bartoc.org/en/node/990003\",\"prefLabel\":{\"en\":\"Edition grouping fixture standalone\"},\"created\":\"2026-01-01\",\"modified\":\"2026-01-01\",\"type\":[\"http://www.w3.org/2004/02/skos/core#ConceptScheme\"]}"
+  }
+]

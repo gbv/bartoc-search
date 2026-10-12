@@ -90,6 +90,10 @@ export interface ConceptSchemeDocument {
   uri: string;
 
   url?: string;
+
+  versionOf?: Array<{
+    uri: string;
+  }>;
 }
 
 export interface ConceptDocument {

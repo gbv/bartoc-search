@@ -79,7 +79,17 @@ async function mountSearchView() {
             </button>
           `,
         },
-        SearchControls: true,
+        SearchControls: {
+          props: ["includeVersions"],
+          emits: ["update:includeVersions"],
+          template: `
+            <input
+              class="test-include-versions"
+              type="checkbox"
+              :checked="includeVersions"
+              @change="$emit('update:includeVersions', $event.target.checked)">
+          `,
+        },
         SearchResultActions: {
           emits: ["load-more", "show-all"],
           props: ["canLoadMore"],
@@ -170,4 +180,25 @@ describe("SearchView history navigation", () => {
     expect(replace).not.toHaveBeenCalled()
     expect(String(fetchMock.mock.calls.at(-1)?.[0])).toContain("search=first")
   })
+  it("keeps the edition inclusion setting in the route and API request", async () => {
+    const { push, wrapper } = await mountSearchView()
+    const checkbox = wrapper.get(".test-include-versions")
+
+    expect((checkbox.element as HTMLInputElement).checked).toBe(false)
+
+    await checkbox.setValue(true)
+    await flushPromises()
+
+    expect(push).toHaveBeenCalledWith({
+      name: "search",
+      query: expect.objectContaining({
+        includeVersions: "true",
+        limit: "10",
+      }),
+    })
+    expect(String(fetchMock.mock.calls.at(-1)?.[0])).toContain(
+      "includeVersions=true",
+    )
+  })
+
 })

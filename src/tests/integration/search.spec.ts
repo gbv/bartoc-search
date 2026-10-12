@@ -8,6 +8,7 @@ let seededDocs: any[];
 const FIXTURE = "src/tests/fixtures/solr/seed.json";
 const DDC_FIXTURE = "src/tests/fixtures/solr/ddc-seed.json";
 const ABBREVIATION_FIXTURE = "src/tests/fixtures/solr/abbreviation-ranking.json";
+const VERSION_OF_FIXTURE = "src/tests/fixtures/solr/versions.json";
 
 const getIds = (res: any) =>
   (res.body.response?.docs ?? []).map((d: any) => d.id).sort();
@@ -24,6 +25,9 @@ beforeAll(async () => {
 
   const abbreviationDocs = await seedSolrFromJson(ABBREVIATION_FIXTURE);
   seededDocs = [...seededDocs, ...abbreviationDocs];
+
+  const versionOfDocs = await seedSolrFromJson(VERSION_OF_FIXTURE);
+  seededDocs = [...seededDocs, ...versionOfDocs];
 
   const { createApp } = await import("../../server/main");
   app = await createApp({ withVite:false, withFrontend:false, withWorkers:false, withUpdater:false });
@@ -396,5 +400,41 @@ describe("GET /api/search – fuzzy/trigram integration", () => {
       .get("/api/search")
       .query({ search: 'title:"film"', limit: 5 });
     expect(res.status).toBe(200);
+  });
+});
+
+describe("GET /api/search - editions", () => {
+  it("excludes edition records by default", async () => {
+    const res = await request(app)
+      .get("/api/search")
+      .query({
+        search: "marker",
+        field: "title_search",
+        limit: 10,
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body.response?.numFound).toBe(0);
+    expect(res.body.response?.docs ?? []).toEqual([]);
+  });
+
+  it("includes edition records when explicitly requested", async () => {
+    const res = await request(app)
+      .get("/api/search")
+      .query({
+        search: "marker",
+        field: "title_search",
+        includeVersions: "true",
+        limit: 10,
+      });
+
+    expect(res.status).toBe(200);
+    expect(res.body.response?.numFound).toBe(1);
+    expect(res.body.response?.docs).toEqual([
+      expect.objectContaining({
+        id: "http://bartoc.org/en/node/990002",
+        version_of_s: "http://bartoc.org/en/node/990001",
+      }),
+    ]);
   });
 });
