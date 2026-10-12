@@ -190,8 +190,8 @@ export async function createApp(opts?: {
     //    - `search`: raw user input (string)
     //    - `field`: which field to search in (e.g. "allfields", "title_search")
     //    - The numbers (3, 2) are weights/params used by your builder (e.g. phrase vs. terms).
-    //    - keeping the operator as OR to allow partial matches across tokens.
-    const base = LuceneQuery.fromText(searchText, searchField, 3, 2).operator("OR");
+    //    - require all words for multi-word searches; boost an exact phrase match.
+    const base = LuceneQuery.fromText(searchText, searchField, 3, 2).operator("AND");
 
     // Convert to a final Lucene string for Solr.
     const baseLucene = base.toString();

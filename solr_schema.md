@@ -187,7 +187,8 @@ To enable both targeted and global search, we copy field values into broader cat
 | `title_*`         | `title_search` |
 | `title_en`        | `title_sort`   |
 | `title_*`         | `title_trigram` |
-| `allfields`       | `allfields_trigram` |
+
+The sources copied into `allfields` are also copied directly into `allfields_trigram`; Solr does not chain copy fields. Existing cores need the updated schema and a reindex to populate this field.
 
 
 - allfields
@@ -247,16 +248,15 @@ A dedicated **text_trigram** that lowercases, ASCIIâ€‘folds, and splits into 3â€
 #### What Solr gets (example):
 
 ```
-( allfields:("British Columbia First Nations Subject Headings"^3 OR "British" OR "Columbia" OR "First" OR "Nations" OR "Subject" OR "Headings") )
+( allfields:("British Columbia First Nations Subject Headings"^3 OR ("British" AND "Columbia" AND "First" AND "Nations" AND "Subject" AND "Headings")) )
 OR
-( _query_:"{!edismax qf=title_trigram mm=50%}bri rit iti tis ish col olu lum umb mbi bia fir irs rst ..."^0.6
-  OR _query_:"{!edismax qf=allfields_trigram mm=50%}bri rit iti tis ish col olu lum umb mbi bia fir irs rst ..."^0.25 )
+( _query_:"{!edismax qf=title_trigram mm=90%}bri rit iti tis ish col olu lum umb mbi bia fir irs rst ..."^0.6
+  OR _query_:"{!edismax qf=allfields_trigram mm=90%}bri rit iti tis ish col olu lum umb mbi bia fir irs rst ..."^0.25 )
 ```
 
-- The first part is the exact/token query (unchanged).
+- The first part boosts the exact phrase or requires all words in any order.
 - The server sends generated 3-character grams to the trigram fields.
-- The second part kicks in only for simple inputs. It uses eDisMax with `mm=50%`
-  so documents must share a meaningful part of these grams.
+- The second part kicks in only for simple global queries. eDisMax requires 90% gram overlap for multi-word input. For one word it requires 50% in titles and 75% in all fields.
 
 
 **Enabled** for: typos and simple text in global search, e.g.  
@@ -271,8 +271,7 @@ OR
 
 - Start with boosts `title_trigram^0.6`, `allfields_trigram^0.25`.
   - Raise/lower as needed to balance recall vs. noise.
-- Keep `mm=50%` strict enough to avoid random-string matches, but loose enough
-  for common typos.
+- Keep the multi-word overlap stricter than the single-word overlap: grams from several words can otherwise match unrelated metadata.
 - Generate trigram query text in the server before calling eDisMax. Passing the
   whole word can make Solr match one noisy gram only.
 - If index size grows too much, keep only `title_trigram` (remove `allfields_trigram` & copyField).

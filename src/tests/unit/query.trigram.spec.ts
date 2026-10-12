@@ -10,8 +10,8 @@ it("adds trigram fallback for simple multi-word query", () => {
   expect(out.q).toMatch(/_query_:"\{!field f=notation_ss\}clasification system"\^12/);
   expect(out.q).toMatch(/_query_:"\{!field f=alt_labels_ss\}clasification system"\^12/);
   expect(out.q).toMatch(/_query_:"\{!field f=bartoc_id_s\}clasification system"\^12/);
-  expect(out.q).toMatch(/_query_:"\{!edismax qf=title_trigram mm=50%\}cla las asi sif ifi fic ica cat ati tio ion sys yst ste tem"\^0\.6/);
-  expect(out.q).toMatch(/_query_:"\{!edismax qf=allfields_trigram mm=50%\}cla las asi sif ifi fic ica cat ati tio ion sys yst ste tem"\^0\.25/);
+  expect(out.q).toMatch(/_query_:"\{!edismax qf=title_trigram mm=90%\}cla las asi sif ifi fic ica cat ati tio ion sys yst ste tem"\^0\.6/);
+  expect(out.q).toMatch(/_query_:"\{!edismax qf=allfields_trigram mm=90%\}cla las asi sif ifi fic ica cat ati tio ion sys yst ste tem"\^0\.25/);
 });
 
 it("passes generated trigrams to the fuzzy fallback", () => {

@@ -67,7 +67,11 @@ const ADVANCED_CHARS = /[+\-!(){}[\]^"~*?:\\]|(?:\bAND\b|\bOR\b|\bNOT\b)/i;
 
 // Tuning knobs for the fuzzy fallback. Keep them together so changing the
 // recall/noise balance does not require spelunking through query strings.
-const TRIGRAM_MM = "50%";
+// A long query needs more gram overlap; the catch-all field needs a stricter
+// threshold than titles even for one word.
+const SINGLE_WORD_TITLE_MM = "50%";
+const SINGLE_WORD_ALLFIELDS_MM = "75%";
+const MULTI_WORD_MM = "90%";
 const TITLE_TRIGRAM_BOOST = 0.6;
 const ALLFIELDS_TRIGRAM_BOOST = 0.25;
 const EXACT_ABBREVIATION_BOOST = 12;
@@ -152,12 +156,12 @@ function buildTrigramQueryText(value: string): string {
 
 // Use eDisMax for trigram fallback so we can require a meaningful overlap
 // between generated trigrams instead of matching one noisy 3-character slice.
-function trigramFieldQuery(field: string, value: string, boost: number): string | null {
+function trigramFieldQuery(field: string, value: string, boost: number, minimumMatch: string): string | null {
   const queryText = buildTrigramQueryText(value);
   // Values shorter than 3 characters produce no grams, so they should not add
   // an empty fallback clause.
   if (!queryText) return null;
-  return `_query_:"{!edismax qf=${field} mm=${TRIGRAM_MM}}${escapeForLocalParamValue(queryText)}"^${boost}`;
+  return `_query_:"{!edismax qf=${field} mm=${minimumMatch}}${escapeForLocalParamValue(queryText)}"^${boost}`;
 }
 
 /**
@@ -188,7 +192,7 @@ function trigramFieldQuery(field: string, value: string, boost: number): string 
  *   baseLucene: '(allfields:("Clasification"^3 OR "Clasification"))'
  * })
  * // → '(allfields:(...)) OR (_query_:"{!edismax qf=title_trigram mm=50%}cla las ..."^0.6
- * //     OR _query_:"{!edismax qf=allfields_trigram mm=50%}cla las ..."^0.25)'
+ * //     OR _query_:"{!edismax qf=allfields_trigram mm=75%}cla las ..."^0.25)'
  */
 export function buildLuceneWithTrigrams(opts: {
   userQuery: string;
@@ -204,6 +208,7 @@ export function buildLuceneWithTrigrams(opts: {
   } = opts;
 
   const value = (userQuery ?? "").trim();
+  const multiWord = value.split(/[^\p{L}\p{N}]+/u).filter(Boolean).length > 1;
 
   // This is the core safety gate:
   // - global search may use typo-tolerant fallback;
@@ -231,13 +236,19 @@ export function buildLuceneWithTrigrams(opts: {
   const trigramBits: string[] = [];
   // Prefer the title trigram a bit so title matches float higher than a fuzzy
   // match buried somewhere else in the copied allfields text.
-  const titleTrigram = trigramFieldQuery("title_trigram", value, TITLE_TRIGRAM_BOOST);
+  const titleTrigram = trigramFieldQuery(
+    "title_trigram", value, TITLE_TRIGRAM_BOOST,
+    multiWord ? MULTI_WORD_MM : SINGLE_WORD_TITLE_MM,
+  );
   if (titleTrigram) trigramBits.push(titleTrigram);
 
   // allfields_trigram is useful for recall, but low-boosted because it can
   // match many copied fields and should not outrank cleaner title matches.
   if (includeAllfieldsTrigrams) {
-    const allfieldsTrigram = trigramFieldQuery("allfields_trigram", value, ALLFIELDS_TRIGRAM_BOOST);
+    const allfieldsTrigram = trigramFieldQuery(
+      "allfields_trigram", value, ALLFIELDS_TRIGRAM_BOOST,
+      multiWord ? MULTI_WORD_MM : SINGLE_WORD_ALLFIELDS_MM,
+    );
     if (allfieldsTrigram) trigramBits.push(allfieldsTrigram);
   }
 

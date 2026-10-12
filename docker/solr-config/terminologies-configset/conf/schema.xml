@@ -286,7 +286,30 @@
 
 
   <copyField source="title_*"  dest="title_trigram"/>
-  <copyField source="allfields" dest="allfields_trigram"/>
+  <!-- Copy original fields directly: Solr does not chain copyField destinations. -->
+  <copyField source="address_*" dest="allfields_trigram"/>
+  <copyField source="alt_label_*" dest="allfields_trigram"/>
+  <copyField source="alt_labels_ss" dest="allfields_trigram"/>
+  <copyField source="bartoc_id_s" dest="allfields_trigram"/>
+  <copyField source="contributor_*" dest="allfields_trigram"/>
+  <copyField source="contributor_ss" dest="allfields_trigram"/>
+  <copyField source="creator_*" dest="allfields_trigram"/>
+  <copyField source="creator_ss" dest="allfields_trigram"/>
+  <copyField source="definition_*" dest="allfields_trigram"/>
+  <copyField source="definition_ss" dest="allfields_trigram"/>
+  <copyField source="examples_ss" dest="allfields_trigram"/>
+  <copyField source="notation_ss" dest="allfields_trigram"/>
+  <copyField source="publisher_*" dest="allfields_trigram"/>
+  <copyField source="publisher_labels_ss" dest="allfields_trigram"/>
+  <copyField source="pref_label_*" dest="allfields_trigram"/>
+  <copyField source="pref_labels_ss" dest="allfields_trigram"/>
+  <copyField source="subject_label_*" dest="allfields_trigram"/>
+  <copyField source="subject_notation" dest="allfields_trigram"/>
+  <copyField source="title_*" dest="allfields_trigram"/>
+  <copyField source="type_label_*" dest="allfields_trigram"/>
+  <copyField source="ddc_label_rank1_t" dest="allfields_trigram"/>
+  <copyField source="ddc_label_rank2_t" dest="allfields_trigram"/>
+  <copyField source="ddc_label_rank3_t" dest="allfields_trigram"/>
 
   <!-- ================================================
        Schema Configuration

@@ -85,15 +85,17 @@ export class LuceneQuery extends SearchQuery {
       parts.push(...this._terms);
     }
 
-    // Add phrase from fromText
-    if (this._phrase) {
-      const escPhrase = this._escape(this._phrase);
-      parts.push(`"${escPhrase}"^${this._phraseBoost}`);
-    }
+    const phrase = this._phrase
+      ? `"${this._escape(this._phrase)}"^${this._phraseBoost}`
+      : null;
+    const tokens = this._tokens.map(token => `"${this._escape(token)}"`);
 
-    // Add individual tokens from fromText
-    for (const token of this._tokens) {
-      parts.push(`"${this._escape(token)}"`);
+    if (phrase && this._op === "AND" && tokens.length) {
+      // Prefer the exact phrase, while still matching all words in any order.
+      parts.push(`(${phrase} OR (${tokens.join(" AND ")}))`);
+    } else {
+      if (phrase) parts.push(phrase);
+      parts.push(...tokens);
     }
 
     // If no parts, match all

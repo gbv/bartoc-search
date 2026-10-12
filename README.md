@@ -495,7 +495,8 @@ Configure the dump source with the `BARTOC_DUMP` environment variable. For local
 
 The Solr index fields, copy fields, and public facet-key mapping are documented in [solr_schema.md](solr_schema.md). The runtime Solr configuration lives in `docker/solr-config/terminologies-configset/conf/schema.xml`.
 
-Existing Solr cores need the updated active schema and a reindex (`npm run reindex`) for edition search. Updating the repository configset alone may not change a persistent core. See [Edition fields and indexing](solr_schema.md#edition-fields-and-indexing).
+Existing Solr cores need the updated active schema and a reindex (`npm run reindex`) for edition search and fuzzy matching across all fields. Updating the repository configset alone may not change a persistent core. See [Solr schema](solr_schema.md).
+
 #### Troubleshooting
 
 - **Core never appears / persistent 503**
