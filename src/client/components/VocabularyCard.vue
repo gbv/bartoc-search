@@ -48,6 +48,31 @@
         <strong>Published by </strong> {{ doc.publisher_labels_ss[0] }}
       </li>
     </ul>
+    <p
+      v-if="doc.version_of_s"
+      class="result-edition-parent">
+      <strong>Edition of:</strong> <a
+        class="edition-parent-link"
+        :href="recordHref(doc.version_of_s)">{{ parentTitle || `BARTOC ${doc.version_of_s.split('/').pop()}` }}</a>
+    </p>
+    <div
+      v-if="editions?.total > 0"
+      class="result-editions">
+      <strong>Editions ({{ editions.total }})</strong>
+      <ul>
+        <li
+          v-for="edition in editions.items"
+          :key="edition.uri">
+          <a
+            class="edition-preview-link"
+            :href="recordHref(edition.uri)">{{ edition.title }}<span v-if="edition.startDate"> ({{ edition.startDate.slice(0, 4) }})</span></a>
+        </li>
+      </ul>
+      <a
+        v-if="editions.total > editions.items.length"
+        class="edition-view-all"
+        :href="recordHref(doc.id) + '#editions'">View all {{ editions.total }} editions</a>
+    </div>
     <div class="result-metadata noprint">
       <span
         v-if="doc.created_dt"
@@ -110,6 +135,8 @@ const props = defineProps({
     validator: (v) => Object.values(SupportedLang).includes(v),
   },
   sort: { type: String },
+  editions: { type: Object, default: null },
+  parentTitle: { type: String, default: "" },
 })
 
 onMounted(() => {
@@ -191,8 +218,7 @@ const getSolrRecord = id =>
 const getJskosRecord = id =>
   `${import.meta.env.BASE_URL}api/data?uri=${encodeURIComponent(id)}`
 
-const titleHref = computed(() => {
-  const id = props.doc?.id
+const recordHref = (id) => {
   if (!id) {
     return "#"
   }
@@ -211,7 +237,9 @@ const titleHref = computed(() => {
   }
 
   return id
-})
+}
+
+const titleHref = computed(() => recordHref(props.doc?.id))
 
 </script>
 
@@ -298,6 +326,31 @@ const titleHref = computed(() => {
 .kos-type-info:focus-visible {
   outline: 2px solid var(--cc-color-primary);
   outline-offset: 2px;
+}
+
+.result-edition-parent {
+  margin: var(--cc-space-sm) var(--cc-space-xs);
+  font-size: var(--cc-font-size-sm);
+}
+
+.result-editions {
+  margin: var(--cc-space-sm) var(--cc-space-xs);
+  font-size: var(--cc-font-size-sm);
+}
+
+.result-editions ul {
+  margin: var(--cc-space-xs) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.result-editions li + li {
+  margin-top: var(--cc-space-xs);
+}
+
+.edition-view-all {
+  display: inline-block;
+  margin-top: var(--cc-space-xs);
 }
 
 .result-metadata {

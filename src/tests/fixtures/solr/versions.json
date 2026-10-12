@@ -1,10 +1,10 @@
 [
   {
     "id": "http://bartoc.org/en/node/990001",
-    "title_en": "Edition grouping fixture main",
-    "title_sort": "Edition grouping fixture main",
+    "title_en": "Edition grouping fixture main editionfamilyfixture",
+    "title_sort": "Edition grouping fixture main editionfamilyfixture",
     "pref_labels_ss": [
-      "Edition grouping fixture main"
+      "Edition grouping fixture main editionfamilyfixture"
     ],
     "languages_ss": [
       "en"
@@ -12,15 +12,15 @@
     "type_uri": [
       "http://www.w3.org/2004/02/skos/core#ConceptScheme"
     ],
-    "fullrecord": "{\"@context\":\"https://gbv.github.io/jskos/context.json\",\"uri\":\"http://bartoc.org/en/node/990001\",\"prefLabel\":{\"en\":\"Edition grouping fixture main\"},\"created\":\"2026-01-01\",\"modified\":\"2026-01-01\",\"type\":[\"http://www.w3.org/2004/02/skos/core#ConceptScheme\"]}"
+    "fullrecord": "{\"@context\":\"https://gbv.github.io/jskos/context.json\",\"uri\":\"http://bartoc.org/en/node/990001\",\"prefLabel\":{\"en\":\"Edition grouping fixture main editionfamilyfixture\"},\"created\":\"2026-01-01\",\"modified\":\"2026-01-01\",\"type\":[\"http://www.w3.org/2004/02/skos/core#ConceptScheme\"]}"
   },
   {
     "id": "http://bartoc.org/en/node/990002",
     "version_of_s": "http://bartoc.org/en/node/990001",
-    "title_en": "Edition grouping fixture edition only marker",
-    "title_sort": "Edition grouping fixture edition only marker",
+    "title_en": "Edition grouping fixture edition only marker editionfamilyfixture",
+    "title_sort": "Edition grouping fixture edition only marker editionfamilyfixture",
     "pref_labels_ss": [
-      "Edition grouping fixture edition only marker"
+      "Edition grouping fixture edition only marker editionfamilyfixture"
     ],
     "languages_ss": [
       "en",
@@ -29,14 +29,16 @@
     "type_uri": [
       "http://www.w3.org/2004/02/skos/core#ConceptScheme"
     ],
-    "fullrecord": "{\"@context\":\"https://gbv.github.io/jskos/context.json\",\"uri\":\"http://bartoc.org/en/node/990002\",\"prefLabel\":{\"en\":\"Edition grouping fixture edition only marker\"},\"created\":\"2026-01-01\",\"modified\":\"2026-01-01\",\"type\":[\"http://www.w3.org/2004/02/skos/core#ConceptScheme\"],\"versionOf\":[{\"uri\":\"http://bartoc.org/en/node/990001\"}]}"
+    "fullrecord": "{\"@context\":\"https://gbv.github.io/jskos/context.json\",\"uri\":\"http://bartoc.org/en/node/990002\",\"prefLabel\":{\"en\":\"Edition grouping fixture edition only marker editionfamilyfixture\"},\"created\":\"2026-01-01\",\"modified\":\"2026-01-01\",\"type\":[\"http://www.w3.org/2004/02/skos/core#ConceptScheme\"],\"versionOf\":[{\"uri\":\"http://bartoc.org/en/node/990001\"}],\"startDate\":\"2022\"}",
+    "start_date_i": 2022,
+    "start_date_sort_s": "2022"
   },
   {
     "id": "http://bartoc.org/en/node/990003",
-    "title_en": "Edition grouping fixture standalone",
-    "title_sort": "Edition grouping fixture standalone",
+    "title_en": "Edition grouping fixture standalone editionfamilyfixture",
+    "title_sort": "Edition grouping fixture standalone editionfamilyfixture",
     "pref_labels_ss": [
-      "Edition grouping fixture standalone"
+      "Edition grouping fixture standalone editionfamilyfixture"
     ],
     "languages_ss": [
       "en"
@@ -44,6 +46,105 @@
     "type_uri": [
       "http://www.w3.org/2004/02/skos/core#ConceptScheme"
     ],
-    "fullrecord": "{\"@context\":\"https://gbv.github.io/jskos/context.json\",\"uri\":\"http://bartoc.org/en/node/990003\",\"prefLabel\":{\"en\":\"Edition grouping fixture standalone\"},\"created\":\"2026-01-01\",\"modified\":\"2026-01-01\",\"type\":[\"http://www.w3.org/2004/02/skos/core#ConceptScheme\"]}"
+    "fullrecord": "{\"@context\":\"https://gbv.github.io/jskos/context.json\",\"uri\":\"http://bartoc.org/en/node/990003\",\"prefLabel\":{\"en\":\"Edition grouping fixture standalone editionfamilyfixture\"},\"created\":\"2026-01-01\",\"modified\":\"2026-01-01\",\"type\":[\"http://www.w3.org/2004/02/skos/core#ConceptScheme\"]}"
+  },
+  {
+    "id": "http://bartoc.org/en/node/990004",
+    "title_sort": "http://bartoc.org/en/node/990004",
+    "languages_ss": [
+      "en"
+    ],
+    "type_uri": [
+      "http://www.w3.org/2004/02/skos/core#ConceptScheme"
+    ],
+    "version_of_s": "http://bartoc.org/en/node/990001",
+    "start_date_i": 2018,
+    "start_date_sort_s": "2018",
+    "fullrecord": "{\"@context\":\"https://gbv.github.io/jskos/context.json\",\"uri\":\"http://bartoc.org/en/node/990004\",\"created\":\"2026-01-01\",\"modified\":\"2026-01-01\",\"type\":[\"http://www.w3.org/2004/02/skos/core#ConceptScheme\"],\"versionOf\":[{\"uri\":\"http://bartoc.org/en/node/990001\"}],\"startDate\":\"2018\",\"version\":\"1\"}"
+  },
+  {
+    "id": "http://bartoc.org/en/node/990005",
+    "title_en": "Edition family middle edition",
+    "title_sort": "Edition family middle edition",
+    "pref_labels_ss": [
+      "Edition family middle edition"
+    ],
+    "languages_ss": [
+      "en"
+    ],
+    "type_uri": [
+      "http://www.w3.org/2004/02/skos/core#ConceptScheme"
+    ],
+    "version_of_s": "http://bartoc.org/en/node/990001",
+    "start_date_i": 2020,
+    "start_date_sort_s": "2020",
+    "fullrecord": "{\"@context\":\"https://gbv.github.io/jskos/context.json\",\"uri\":\"http://bartoc.org/en/node/990005\",\"prefLabel\":{\"en\":\"Edition family middle edition\"},\"created\":\"2026-01-01\",\"modified\":\"2026-01-01\",\"type\":[\"http://www.w3.org/2004/02/skos/core#ConceptScheme\"],\"versionOf\":[{\"uri\":\"http://bartoc.org/en/node/990001\"}],\"startDate\":\"2020\"}"
+  },
+  {
+    "id": "http://bartoc.org/en/node/990006",
+    "title_en": "Edition family late edition",
+    "title_sort": "Edition family late edition",
+    "pref_labels_ss": [
+      "Edition family late edition"
+    ],
+    "languages_ss": [
+      "en"
+    ],
+    "type_uri": [
+      "http://www.w3.org/2004/02/skos/core#ConceptScheme"
+    ],
+    "version_of_s": "http://bartoc.org/en/node/990001",
+    "start_date_i": 2025,
+    "start_date_sort_s": "2025",
+    "fullrecord": "{\"@context\":\"https://gbv.github.io/jskos/context.json\",\"uri\":\"http://bartoc.org/en/node/990006\",\"prefLabel\":{\"en\":\"Edition family late edition\"},\"created\":\"2026-01-01\",\"modified\":\"2026-01-01\",\"type\":[\"http://www.w3.org/2004/02/skos/core#ConceptScheme\"],\"versionOf\":[{\"uri\":\"http://bartoc.org/en/node/990001\"}],\"startDate\":\"2025\"}"
+  },
+  {
+    "id": "http://bartoc.org/en/node/990010",
+    "title_en": "Edition family second main editionfamilyfixture",
+    "title_sort": "Edition family second main editionfamilyfixture",
+    "pref_labels_ss": [
+      "Edition family second main editionfamilyfixture"
+    ],
+    "languages_ss": [
+      "en"
+    ],
+    "type_uri": [
+      "http://www.w3.org/2004/02/skos/core#ConceptScheme"
+    ],
+    "fullrecord": "{\"@context\":\"https://gbv.github.io/jskos/context.json\",\"uri\":\"http://bartoc.org/en/node/990010\",\"prefLabel\":{\"en\":\"Edition family second main editionfamilyfixture\"},\"created\":\"2026-01-01\",\"modified\":\"2026-01-01\",\"type\":[\"http://www.w3.org/2004/02/skos/core#ConceptScheme\"]}"
+  },
+  {
+    "id": "http://bartoc.org/en/node/990011",
+    "title_en": "Edition family second edition",
+    "title_sort": "Edition family second edition",
+    "pref_labels_ss": [
+      "Edition family second edition"
+    ],
+    "languages_ss": [
+      "en"
+    ],
+    "type_uri": [
+      "http://www.w3.org/2004/02/skos/core#ConceptScheme"
+    ],
+    "version_of_s": "http://bartoc.org/en/node/990010",
+    "start_date_i": 2019,
+    "start_date_sort_s": "2019",
+    "fullrecord": "{\"@context\":\"https://gbv.github.io/jskos/context.json\",\"uri\":\"http://bartoc.org/en/node/990011\",\"prefLabel\":{\"en\":\"Edition family second edition\"},\"created\":\"2026-01-01\",\"modified\":\"2026-01-01\",\"type\":[\"http://www.w3.org/2004/02/skos/core#ConceptScheme\"],\"versionOf\":[{\"uri\":\"http://bartoc.org/en/node/990010\"}],\"startDate\":\"2019\"}"
+  },
+  {
+    "id": "http://bartoc.org/en/node/990007",
+    "version_of_s": "http://bartoc.org/en/node/990001",
+    "title_en": "Edition without date",
+    "title_sort": "Edition without date",
+    "pref_labels_ss": [
+      "Edition without date"
+    ],
+    "languages_ss": [
+      "en"
+    ],
+    "type_uri": [
+      "http://www.w3.org/2004/02/skos/core#ConceptScheme"
+    ],
+    "fullrecord": "{\"@context\":\"https://gbv.github.io/jskos/context.json\",\"uri\":\"http://bartoc.org/en/node/990007\",\"prefLabel\":{\"en\":\"Edition without date\"},\"created\":\"2026-01-01\",\"modified\":\"2026-01-01\",\"type\":[\"http://www.w3.org/2004/02/skos/core#ConceptScheme\"],\"versionOf\":[{\"uri\":\"http://bartoc.org/en/node/990001\"}]}"
   }
 ]

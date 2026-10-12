@@ -23,7 +23,9 @@
       :key="doc.id" 
       class="result-card-wrapper">
       <VocabularyCard  
-        :doc="doc" 
+        :doc="doc"
+        :editions="results.editionsByMain?.[doc.id]"
+        :parent-title="mainTitles.get(doc.version_of_s)"
         :sort="sortBy" />
     </div>
   </section>
@@ -31,7 +33,7 @@
 
 
 <script setup>
-import { toRefs, ref, watch, nextTick } from "vue"
+import { toRefs, ref, watch, nextTick, computed } from "vue"
 import VocabularyCard from "../components/VocabularyCard.vue"
 
 const props = defineProps({
@@ -43,6 +45,10 @@ const props = defineProps({
 
 // unwrap props into reactive refs
 const { results, loading, errorMessage, sort: sortBy } = toRefs(props)
+// Resolve an edition's version_of_s URI to the main record's title.
+const mainTitles = computed(() => new Map(
+  results.value.docs.map(doc => [doc.id, doc.title_en || doc.title_sort || doc.id]),
+))
 
 // store DOM nodes for each rendered card
 const cardElements = ref([]) // HTMLElement[]

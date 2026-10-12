@@ -241,6 +241,7 @@ export function transformConceptSchemeToSolr(
     notation_examples_ss: doc.notationExamples ?? [],
     notation_pattern_s: doc.notationPattern,
     start_date_i: doc.startDate ? parseInt(doc.startDate) : undefined, 
+    start_date_sort_s: doc.startDate?.trim() || undefined,
     type_uri: doc.type,
     url_s: doc.url,
     version_of_s: getDirectVersionOfUri(doc),

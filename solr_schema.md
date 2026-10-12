@@ -102,6 +102,8 @@ Each field is configured with `indexed`, `stored`, and `multiValued` attributes 
 | `ddc_label_rank3_t` | `text` |    ✓    |    ✓   |     ✓     | Labels of root DDC ancestors. |
 | `modified_dt`      | `pdate`  |    ✓    |    ✓   |      x     | Last modification timestamp (ISO 8601).                     |
 | `start_date_i`     | `pint`   |    ✓    |    ✓   |      x     | Start year (integer) of the classification.                 |
+| `start_date_sort_s` | `string` |    ✓    |    ✓   |      x     | Trimmed JSKOS `startDate`, used to order edition previews. Missing values sort last. |
+| `version_of_s`     | `string` |    ✓    |    ✓   |      x     | Direct main-record URI from `versionOf`; used to filter and group editions. |
 | `url_s`            | `string` |    ×    |    ✓   |      x     | Canonical URL for more information (not indexed).           |
 | `title_sort`       | `lc_keyword` |    ✓    |    ✓   |      x     | Sortable, un-analyzed title.                                |
 | `type_uri`         | `string` |    ✓    |    ✓   |     ✓     | SKOS/NKOS type URIs (e.g. ConceptScheme, thesaurus).        |
@@ -110,6 +112,14 @@ Each field is configured with `indexed`, `stored`, and `multiValued` attributes 
 | `allfields_trigram` | `text_trigram` | ✓ | × | ✓ | Trigram-indexed catch-all mirror of `allfields`, used as a low-boost fuzzy fallback in queries. |
 | `allfields` | `text` | ✓ | × | ✓ | Catch-all full-text field populated by copyField rules. |
 
+
+## Edition Fields and Indexing
+
+`version_of_s` stores the single direct BARTOC URI from `versionOf` (excluding self-links). Records without such a reference have no value; the default search excludes records with this field. Edition previews are grouped by it.
+
+`start_date_sort_s` stores the trimmed `startDate`. Previews sort by this field, then `id`; missing dates sort last.
+
+For an existing Solr core, update its active schema and run `npm run reindex`. A persistent core may not pick up changes to the repository configset automatically.
 
 ## DDC Enrichment Fields
 

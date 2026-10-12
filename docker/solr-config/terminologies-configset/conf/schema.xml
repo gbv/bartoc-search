@@ -175,6 +175,7 @@
 
     <!-- startDate field -->
     <field name="start_date_i" type="pint" indexed="true" stored="true"/>
+    <field name="start_date_sort_s" type="string" indexed="true" stored="true"/>
 
     <!-- subjectOf field -->
     <field name="subject_of_url_ss" type="string" indexed="false" stored="true" multiValued="true"/>

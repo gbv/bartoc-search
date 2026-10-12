@@ -22,6 +22,7 @@ import { runUpdateOnce } from "./utils/updateFromBartoc";
 import fsPromises from "node:fs/promises";
 import { parseRepeatableFilters } from "./utils/filters.ts";
 import { buildLuceneWithTrigrams } from "./utils/helpers.ts";
+import { getEditionPreviews } from "./solr/editionPreviews";
 
 // Default for workers in the queue processing system with Redis:
 //  - test → OFF
@@ -285,10 +286,20 @@ export async function createApp(opts?: {
     const rawFacetFields = solrRes.facet_counts?.facet_fields;
     const facets = parseFacetFields(rawFacetFields);
 
-    // Serialize answer for the client
+    // Edition previews are supplementary: search results remain available if this lookup fails.
+    let editionsByMain;
+    if (solrRes.response.docs.length > 0) {
+      try {
+        editionsByMain = await getEditionPreviews(solrRes.response.docs);
+      } catch (error) {
+        config.warn?.("Edition preview lookup failed:", error);
+      }
+    }
+
     res.json({
       response: solrRes.response,
-      facets
+      facets,
+      ...(editionsByMain === undefined ? {} : { editionsByMain }),
     });
 
     } catch (error) {

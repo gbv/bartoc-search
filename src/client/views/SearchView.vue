@@ -114,7 +114,7 @@ const activeFilters = state.activeFilters
 const includeVersions = computed(() => route.query.includeVersions === "true")
 
 // results & state
-const results = ref({ docs: [], numFound: 0 })
+const results = ref({ docs: [], numFound: 0, editionsByMain: {} })
 const openModalField = ref(null)
 const loading = ref(true)
 const errorMessage = ref(null)
@@ -214,7 +214,7 @@ async function fetchResults(query, opts = {}) {
     // Back/Forward uses "none" because the route has already changed.
     await updateSearchRoute(urlQuery, navigation)
 
-    const { docs, numFound, facets } = await fetchSearchResults({
+    const { docs, numFound, facets, editionsByMain } = await fetchSearchResults({
       baseQuery: base,
       filters: apiFilterList,
       limit: limit.value,
@@ -224,11 +224,13 @@ async function fetchResults(query, opts = {}) {
     if (isResultsMode) {
       results.value.docs = docs
       results.value.numFound = numFound
+      results.value.editionsByMain = editionsByMain || {}
     } else if (isAppendMode) {
       // append soltanto i nuovi record
       const newDocs = docs.slice(oldLen)
       results.value.docs.push(...newDocs)
       results.value.numFound = numFound
+      results.value.editionsByMain = editionsByMain || {}
     }
 
     results.value.facets = facets

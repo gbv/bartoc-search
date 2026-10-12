@@ -404,6 +404,39 @@ describe("GET /api/search – fuzzy/trigram integration", () => {
 });
 
 describe("GET /api/search - editions", () => {
+  it("returns three oldest editions and the total for each main record", async () => {
+    const res = await request(app)
+      .get("/api/search")
+      .query({ search: "editionfamilyfixture", field: "title_search", limit: 10 });
+
+    expect(res.status).toBe(200);
+    const previews = res.body.editionsByMain;
+    const main = "http://bartoc.org/en/node/990001";
+    const second = "http://bartoc.org/en/node/990010";
+    expect(Object.keys(previews).sort()).toEqual([main, second]);
+    expect(previews[main]).toMatchObject({
+      total: 5,
+      items: [
+        { uri: "http://bartoc.org/en/node/990004", title: "Edition grouping fixture main editionfamilyfixture 1", startDate: "2018" },
+        { uri: "http://bartoc.org/en/node/990005" },
+        { uri: "http://bartoc.org/en/node/990002" },
+      ],
+    });
+    expect(previews[second]).toMatchObject({
+      total: 1,
+      items: [{ uri: "http://bartoc.org/en/node/990011" }],
+    });
+  });
+
+  it("keeps previews when editions are separate results", async () => {
+    const res = await request(app)
+      .get("/api/search")
+      .query({ search: "editionfamilyfixture", field: "title_search", includeVersions: "true", limit: 10 });
+
+    expect(getIds(res)).toContain("http://bartoc.org/en/node/990002");
+    expect(res.body.editionsByMain?.["http://bartoc.org/en/node/990001"]?.total).toBe(5);
+  });
+
   it("excludes edition records by default", async () => {
     const res = await request(app)
       .get("/api/search")

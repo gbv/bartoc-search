@@ -20,12 +20,22 @@ export class SearchOperation extends SolrRequest {
   private _requesthandler = "";
   private _stats: boolean = false;
   private _statsField: string | null = null;
+  private _groupField: string | null = null;
+  private _groupLimit = 1;
+  private _groupSort = "";
 
   /**
    * Creates a new SearchOperation instance.
    */
   constructor() {
     super();
+  }
+
+  public groupBy(field: string, limit: number, sort: string): SearchOperation {
+    this._groupField = field;
+    this._groupLimit = limit;
+    this._groupSort = sort;
+    return this;
   }
 
   public stats(enable: boolean): SearchOperation {
@@ -151,6 +161,13 @@ export class SearchOperation extends SolrRequest {
 
     if (this._start !== undefined) {
       params.start = this._start;
+    }
+
+    if (this._groupField) {
+      params.group = true;
+      params["group.field"] = this._groupField;
+      params["group.limit"] = this._groupLimit;
+      params["group.sort"] = this._groupSort;
     }
 
     if (this._stats) {

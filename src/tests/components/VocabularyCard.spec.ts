@@ -16,7 +16,7 @@ const fontAwesomeIconStub = {
   template: "<span class=\"icon-stub\" />",
 }
 
-function mountVocabularyCard(doc = {}) {
+function mountVocabularyCard(doc = {}, editions?: object, parentTitle?: string) {
   return mount(VocabularyCard, {
     props: {
       doc: {
@@ -27,6 +27,8 @@ function mountVocabularyCard(doc = {}) {
         ...doc,
       },
       lang: "en",
+      editions,
+      parentTitle,
     },
     global: {
       stubs: {
@@ -41,6 +43,42 @@ afterEach(() => {
 })
 
 describe("VocabularyCard", () => {
+  it("shows edition links and a link to the full list", () => {
+    const wrapper = mountVocabularyCard({}, {
+      total: 4,
+      items: [
+        { uri: "http://bartoc.org/en/node/2", title: "First edition", startDate: "2018" },
+        { uri: "http://bartoc.org/en/node/3", title: "Second edition" },
+        { uri: "http://bartoc.org/en/node/4", title: "Third edition" },
+      ],
+    })
+
+    expect(wrapper.text()).toContain("Editions (4)")
+    expect(wrapper.get('a[href="http://dev.bartoc.org/en/node/2"]').text())
+      .toBe("First edition (2018)")
+    expect(wrapper.text()).toContain("Third edition")
+    expect(wrapper.get('a[href="http://dev.bartoc.org/en/node/1#editions"]').text())
+      .toBe("View all 4 editions")
+  })
+
+  it("omits the full-list link when all editions are shown", () => {
+    const wrapper = mountVocabularyCard({}, {
+      total: 1,
+      items: [{ uri: "http://bartoc.org/en/node/2", title: "Only edition" }],
+    })
+    expect(wrapper.text()).not.toContain("View all")
+  })
+
+  it("links an edition to its main record", () => {
+    const wrapper = mountVocabularyCard({
+      version_of_s: "http://bartoc.org/en/node/10",
+    }, undefined, "Example main")
+
+    expect(wrapper.text()).toContain("Edition of:")
+    expect(wrapper.get('a[href="http://dev.bartoc.org/en/node/10"]').text())
+      .toBe("Example main")
+  })
+
   it("shows NKOS type tooltips from JSKOS concept data", () => {
     setKosTypeDefinitions({
       "http://w3id.org/nkos/nkostype#thesaurus": {

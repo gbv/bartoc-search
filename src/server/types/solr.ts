@@ -122,6 +122,7 @@ export interface SolrDocument
   subject_of_url_ss?: string[];
   subject_of_host_ss?: string[];
   start_date_i?: number;
+  start_date_sort_s?: string;
   title_sort?: string;
   type_uri: string[];
   url_s?: string;

@@ -219,6 +219,13 @@ All query parameters are optional.
 | **order**       | `string` | `desc`       | Sort direction: `asc` or `desc`.                                                             |
 | **start**       | `number` | `0`          | Zero-based index of first result to return (for paging).                                     |
 | **filter**      | `string` |  -           | Facet filters as `filter=<publicKey>:<csvValues>`. Repeat for multiple facets. See the public facet keys in [Solr schema](solr_schema.md#public-facet-keys). |
+| **includeVersions** | `string` | `false` | Set to `true` to include editions as separate search results. |
+
+#### Editions in search results
+
+By default, editions (`versionOf`) are excluded from search results. Set `includeVersions=true` to show them separately; this also changes `response.numFound` and facet counts.
+
+`editionsByMain[mainUri]` adds `{ total, items }` for main records on the current page. `items` lists up to three editions, even if they do not match the query or filters. These previews do not affect result counts. The field is omitted when no results are returned or its lookup fails.
 
 #### Faceted filtering with repeatable `filter=` param
 
@@ -299,124 +306,33 @@ This is intended for UI interactions (e.g., expanding a facet to load all choice
 
 #### Example of Response
 
+Abbreviated example (other document fields omitted):
+
 ```json
 {
-  "responseHeader": {
-    "status": 0,
-    "QTime": 0,
-    "params": {
-      "q": "allfields:(\"Film\"^3)",
-      "defType": "lucene",
-      "start": "0",
-      "sort": "modified_dt desc",
-      "rows": "10",
-      "wt": "json"
+  "response": { "numFound": 1, "start": 0, "docs": [{ "id": "http://bartoc.org/en/node/20002" }] },
+  "facets": {},
+  "editionsByMain": {
+    "http://bartoc.org/en/node/20002": {
+      "total": 1,
+      "items": [{ "uri": "http://bartoc.org/en/node/10001", "title": "Example thesaurus (2004)", "startDate": "2004" }]
     }
-  },
-  "response": {
-    "numFound": 3684,
-    "start": 0,
-    "numFoundExact": true,
-    "docs": [
-      {
-        "alt_labels_ss": [
-          "Klassifikation för litteraturvetenskap",
-          "estetik",
-          "teatervetenskap",
-          "film- och televisionsforskning",
-          "Classification for comparative literature",
-          "aesthetics",
-          "theatre research",
-          "film and television studies"
-        ],
-        "created_dt": "2015-04-17T14:19:00Z",
-        "ddc_ss": [
-          "7",
-          "790",
-          "80"
-        ],
-        "ddc_root_ss": [
-          "7",
-          "8",
-        ],
-        "id": "http://bartoc.org/en/node/1297",
-        "languages_ss": [
-          "en",
-          "fi",
-          "sv"
-        ],
-        "listed_in_ss": [
-          "http://bartoc.org/en/node/241",
-          "http://bartoc.org/en/node/241",
-          "http://bartoc.org/en/node/241",
-        ],
-        "modified_dt": "2025-07-14T14:00:00.900Z",
-        "publisher_id": "http://viaf.org/viaf/126520961",
-        "publisher_label": "Helsingin yliopisto, Kirjasto",
-        "subject_uri": [
-          "http://dewey.info/class/7/e23/",
-          "http://dewey.info/class/790/e23/",
-          "http://dewey.info/class/80/e23/"
-        ],
-        "subject_notation": [
-          "7",
-          "790",
-          "80"
-        ],
-        "subject_scheme": [
-          "http://bartoc.org/en/node/241",
-          "http://bartoc.org/en/node/241",
-          "http://bartoc.org/en/node/241"
-        ],
-        "type_uri": [
-          "http://www.w3.org/2004/02/skos/core#ConceptScheme",
-          "http://w3id.org/nkos/nkostype#classification_schema"
-        ],
-        "title_en": "Shelf Rating of Literary Research, Aesthetics, Theater Science, Film and Television Research",
-        "title_sort": "Shelf Rating of Literary Research, Aesthetics, Theater Science, Film and Television Research",
-        "description_en": "Subject-specific classification scheme used by the University of Helsinki Library for literary studies, aesthetics, theatre research, film and television studies.",
-        "title_und": "Kirjallisuudentutkimuksen, estetiikan, teatteritieteen, elokuva- ja televisiotutkimuksen hyllyluokitus",
-        "_version_": 1837876396177752000
-      },
-      // …more documents…
-    ]
-  },
-  "facet_counts": {
-  "facet_queries":  {},
-  "facet_fields": {
-    "format_group_ss": [
-      "PDF", 1024,
-      "Online", 2287,
-      "RDF",  629,
-      …
-    ],
-    "license_group_ss": [
-      "CC BY", 211,
-      "Public Domain", 210,
-      "CC BY-ND", 84,
-      …
-    ]
-  },
-  "facet_ranges":    {},
-  "facet_intervals": {},
-  "facet_heatmaps":  {}
+  }
 }
 ```
 
 ##### Response fields
 
-The API returns Solr response metadata plus matching Solr documents. Document fields are documented once in [Solr schema](solr_schema.md#field-definitions); this section only describes the response envelope.
+The API returns matching Solr documents and parsed facet buckets. Document fields are documented in [Solr schema](solr_schema.md#field-definitions); this section describes the response envelope.
 
 | Field                    | Type    | Description                                           |
 | ------------------------ | ------- | ----------------------------------------------------- |
-| `responseHeader.status`  | integer | Solr execution status (0 = success).                  |
-| `responseHeader.QTime`   | integer | Query execution time in milliseconds.                 |
-| `responseHeader.params`  | object  | Echoes back the parameters used for the query.        |
 | `response.numFound`      | integer | Total number of matching documents.                   |
 | `response.start`         | integer | Offset into the result set.                           |
 | `response.numFoundExact` | boolean | Indicates if `numFound` is an exact count.            |
 | `response.docs`          | array   | Matching Solr documents. See [Solr schema](solr_schema.md#field-definitions). |
-| `facet_counts.facet_fields` | object | Facet buckets keyed by Solr field; each bucket alternates value and count. |
+| `facets`                | object  | Facet buckets keyed by Solr field; each bucket contains `{ value, count }` objects. |
+| `editionsByMain`        | object  | Optional edition groups keyed by main-record URI, each with `total` and up to three `items`. |
 
 
 
@@ -579,6 +495,7 @@ Configure the dump source with the `BARTOC_DUMP` environment variable. For local
 
 The Solr index fields, copy fields, and public facet-key mapping are documented in [solr_schema.md](solr_schema.md). The runtime Solr configuration lives in `docker/solr-config/terminologies-configset/conf/schema.xml`.
 
+Existing Solr cores need the updated active schema and a reindex (`npm run reindex`) for edition search. Updating the repository configset alone may not change a persistent core. See [Edition fields and indexing](solr_schema.md#edition-fields-and-indexing).
 #### Troubleshooting
 
 - **Core never appears / persistent 503**

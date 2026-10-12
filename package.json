@@ -35,7 +35,6 @@
     "@bull-board/api": "^6.21.3",
     "@bull-board/express": "^6.21.3",
     "@eslint/js": "^9.24.0",
-    "@faker-js/faker": "^9.7.0",
     "@testcontainers/mongodb": "^11.7.1",
     "@tsconfig/node20": "^20.1.5",
     "@types/compression": "^1.7.5",
