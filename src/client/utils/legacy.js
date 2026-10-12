@@ -119,10 +119,9 @@ const pushUnique = (array, value) => {
 }
 
 /**
- * Split legacy `subject` query values into DDC roots and arbitrary subject URIs.
+ * Split legacy `subject` query values into full DDC notations and arbitrary subject URIs.
  *
- * DDC URIs are mapped to their root class because the current DDC facet works
- * on top-level classes, e.g. `http://dewey.info/class/577/e23/` becomes `5`.
+ * Preserve leading zeros: `http://dewey.info/class/020/e23/` becomes `020`.
  *
  * Non-DDC HTTP URIs are kept as subject URIs so they can be searched in the
  * `subject_uri` Solr field.
@@ -136,7 +135,7 @@ export function splitSubjectParam(rawSubject) {
     const ddcMatch = DDC_URI_PATTERN.exec(uri)
 
     if (ddcMatch) {
-      pushUnique(ddc, ddcMatch[1]?.slice(0, 1))
+      pushUnique(ddc, ddcMatch[1])
     } else if (HTTP_URI_PATTERN.test(uri)) {
       pushUnique(subjectUris, uri)
     }

@@ -197,7 +197,7 @@ Returns the discovery interface in form of an HTML page based on VueJS. The page
 | `country`| `?country=Italy` or `?country=Italy,Germany`| `filter=country:<labels>` | Verbatim country labels; multiple allowed |
 | `type` | `?type=http://w3id.org/nkos/nkostype#thesaurus` | `filter=type:<uri(s)>` | NKOS/SKOS type URIs; multiple allowed |
 | `access` | `?access=http://bartoc.org/en/Access/Free` | `filter=access:<uri(s)>` | Access policy URIs; multiple allowed |
-| `subject` | `?subject=http://dewey.info/class/3/e23/` | `filter=ddc:3` | DDC URIs are normalized to their root digit. Pipes/commas supported |
+| `subject` | `?subject=http://dewey.info/class/020/e23/` | `filter=ddc:020` | Full DDC notation is preserved, including leading zeros. Pipes/commas supported |
 | `license` | `?license=http://creativecommons.org/licenses/by/4.0/` | `filter=license:<group>` | Exact URI is always applied; if known, its group (e.g. “Apache-2.0”, “CC BY”) is also added as a facet filter |
 
 Multiple values in legacy parameters can be separated with both `|` and `,`, for instance`?languages=it,en` and `?subject=http://dewey.info/class/3/e23/|http://dewey.info/class/6/e23/`. Trailing separators are ignored.

@@ -4,9 +4,9 @@ import { describe, it, expect, vi } from "vitest"
 import { splitSubjectParam, normalizeLegacyQueryFromRoute } from "../../client/utils/legacy"
 
 describe("splitSubjectParam", () => {
-  it("maps DDC subject URIs to DDC root notation", () => {
-    expect(splitSubjectParam("http://dewey.info/class/577/e23/")).toEqual({
-      ddc: ["5"],
+  it("keeps the full DDC notation, including leading zeros", () => {
+    expect(splitSubjectParam("http://dewey.info/class/020/e23/")).toEqual({
+      ddc: ["020"],
       subjectUris: [],
     })
   })
@@ -26,7 +26,7 @@ describe("splitSubjectParam", () => {
         "http://dewey.info/class/577/e23/|http://uri.gbv.de/terminology/bk/42.90",
       ),
     ).toEqual({
-      ddc: ["5"],
+      ddc: ["577"],
       subjectUris: ["http://uri.gbv.de/terminology/bk/42.90"],
     })
   })
@@ -37,7 +37,7 @@ describe("splitSubjectParam", () => {
         "http://dewey.info/class/577/e23/|http://dewey.info/class/577/e23/",
       ),
     ).toEqual({
-      ddc: ["5"],
+      ddc: ["577"],
       subjectUris: [],
     })
   })
@@ -74,14 +74,14 @@ describe("normalizeLegacyQueryFromRoute", () => {
   it("rewrites DDC subject URIs to a DDC filter", async () => {
     const router = makeRouter()
     const expected = {
-      filter: "ddc:5",
+      filter: "ddc:020",
     }
 
     await expect(
       normalizeLegacyQueryFromRoute(
         {
           name: "search",
-          query: { subject: "http://dewey.info/class/577/e23/" },
+          query: { subject: "http://dewey.info/class/020/e23/" },
         },
         router,
       ),
@@ -100,7 +100,7 @@ describe("normalizeLegacyQueryFromRoute", () => {
       sort: "relevance",
       search: "http://uri.gbv.de/terminology/bk/42.90",
       field: "subject_uri",
-      filter: "ddc:5",
+      filter: "ddc:577",
     }
 
     await expect(
