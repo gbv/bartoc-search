@@ -172,11 +172,9 @@ function trigramFieldQuery(field: string, value: string, boost: number, minimumM
  * - Always keep `baseLucene` unchanged (exact matches rank highest).
  * - For global searches, boost exact matches in compact identifier-like
  *   fields such as `notation_ss`, `alt_labels_ss`, and `bartoc_id_s`.
- * - For global simple queries (no quotes/operators, length ≥ 3), add generated
- *   3-character grams to:
- *     title_trigram:<grams>^0.6
- *   and:
- *     allfields_trigram:<grams>^0.25
+ * - For simple global queries (no quotes/operators, length ≥ 3), search
+ *   `title_trigram` and `allfields_trigram`.
+ * - For simple title queries, search only `title_trigram`.
  * - Returns `{ q, defType: "lucene" }`.
  *
  * Inputs
@@ -210,28 +208,25 @@ export function buildLuceneWithTrigrams(opts: {
   const value = (userQuery ?? "").trim();
   const multiWord = value.split(/[^\p{L}\p{N}]+/u).filter(Boolean).length > 1;
 
-  // This is the core safety gate:
-  // - global search may use typo-tolerant fallback;
-  // - field-specific search stays strict;
-  // - advanced Lucene-like syntax is left untouched.
-  const useGlobalFallback = isSimpleUserQuery(value) && wantsGlobalSearch(baseField);
-
-  if (!useGlobalFallback) {
-    // Returning the base query unchanged keeps field-specific and advanced
-    // searches predictable, and avoids decorative parentheses in tests/logs.
+  // Allow fuzzy matching within global or title searches. Other fields and
+  // advanced Lucene-like queries keep their original strict behavior.
+  const isGlobalSearch = wantsGlobalSearch(baseField);
+  const isTitleSearch = /^title_search$/i.test(baseField.trim());
+  if (!isSimpleUserQuery(value) || (!isGlobalSearch && !isTitleSearch)) {
     return { q: baseLucene, defType: "lucene" };
   }
 
   // Always keep base query intact (exact/phrase matches get priority).
   const parts: string[] = [`(${baseLucene})`];
 
-  // Short labels, notations, and ids often act as direct lookup keys.
-  // Give exact matches there enough weight to beat incidental text matches.
-  parts.push(`(${[
-    exactFieldQuery("notation_ss", value, EXACT_ABBREVIATION_BOOST),
-    exactFieldQuery("alt_labels_ss", value, EXACT_ABBREVIATION_BOOST),
-    exactFieldQuery("bartoc_id_s", value, EXACT_ABBREVIATION_BOOST),
-  ].join(" OR ")})`);
+  if (isGlobalSearch) {
+    // Short labels, notations, and ids are direct lookup keys in global search.
+    parts.push(`(${[
+      exactFieldQuery("notation_ss", value, EXACT_ABBREVIATION_BOOST),
+      exactFieldQuery("alt_labels_ss", value, EXACT_ABBREVIATION_BOOST),
+      exactFieldQuery("bartoc_id_s", value, EXACT_ABBREVIATION_BOOST),
+    ].join(" OR ")})`);
+  }
 
   const trigramBits: string[] = [];
   // Prefer the title trigram a bit so title matches float higher than a fuzzy
@@ -244,7 +239,7 @@ export function buildLuceneWithTrigrams(opts: {
 
   // allfields_trigram is useful for recall, but low-boosted because it can
   // match many copied fields and should not outrank cleaner title matches.
-  if (includeAllfieldsTrigrams) {
+  if (isGlobalSearch && includeAllfieldsTrigrams) {
     const allfieldsTrigram = trigramFieldQuery(
       "allfields_trigram", value, ALLFIELDS_TRIGRAM_BOOST,
       multiWord ? MULTI_WORD_MM : SINGLE_WORD_ALLFIELDS_MM,

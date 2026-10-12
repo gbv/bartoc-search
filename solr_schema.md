@@ -210,9 +210,9 @@ This boost is not used for field-specific searches such as `title_search` or
 
 ## Fuzzy search via character trigrams (baseline)
 
-A small, safe way to make global search resilient to typos. We add two trigram fields in Solr and a tiny bit of query glue on the server. Exact matches still win; trigrams are a soft fallback so users don’t get zero results for small mistakes.
+Character trigrams make global and title searches resilient to typos. Exact matches still rank highest; trigram matches can recover small mistakes.
 
-Trigram fallback is used only for global search (`allfields`). Field-specific searches such as `title_search` and `subject_notation` stay strict.
+Global search (`allfields`) uses title and all-fields trigrams. Title search (`title_search`) uses only title trigrams. Other field-specific searches, such as `subject_notation`, stay strict.
 
 #### Why trigrams?
 
@@ -256,16 +256,17 @@ OR
 
 - The first part boosts the exact phrase or requires all words in any order.
 - The server sends generated 3-character grams to the trigram fields.
-- The second part kicks in only for simple global queries. eDisMax requires 90% gram overlap for multi-word input. For one word it requires 50% in titles and 75% in all fields.
+- The trigram part applies to simple global queries and, using only `title_trigram`, to simple title queries. eDisMax requires 90% gram overlap for multi-word input. For one word it requires 50% in titles and 75% in all fields.
 
 
-**Enabled** for: typos and simple text in global search, e.g.  
+**Enabled** for: typos and simple text in global or title search, e.g.
+
 `Clasification`, `italain`, `deutsch land` (length ≥ 3, no Lucene syntax).
 
 **Disabled** for: power-user cases, e.g.  
 `title:"film noir"`, `api:*`, `foo AND bar`, `type:thesaurus`, or very short inputs like `it`.
 
-**Also disabled** for field-specific searches, e.g. `field=title_search`.
+**Also disabled** for other field-specific searches, e.g. `field=subject_notation`.
 
 #### Tuning notes
 

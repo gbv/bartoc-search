@@ -52,16 +52,17 @@ it("does not add abbreviation boosts to title-only search", () => {
   expect(out.q).not.toMatch(/notation_ss/);
   expect(out.q).not.toMatch(/alt_labels_ss/);
   expect(out.q).not.toMatch(/bartoc_id_s/);
-  expect(out.q).not.toMatch(/trigram/);
+  expect(out.q).toMatch(/qf=title_trigram/);
+  expect(out.q).not.toMatch(/allfields_trigram/);
 });
 
-it("does not add trigram fallback to field-specific search", () => {
+it("keeps other field-specific searches strict", () => {
   const out = buildLuceneWithTrigrams({
     userQuery: "Clasification",
-    baseField: "title_search",
-    baseLucene: '(title_search:("Clasification"^3))'
+    baseField: "subject_notation",
+    baseLucene: '(subject_notation:("Clasification"^3))'
   });
-  expect(out.q).toBe('(title_search:("Clasification"^3))');
+  expect(out.q).toBe('(subject_notation:("Clasification"^3))');
 });
 
 it("skips trigram for advanced query", () => {

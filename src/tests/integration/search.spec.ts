@@ -289,7 +289,7 @@ describe("GET /api/search — DDC routing via filter=ddc:", () => {
 
 // --- Fuzzy / trigram integration
 describe("GET /api/search – fuzzy/trigram integration", () => {
-  it('keeps typo "Clasification" strict for title_search', async () => {
+  it('recovers typo "Clasification" in title_search', async () => {
     const limit = 25;
 
     // Baseline: correctly spelled
@@ -318,8 +318,8 @@ describe("GET /api/search – fuzzy/trigram integration", () => {
       });
 
     expect(typo.status).toBe(200);
-    expect(typo.body.response?.numFound ?? 0).toBe(0);
-
+    expect(typo.body.response?.numFound ?? 0).toBeGreaterThan(0);
+    expect(getIds(typo)).toContain(getIds(good)[0]);
   });
 
   it('trigram gate: very short/advanced queries don’t crash (and may not fuzz)', async () => {
