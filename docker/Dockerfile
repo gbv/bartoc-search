@@ -82,6 +82,7 @@ COPY --from=build /usr/src/app/src/server ./src/server
 # If you mount /data or /config at runtime, those mounts will override these.
 COPY --from=build /usr/src/app/data ./data
 COPY --from=build /usr/src/app/config ./config
+COPY --from=build /usr/src/app/docker/solr-config/terminologies-configset ./docker/solr-config/terminologies-configset
 
 # Expose the HTTP port used by the app.
 EXPOSE 3883
