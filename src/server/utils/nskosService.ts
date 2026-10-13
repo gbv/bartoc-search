@@ -9,16 +9,14 @@ type JskosConcept = {
   [key: string]: unknown;
 };
 
-const NKOS_TYPES_ARTIFACT = path.join(
-  process.cwd(),
+const NKOS_TYPES_ARTIFACT = path.resolve(
   config.DATA_DIR,
   "artifacts",
   "current",
   "nkos-type-definitions.json",
 );
 
-const NKOS_TYPES_META = path.join(
-  process.cwd(),
+const NKOS_TYPES_META = path.resolve(
   config.DATA_DIR,
   "artifacts",
   "nkosTypes.last.json",
