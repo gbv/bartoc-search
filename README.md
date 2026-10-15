@@ -214,6 +214,7 @@ All query parameters are optional.
 | Name            | Type     |  Default     | Description                                                                                  |
 | --------------- | -------- |  ----------- | -------------------------------------------------------------------------------------------- |
 | **search**      | `string` |  —           | Full-text search terms (e.g. `Film`).                                                        |
+| **field**       | `string` | `allfields` | Search field selected in the dropdown. With `publisher_en`, an HTTP(S) URI is matched against `publisher_uri_ss` instead of the publisher name. |
 | **limit**       | `number` | `10`         | Maximum number of results to return.                                                         |
 | **sort**        | `string` | `relevance`  | Sort field (e.g. `relevance`, `created`, `modified`).                                        |
 | **order**       | `string` | `desc`       | Sort direction: `asc` or `desc`.                                                             |

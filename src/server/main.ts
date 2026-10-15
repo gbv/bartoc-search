@@ -185,16 +185,12 @@ export async function createApp(opts?: {
     const searchText = String(search ?? "");
     const searchField = String(field ?? "").trim() || "allfields";
 
-    // Building the query
-    // 1) Build the *base* Lucene query from the user text.
-    //    - `search`: raw user input (string)
-    //    - `field`: which field to search in (e.g. "allfields", "title_search")
-    //    - The numbers (3, 2) are weights/params used by your builder (e.g. phrase vs. terms).
-    //    - require all words for multi-word searches; boost an exact phrase match.
-    const base = LuceneQuery.fromText(searchText, searchField, 3, 2).operator("AND");
-
-    // Convert to a final Lucene string for Solr.
-    const baseLucene = base.toString();
+    // Search publisher URIs exactly when Publisher is selected in the search field menu.
+    const publisherUriSearch = searchField === "publisher_en" &&
+      /^https?:\/\//i.test(searchText.trim());
+    const baseLucene = publisherUriSearch
+      ? new SearchFilter("publisher_uri_ss").equals(searchText.trim()).toHttpQueryStringParameter()
+      : LuceneQuery.fromText(searchText, searchField, 3, 2).operator("AND").toString();
 
     // 2) Compose the base query with *trigram* fields (fuzzy char n-grams)
     const { q, defType } = buildLuceneWithTrigrams({

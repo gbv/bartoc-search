@@ -137,6 +137,24 @@ describe("GET /api/search", () => {
     }
   });
 
+  it("searches the Publisher field by name or URI", async () => {
+    const byName = await request(app).get("/api/search").query({
+      search: "National Library of Australia",
+      field: "publisher_en",
+      limit: 20,
+    });
+    const byUri = await request(app).get("/api/search").query({
+      search: "http://viaf.org/viaf/136194678",
+      field: "publisher_en",
+      limit: 20,
+    });
+
+    expect(byName.status).toBe(200);
+    expect(byUri.status).toBe(200);
+    expect(getIds(byName)).toEqual(["http://bartoc.org/en/node/10"]);
+    expect(getIds(byUri)).toEqual(getIds(byName));
+  });
+
   it("searches by subject notation", async () => {
     const res = await request(app)
       .get("/api/search")
