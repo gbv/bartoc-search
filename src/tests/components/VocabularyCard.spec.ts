@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 
 import { mount } from "@vue/test-utils"
-import { afterEach, describe, expect, it } from "vitest"
+import { afterEach, beforeEach, describe, expect, it } from "vitest"
 import VocabularyCard from "../../client/components/VocabularyCard.vue"
 // @ts-ignore - JS client utility has no TypeScript declaration
 import * as kosTypeDefinitions from "../../client/constants/kosTypeDefinitions"
@@ -38,11 +38,120 @@ function mountVocabularyCard(doc = {}, editions?: object, parentTitle?: string) 
   })
 }
 
+beforeEach(() => {
+  setKosTypeDefinitions({})
+})
+
 afterEach(() => {
   resetKosTypeDefinitions()
 })
 
 describe("VocabularyCard", () => {
+  it.each([
+    ["1056", "fr", "Plan de Classification des Documents", "Description française."],
+    ["1061", "de", "Musteraktenplan für Schulgemeinden", "Deutsche Beschreibung."],
+  ])("shows the %s JSKOS label and definition when English is absent", (id, lang, label, definition) => {
+    const uri = `http://bartoc.org/en/node/${id}`
+    const wrapper = mountVocabularyCard({
+      id: uri,
+      fullrecord: JSON.stringify({
+        uri,
+        prefLabel: { [lang]: label },
+        definition: { [lang]: [definition] },
+      }),
+    })
+
+    expect(wrapper.get(".result-title a").text()).toBe(label)
+    expect(wrapper.get(".result-description").text()).toBe(definition)
+  })
+
+  it("omits the description when the JSKOS record has none", () => {
+    const uri = "http://bartoc.org/en/node/1"
+    const wrapper = mountVocabularyCard({
+      fullrecord: JSON.stringify({ uri, prefLabel: { en: "Basic Classification" }, notation: ["BK"] }),
+    })
+
+    expect(wrapper.get(".result-title a").text()).toBe("Basic Classification (BK)")
+    expect(wrapper.find(".result-description").exists()).toBe(false)
+  })
+
+  it.each([
+    [{ en: "Basic Classification (BK)" }, undefined, "Basic Classification (BK)"],
+    [{ en: "Basic Classification" }, { hideNotation: true }, "Basic Classification"],
+  ])("does not repeat or reveal hidden notation", (prefLabel, display, expected) => {
+    const wrapper = mountVocabularyCard({
+      fullrecord: JSON.stringify({
+        uri: "http://bartoc.org/en/node/1",
+        prefLabel,
+        notation: ["BK"],
+        DISPLAY: display,
+      }),
+    })
+
+    expect(wrapper.get(".result-title a").text()).toBe(expected)
+  })
+
+  it("shows JSKOS language names and unknown language codes", () => {
+    const wrapper = mountVocabularyCard({
+      languages_ss: ["de"],
+      fullrecord: JSON.stringify({
+        uri: "http://bartoc.org/en/node/1",
+        prefLabel: { en: "Example vocabulary" },
+        languages: ["en", "fr", "xyz"],
+      }),
+    })
+
+    expect(wrapper.text()).toContain("Languages: English, French, xyz")
+    expect(wrapper.text()).not.toContain("Language: German")
+  })
+
+  it("uses the singular language label and Solr fallback when fullrecord is unavailable", () => {
+    const wrapper = mountVocabularyCard({ fullrecord: "{", languages_ss: ["it"] })
+
+    expect(wrapper.text()).toContain("Language: Italian")
+  })
+
+  it("shows publisher names from JSKOS ahead of Solr labels", () => {
+    const wrapper = mountVocabularyCard({
+      publisher_labels_ss: ["Stale publisher"],
+      fullrecord: JSON.stringify({
+        uri: "http://bartoc.org/en/node/1",
+        prefLabel: { en: "Example vocabulary" },
+        publisher: [
+          { prefLabel: { en: "First publisher" } },
+          { prefLabel: { en: "Second publisher" } },
+        ],
+      }),
+    })
+
+    expect(wrapper.text()).toContain("Published by First publisher, Second publisher")
+    expect(wrapper.text()).not.toContain("Stale publisher")
+  })
+
+  it.each(["{}", "{"])("uses Solr fields when fullrecord is unusable: %s", (fullrecord) => {
+    const wrapper = mountVocabularyCard({ fullrecord, publisher_labels_ss: ["Solr publisher"] })
+
+    expect(wrapper.get(".result-title a").text()).toBe("Example vocabulary")
+    expect(wrapper.get(".result-description").text()).toBe("A short description.")
+    expect(wrapper.text()).toContain("Published by Solr publisher")
+  })
+
+  it("updates the Solr title fallback when the document changes", async () => {
+    const wrapper = mountVocabularyCard({ fullrecord: "{}" })
+
+    await wrapper.setProps({
+      doc: {
+        id: "http://bartoc.org/en/node/2",
+        title_en: "Updated vocabulary",
+        definition_en: ["Updated description."],
+        fullrecord: "{}",
+      },
+    })
+
+    expect(wrapper.get(".result-title a").text()).toBe("Updated vocabulary")
+    expect(wrapper.get(".result-description").text()).toBe("Updated description.")
+  })
+
   it("shows edition links and a link to the full list", () => {
     const wrapper = mountVocabularyCard({}, {
       total: 4,

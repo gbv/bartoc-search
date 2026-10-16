@@ -2,10 +2,18 @@
   <div class="result-card">
     <h2 class="result-title">
       <a :href="titleHref">
-        {{ title }}
+        <template v-if="jskosRecord">
+          <ItemName
+            :item="jskosRecord"
+            :language="lang"
+            :show-notation="false"
+            :draggable="false" />
+          <span v-if="titleNotation"> ({{ titleNotation }})</span>
+        </template>
+        <template v-else>{{ fallbackTitle }}</template>
       </a>
       <a
-        v-if="doc.api_url_ss?.length"
+        v-if="jskosRecord?.API?.length || doc.api_url_ss?.length"
         class="api-link"
         :href="titleHref + '#content'">Content</a>
     </h2>
@@ -15,10 +23,8 @@
       {{ shortDescription }}
     </p>
     <ul class="result-details">
-      <li v-if="typeItems.length || doc.languages_ss?.length">
-        <strong
-          v-if="typeItems.length"
-          class="kos-type-list">
+      <li v-if="typeItems.length">
+        <strong class="kos-type-list">
           <template
             v-for="(type, index) in typeItems"
             :key="type.uri || type.label">
@@ -37,15 +43,16 @@
             </span><span v-if="index < typeItems.length - 1">, </span>
           </template>
         </strong>
-        <span v-if="doc.languages_ss?.length">
-          ({{ doc.languages_ss.join(', ') }})
-        </span>
+      </li>
+      <li v-if="languageCodes.length">
+        <strong>{{ languageCodes.length === 1 ? 'Language' : 'Languages' }}:</strong>
+        {{ languageLabels.join(', ') }}
       </li>
       <li v-if="subjectList.length">
         <strong>Subjects:</strong> {{ subjectList.join(', ') }}
       </li>
-      <li v-if="doc.publisher_labels_ss">
-        <strong>Published by </strong> {{ doc.publisher_labels_ss[0] }}
+      <li v-if="publisherLabels.length">
+        <strong>Published by</strong> {{ publisherLabels.join(', ') }}
       </li>
     </ul>
     <p
@@ -97,6 +104,9 @@
 <script setup lang="js">
 import { SupportedLang } from "../types/lang.js"
 import { computed, onMounted } from "vue"
+import { ItemName } from "jskos-vue"
+import * as jskos from "jskos-tools"
+import SUPPORTED_LANGUAGES from "../../../data/supported_languages.json"
 import {
   ensureKosTypeDefinitions,
   getKosTypeDescription,
@@ -148,16 +158,68 @@ onMounted(() => {
 /** @type {Object.<string, any>} */
 const rawDoc = props.doc || {}
 
-// Computed values for display
-const title = computed(() => rawDoc[`title_${props.lang ?? "en"}`] || rawDoc.id)
+// Read the indexed JSKOS record.
+const jskosRecord = computed(() => {
+  if (typeof props.doc?.fullrecord !== "string") {
+    return null
+  }
 
-// Showing the english description by default
-// TODO: searching for the description available, in not in english?
-const description = computed(
-  () => rawDoc[`definition_${props.lang ?? "en"}`] ?
-    rawDoc[`definition_${props.lang ?? "en"}`][0] :
-    "No description available.",
+  try {
+    const record = JSON.parse(props.doc.fullrecord)
+    return typeof record?.uri === "string" && record.uri.trim() ? record : null
+  } catch {
+    return null
+  }
+})
+
+// Put notation after the label, e.g. "Basic Classification (BK)".
+// Respect the display flag and avoid adding it twice.
+const titleNotation = computed(() => {
+  const record = jskosRecord.value
+  if (!record || record.DISPLAY?.hideNotation) {
+    return ""
+  }
+
+  const notation = jskos.notation(record)
+  const label = jskos.prefLabel(record, { language: props.lang }) || ""
+  return notation && !label.toLowerCase().includes(`(${notation.toLowerCase()})`)
+    ? notation
+    : ""
+})
+
+// use the Solr title if it is missing or invalid.
+const fallbackTitle = computed(() =>
+  props.doc?.[`title_${props.lang ?? "en"}`] || props.doc?.id || "",
 )
+
+// Prefer JSKOS; use the Solr definition only if fullrecord cannot be read.
+const description = computed(() => {
+  const definitions = jskosRecord.value
+    ? jskos.definition(jskosRecord.value, { language: props.lang })
+    : props.doc?.[`definition_${props.lang}`]
+  return asStringArray(definitions)[0]?.trim() || ""
+})
+
+// Use Solr language codes only when the JSKOS record is unavailable.
+const languageCodes = computed(() => asStringArray(
+  jskosRecord.value ? jskosRecord.value.languages : props.doc?.languages_ss,
+))
+
+// Show readable names when available and retain unknown codes as a fallback.
+const languageLabels = computed(() => languageCodes.value.map(code =>
+  SUPPORTED_LANGUAGES[code] || code,
+))
+
+// Prefer publisher names from JSKOS, falling back to Solr labels if needed.
+const publisherLabels = computed(() => {
+  const publishers = Array.isArray(jskosRecord.value?.publisher)
+    ? jskosRecord.value.publisher
+    : []
+  const labels = publishers.flatMap(publisher =>
+    asStringArray(jskos.prefLabel(publisher, { language: props.lang })),
+  )
+  return labels.length ? labels : asStringArray(props.doc?.publisher_labels_ss)
+})
 
 // Legacy fallback labels already denormalized into the Solr document.
 const typeLabel = computed(() => {
