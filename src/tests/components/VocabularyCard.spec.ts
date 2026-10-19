@@ -1,10 +1,16 @@
 // @vitest-environment happy-dom
 
 import { mount } from "@vue/test-utils"
-import { afterEach, beforeEach, describe, expect, it } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import VocabularyCard from "../../client/components/VocabularyCard.vue"
 // @ts-ignore - JS client utility has no TypeScript declaration
 import * as kosTypeDefinitions from "../../client/constants/kosTypeDefinitions"
+
+vi.mock("../../client/constants/facetFieldLabels.js", () => ({
+  FACET_FIELD_LABELS: {
+    access_type_ss: { values: { "http://bartoc.org/en/Access/Free": "Free" } },
+  },
+}))
 
 const {
   resetKosTypeDefinitions,
@@ -128,6 +134,137 @@ describe("VocabularyCard", () => {
     expect(wrapper.text()).not.toContain("Stale publisher")
   })
 
+  it("uses the indexed publisher label when JSKOS only has its URI", () => {
+    const wrapper = mountVocabularyCard({
+      publisher_labels_ss: ["Indexed publisher"],
+      fullrecord: JSON.stringify({
+        uri: "http://bartoc.org/en/node/1",
+        prefLabel: { en: "Example vocabulary" },
+        publisher: [{ uri: "https://example.org/publisher" }],
+      }),
+    })
+
+    expect(wrapper.text()).toContain("Published by Indexed publisher")
+    expect(wrapper.text()).not.toContain("https://example.org/publisher")
+  })
+
+  it("shows JSKOS access and an exact license version", () => {
+    const wrapper = mountVocabularyCard({
+      access_type_ss: ["http://bartoc.org/en/Access/Registered"],
+      fullrecord: JSON.stringify({
+        uri: "http://bartoc.org/en/node/1",
+        prefLabel: { en: "Example vocabulary" },
+        ACCESS: [{ uri: "http://bartoc.org/en/Access/Free" }],
+        license: [{ uri: "https://creativecommons.org/licenses/by/4.0/" }],
+      }),
+    })
+
+    expect(wrapper.text()).toContain("Access: Free")
+    expect(wrapper.text()).toContain("License: CC BY 4.0")
+    expect(wrapper.text()).not.toContain("Registered")
+    expect(wrapper.get('a[href="https://creativecommons.org/licenses/by/4.0/"]').text())
+      .toBe("CC BY 4.0")
+  })
+
+  it("lists multiple licenses without implying a single permission", () => {
+    const wrapper = mountVocabularyCard({
+      fullrecord: JSON.stringify({
+        uri: "http://bartoc.org/en/node/1",
+        prefLabel: { en: "Example vocabulary" },
+        license: [
+          { uri: "http://www.apache.org/licenses/LICENSE-2.0" },
+          { uri: "http://creativecommons.org/licenses/by/3.0/" },
+        ],
+      }),
+    })
+
+    expect(wrapper.text()).toContain("Licenses: Apache 2.0, CC BY 3.0")
+    expect(wrapper.text()).not.toContain("Access:")
+  })
+
+  it("distinguishes CC0 from the Public Domain Mark", () => {
+    const wrapper = mountVocabularyCard({
+      fullrecord: JSON.stringify({
+        uri: "http://bartoc.org/en/node/1",
+        prefLabel: { en: "Example vocabulary" },
+        license: [
+          { uri: "http://creativecommons.org/publicdomain/zero/1.0/" },
+          { uri: "https://creativecommons.org/publicdomain/mark/1.0/" },
+        ],
+      }),
+    })
+
+    expect(wrapper.text()).toContain("Licenses: CC0 1.0, Public Domain Mark 1.0")
+  })
+
+  it("uses Solr access and license URIs when fullrecord is unusable", () => {
+    const wrapper = mountVocabularyCard({
+      fullrecord: "{",
+      access_type_ss: ["http://bartoc.org/en/Access/Free"],
+      license_type_ss: ["https://example.org/license"],
+    })
+
+    expect(wrapper.text()).toContain("Access: Free")
+    expect(wrapper.text()).toContain("License: View terms")
+    expect(wrapper.get('a[href="https://example.org/license"]').text()).toBe("View terms")
+    expect(wrapper.text()).not.toContain("https://example.org/license")
+  })
+
+  it("does not expose an unknown access URI as card text", () => {
+    const wrapper = mountVocabularyCard({
+      fullrecord: JSON.stringify({
+        uri: "http://bartoc.org/en/node/1",
+        prefLabel: { en: "Example vocabulary" },
+        ACCESS: [{ uri: "https://example.org/access-policy" }],
+      }),
+    })
+
+    expect(wrapper.text()).toContain("Access: Other access conditions")
+    expect(wrapper.text()).not.toContain("https://example.org/access-policy")
+  })
+
+  it("shows distinct JSKOS formats instead of stale indexed formats", () => {
+    const wrapper = mountVocabularyCard({
+      format_type_ss: ["http://bartoc.org/en/Format/Printed"],
+      fullrecord: JSON.stringify({
+        uri: "http://bartoc.org/en/node/1",
+        prefLabel: { en: "Example vocabulary" },
+        FORMAT: [
+          { uri: "http://bartoc.org/en/Format/Online" },
+          { uri: "http://bartoc.org/en/Format/Turtle" },
+          { uri: "http://bartoc.org/en/Format/RDF" },
+          { uri: "https://example.org/format", prefLabel: { en: "Custom" } },
+        ],
+      }),
+    })
+
+    expect(wrapper.text()).toContain("Format: Online, RDF, Custom")
+    expect(wrapper.text()).not.toContain("Printed")
+    expect(wrapper.text()).not.toContain("https://example.org/format")
+  })
+
+  it("uses indexed formats when fullrecord is unusable", () => {
+    const wrapper = mountVocabularyCard({
+      fullrecord: "{",
+      format_type_ss: ["http://bartoc.org/en/Format/PDF"],
+    })
+
+    expect(wrapper.text()).toContain("Format: PDF")
+  })
+
+  it("shows a generic label for an unknown format URI", () => {
+    const wrapper = mountVocabularyCard({
+      fullrecord: JSON.stringify({
+        uri: "http://bartoc.org/en/node/1",
+        prefLabel: { en: "Example vocabulary" },
+        FORMAT: [{ uri: "https://example.org/format" }],
+      }),
+    })
+
+    expect(wrapper.text()).toContain("Format: Other format")
+    expect(wrapper.text()).not.toContain("https://example.org/format")
+  })
+
   it.each(["{}", "{"])("uses Solr fields when fullrecord is unusable: %s", (fullrecord) => {
     const wrapper = mountVocabularyCard({ fullrecord, publisher_labels_ss: ["Solr publisher"] })
 
@@ -188,7 +325,7 @@ describe("VocabularyCard", () => {
       .toBe("Example main")
   })
 
-  it("shows NKOS type tooltips from JSKOS concept data", () => {
+  it("uses indexed type URIs when fullrecord is unusable", () => {
     setKosTypeDefinitions({
       "http://w3id.org/nkos/nkostype#thesaurus": {
         prefLabel: {
@@ -207,20 +344,75 @@ describe("VocabularyCard", () => {
     })
 
     const wrapper = mountVocabularyCard({
+      fullrecord: "{",
       type_uri: [
         "http://www.w3.org/2004/02/skos/core#ConceptScheme",
         "http://w3id.org/nkos/nkostype#thesaurus",
       ],
     })
 
-    const tooltip = wrapper.get(".kos-type-info")
+    const tooltip = wrapper.get(".kos-type-badge")
 
     expect(wrapper.text()).toContain("Thesaurus")
     expect(wrapper.text()).not.toContain("Concept Scheme")
-    expect(tooltip.attributes("title")).toContain(
+    expect(tooltip.get(".kos-type-tooltip").text()).toContain(
       "hierarchical, associative, and synonymous relationships",
     )
-    expect(tooltip.attributes("aria-label")).toContain("Thesaurus")
+    expect(tooltip.attributes("aria-describedby")).toBe(tooltip.get(".kos-type-tooltip").attributes("id"))
+  })
+
+  it("uses JSKOS type URIs ahead of indexed type URIs", () => {
+    setKosTypeDefinitions({
+      "http://w3id.org/nkos/nkostype#thesaurus": { prefLabel: { en: "Thesaurus" } },
+      "http://w3id.org/nkos/nkostype#classification": { prefLabel: { en: "Classification" } },
+    })
+
+    const wrapper = mountVocabularyCard({
+      type_uri: ["http://w3id.org/nkos/nkostype#classification"],
+      fullrecord: JSON.stringify({
+        uri: "http://bartoc.org/en/node/1",
+        prefLabel: { en: "Example vocabulary" },
+        type: ["http://w3id.org/nkos/nkostype#thesaurus"],
+      }),
+    })
+
+    expect(wrapper.text()).toContain("Thesaurus")
+    expect(wrapper.text()).not.toContain("Classification")
+  })
+
+  it("does not show a stale indexed type label", () => {
+    const wrapper = mountVocabularyCard({
+      type_uri: [
+        "http://www.w3.org/2004/02/skos/core#ConceptScheme",
+        "http://w3id.org/nkos/nkostype#classification",
+      ],
+      type_label_en: ["Classification"],
+      fullrecord: JSON.stringify({
+        uri: "http://bartoc.org/en/node/1",
+        prefLabel: { en: "Example vocabulary" },
+        type: [
+          "http://www.w3.org/2004/02/skos/core#ConceptScheme",
+          "http://w3id.org/nkos/nkostype#thesaurus",
+        ],
+      }),
+    })
+
+    expect(wrapper.text()).not.toContain("Classification")
+  })
+
+  it("keeps the indexed type label when its URI matches JSKOS", () => {
+    const type = "http://w3id.org/nkos/nkostype#thesaurus"
+    const wrapper = mountVocabularyCard({
+      type_uri: ["http://www.w3.org/2004/02/skos/core#ConceptScheme", type],
+      type_label_en: ["Thesaurus"],
+      fullrecord: JSON.stringify({
+        uri: "http://bartoc.org/en/node/1",
+        prefLabel: { en: "Example vocabulary" },
+        type: ["http://www.w3.org/2004/02/skos/core#ConceptScheme", type],
+      }),
+    })
+
+    expect(wrapper.text()).toContain("Thesaurus")
   })
 
   it("keeps rendering legacy type labels when type URIs are absent", () => {
@@ -231,6 +423,6 @@ describe("VocabularyCard", () => {
     })
 
     expect(wrapper.text()).toContain("Thesaurus")
-    expect(wrapper.find(".kos-type-info").exists()).toBe(false)
+    expect(wrapper.find(".kos-type-badge").exists()).toBe(false)
   })
 })

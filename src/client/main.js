@@ -7,7 +7,7 @@ import { Namespaces } from "namespace-lookup"
 import "gbv-login-client-vue/style"
 import { Login, UserStatus } from "gbv-login-client-vue"
 import { library } from "@fortawesome/fontawesome-svg-core"
-import { faChevronUp, faTimesCircle, faInfoCircle } from "@fortawesome/free-solid-svg-icons"
+import { faChevronUp, faTimesCircle } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome"
 
 // SSR requires a fresh app instance per request, therefore we export a function
@@ -30,7 +30,7 @@ export function createApp(url = "/", isClient = false) {
   app.use(JSKOSVue)
   
   // Add fontawesome icons to the library
-  library.add(faChevronUp, faTimesCircle, faInfoCircle)
+  library.add(faChevronUp, faTimesCircle)
   app.component("FontAwesomeIcon", FontAwesomeIcon)
 
   // Client-only: init a singleton Namespaces registry for URI lookup,
