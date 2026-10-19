@@ -7,7 +7,10 @@
         v-if="showSort"
         class="search-result-actions__sort noprint"
         @submit.prevent>
-        <label :for="sortSelectId">Sort by</label>
+        <label :for="sortSelectId">
+          <span class="search-result-actions__sort-label-desktop">Sort by</span>
+          <span class="search-result-actions__sort-label-mobile">Sort:</span>
+        </label>
         <select
           :id="sortSelectId"
           :value="sortKey"
@@ -32,7 +35,7 @@
         </button>
         <button
           v-if="canLoadMore"
-          class="cc-button cc-button-primary search-result-actions__button"
+          class="cc-button cc-button-primary search-result-actions__button search-result-actions__all"
           type="button"
           @click="emit('show-all')">
           All
@@ -45,7 +48,7 @@
         </button>
         <a
           v-if="downloadUrl"
-          class="cc-button cc-button-primary search-result-actions__button"
+          class="cc-button cc-button-primary search-result-actions__button search-result-actions__download"
           :href="downloadUrl"
           download="bartoc-search-results.jskos.json"
           type="application/json">
@@ -146,10 +149,9 @@ function printPage() {
 .search-result-actions {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--cc-space-xs);
   width: 100%;
-  max-width: 900px;
-  margin: 0.75rem auto;
+  margin: var(--cc-space-sm) 0;
 }
 
 .search-result-actions__toolbar {
@@ -157,12 +159,12 @@ function printPage() {
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: var(--cc-space-sm);
 }
 
 .search-result-actions__summary {
-  font-size: 14px;
-  font-weight: 500;
+  font-size: var(--cc-font-size-sm);
+  font-weight: var(--cc-font-weight-regular);
   color: var(--cc-color-muted);
 }
 
@@ -170,12 +172,16 @@ function printPage() {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--cc-space-sm);
 }
 
 .search-result-actions__sort label {
   color: var(--cc-color-text);
-  font-size: 14px;
+  font-size: var(--cc-font-size-sm);
+}
+
+.search-result-actions__sort-label-mobile {
+  display: none;
 }
 
 .search-result-actions__sort-select {
@@ -192,11 +198,53 @@ function printPage() {
   margin: 0;
 }
 
+@media (max-width: 767px) {
+  .search-result-actions {
+    margin: var(--cc-space-sm) 0;
+    gap: var(--cc-space-xs);
+  }
+
+  .search-result-actions__toolbar {
+    justify-content: flex-start;
+    align-items: center;
+    gap: var(--cc-space-sm);
+  }
+
+  .search-result-actions__summary {
+    order: -1;
+  }
+
+  .search-result-actions__sort {
+    flex: 0 1 auto;
+    flex-wrap: nowrap;
+    gap: var(--cc-space-xs);
+  }
+
+  .search-result-actions__sort-label-desktop {
+    display: none;
+  }
+
+  .search-result-actions__sort-label-mobile {
+    display: inline;
+  }
+
+  .search-result-actions__buttons {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    margin-left: 0;
+  }
+
+  .search-result-actions__all,
+  .search-result-actions__print,
+  .search-result-actions__download {
+    display: none;
+  }
+}
+
 @media print {
   .search-result-actions {
     display: block;
-    max-width: none;
-    margin: 0 0 0.35rem;
+    margin: 0 0 var(--cc-space-xs);
   }
 }
 </style>
