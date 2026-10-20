@@ -58,6 +58,12 @@ const baseTop = ref(0)
 
 // Update fixed / relative state based on current scroll position
 function handleScroll() {
+  if (window.innerWidth <= 767) {
+    isFixed.value = false
+    topOffset.value = 0
+    return
+  }
+
   const y = window.scrollY || window.pageYOffset || 0
   if (y > baseTop.value) {
     // User scrolled past the original top of the sidebar → switch to fixed
@@ -72,6 +78,15 @@ function handleScroll() {
   }
 }
 
+// Re-measure the sidebar after switching between the mobile and desktop layouts.
+function handleResize() {
+  if (sidebarEl.value && window.innerWidth > 767) {
+    const rect = sidebarEl.value.getBoundingClientRect()
+    baseTop.value = rect.top + window.scrollY
+  }
+  handleScroll()
+}
+
 // On mount: measure the initial position of the sidebar and install scroll listener
 onMounted(() => {
   if (sidebarEl.value) {
@@ -81,12 +96,14 @@ onMounted(() => {
     baseTop.value = rect.top + window.scrollY
   }
   window.addEventListener("scroll", handleScroll, { passive: true })
+  window.addEventListener("resize", handleResize, { passive: true })
   handleScroll()
 })
 
 // Clean up listener when component is destroyed
 onBeforeUnmount(() => {
   window.removeEventListener("scroll", handleScroll)
+  window.removeEventListener("resize", handleResize)
 })
 
 
@@ -130,6 +147,26 @@ function updateFilters(field, values) {
   max-height: calc(100vh - 14rem);
   overflow-y: auto;
   transition: top 0.25s ease-out;
+}
+
+@media (max-width: 767px) {
+  .sidebar {
+    position: static;
+    width: auto;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    max-height: none;
+    overflow: visible;
+    transition: none;
+  }
+
+  .facets__wrapper,
+  .facet-group {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
 }
 
 .facet-group {

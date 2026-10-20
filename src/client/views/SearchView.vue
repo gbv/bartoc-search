@@ -2,7 +2,7 @@
 filter, pagination). * - Normalize *legacy* BARTOC parameters (languages, subject, ...) to the new *
 repeatable ?filter=key:values syntax used by the API and the Vue store. * - Keep the URL and the
 internal filter store in sync. * - Orchestrate data fetching (`/api/search`) and pass results +
-facets down * into SearchResults and SearchSidebar components. */
+facets down * into SearchResults and SearchFacetDrawer components. */
 <template>
   <section class="search-view__wrapper app-container">
     <SearchBar
@@ -18,6 +18,16 @@ facets down * into SearchResults and SearchSidebar components. */
       @clear-filters="onClearFilters"
       @update:include-versions="onIncludeVersionsChange" />
     <div class="search-results__area">
+      <button
+        v-if="results.numFound > 0"
+        ref="mobileFacetsButton"
+        class="mobile-facets-trigger cc-button cc-button-primary"
+        type="button"
+        :aria-expanded="mobileFacetsOpen"
+        aria-controls="mobile-facets-panel"
+        @click="mobileFacetsOpen = true">
+        Refine Results
+      </button>
       <template v-if="loading || results.numFound > 0">
         <SearchResultActions
           v-if="showResultActions"
@@ -51,14 +61,15 @@ facets down * into SearchResults and SearchSidebar components. */
         @clear-search="onClearSearch"
         @clear-filters="onClearFilters" />
     </div>
-    <aside class="search-sidebar__area noprint">
-      <SearchSidebar
-        v-if="results.numFound > 0 || openModalField"
-        :facets="results.facets || {}"
-        :loading="loading"
-        @modal-toggle="openModalField = $event"
-        @update-filters="onFilterChange" />
-    </aside>
+    <SearchFacetDrawer
+      :open="mobileFacetsOpen"
+      :facets="results.facets || {}"
+      :loading="loading"
+      :show-sidebar="results.numFound > 0 || !!openModalField"
+      :return-focus-to="mobileFacetsButton"
+      @close="mobileFacetsOpen = false"
+      @modal-toggle="openModalField = $event"
+      @update-filters="onFilterChange" />
   </section>
 </template>
 
@@ -69,7 +80,7 @@ import SearchBar from "../components/SearchBar.vue"
 import SearchControls from "../components/SearchControls.vue"
 import SearchResultActions from "../components/SearchResultActions.vue"
 import SearchResults from "../components/SearchResults.vue"
-import SearchSidebar from "../components/SearchSidebar.vue"
+import SearchFacetDrawer from "../components/SearchFacetDrawer.vue"
 import NoResults from "../components/NoResults.vue"
 import _ from "lodash"
 import {
@@ -116,6 +127,8 @@ const includeVersions = computed(() => route.query.includeVersions === "true")
 // results & state
 const results = ref({ docs: [], numFound: 0, editionsByMain: {} })
 const openModalField = ref(null)
+const mobileFacetsOpen = ref(false)
+const mobileFacetsButton = ref(null)
 const loading = ref(true)
 const errorMessage = ref(null)
 const sortBy = ref()
@@ -462,15 +475,12 @@ onMounted(async () => {
 <style scoped>
 .search-view__wrapper {
   display: grid;
-  width: 100%;
-  max-width: 1320px;
   grid-template-columns: minmax(0, 3fr) 400px;
   grid-template-areas:
     'search-bar search-bar'
     'search-controls search-controls'
     'results sidebar';
-  column-gap: 30px;
-  margin: 0 auto;
+  column-gap: var(--cc-space-lg);
   align-items: start;
 }
 
@@ -484,8 +494,28 @@ onMounted(async () => {
 .search-controls__area {
   grid-area: search-controls;
 }
-.search-sidebar__area {
-  grid-area: sidebar;
-  min-width: 320px;
+.mobile-facets-trigger {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .search-view__wrapper {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'search-bar'
+      'search-controls'
+      'results';
+    column-gap: 0;
+  }
+
+  .search-results__area {
+    min-width: 0;
+  }
+
+  .mobile-facets-trigger {
+    display: block;
+    width: 100%;
+    margin-bottom: var(--cc-space-md);
+  }
 }
 </style>

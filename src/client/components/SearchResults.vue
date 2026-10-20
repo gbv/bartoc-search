@@ -7,7 +7,10 @@
   <div
     v-else-if="loading"
     class="search-view-results__loading">
-    <loading-indicator size="xl" />
+    <span
+      class="search-view-results__spinner"
+      role="status"
+      aria-label="Loading results" />
   </div>
   <section
     v-else

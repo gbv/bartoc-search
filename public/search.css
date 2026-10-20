@@ -10,11 +10,21 @@
 }
 .search-view-results__loading {
   color: var(--cc-color-text);
-  font-weight: 500;
-  margin-bottom: 1.5rem;
-  position: absolute;
-  top: 25rem;
-  left: 20rem;
+  display: flex;
+  justify-content: center;
+  padding-block: var(--cc-space-xl);
+}
+.search-view-results__spinner {
+  display: inline-block;
+  width: var(--cc-space-xxl);
+  aspect-ratio: 1;
+  border: var(--cc-space-xs) solid var(--cc-border-color-control);
+  border-top-color: var(--cc-color-primary);
+  border-radius: 50%;
+  animation: search-results-spin 1s linear infinite;
+}
+@keyframes search-results-spin {
+  to { transform: rotate(1turn); }
 }
 .search-view-results__error {
   color: var(--cc-color-danger);

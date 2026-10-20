@@ -5,7 +5,7 @@
       type="button"
       :aria-expanded="open"
       @click="toggleOpen">
-      {{ facetItemTitle }}
+      <span class="facet-item__label">{{ facetItemTitle }}</span>
       <span
         class="arrow"
         :class="{ open }"
@@ -62,7 +62,8 @@
             class="facet-modal"
             role="dialog"
             :aria-label="facetItemTitle + ' facet filters'"
-            aria-modal="true">
+            aria-modal="true"
+            @keydown.esc.stop="closeModal">
             <header class="facet-modal__header">
               <h2 class="facet-modal__title">
                 {{ facetItemTitle }}
@@ -307,6 +308,28 @@ function onRow(value) {
   inset: 0;
   background: var(--cc-color-backdrop);
   z-index: 50;
+}
+
+@media (max-width: 767px) {
+  .facet-item {
+    box-sizing: border-box;
+    gap: var(--cc-space-sm);
+    text-align: left;
+    white-space: normal;
+  }
+
+  .facet-item__label {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .arrow {
+    flex-shrink: 0;
+  }
+
+  .facet-modal-backdrop {
+    z-index: 110;
+  }
 }
 
 .facet-modal {
