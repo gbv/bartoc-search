@@ -2,14 +2,29 @@
 import { ref, onMounted, onBeforeUnmount } from "vue"
 
 const isVisible = ref(false)
+const viewportStyle = ref({})
 const SCROLL_TRIGGER = 250 // px before we show the button
+
+// Keep the fixed button inside the visible viewport when the page is zoomed.
+function updateViewport() {
+  const viewport = window.visualViewport
+  viewportStyle.value = viewport ? {
+    right: `calc(var(--cc-space-lg) + ${Math.max(0, window.innerWidth - viewport.offsetLeft - viewport.width)}px)`,
+    bottom: `calc(var(--cc-space-lg) + ${Math.max(0, window.innerHeight - viewport.offsetTop - viewport.height)}px)`,
+  } : {}
+}
 
 function handleScroll() {
   if (typeof window === "undefined") {
     return
   }
-  const y = window.scrollY || window.pageYOffset || 0
+  const y = Math.max(window.scrollY || window.pageYOffset || 0, window.visualViewport?.pageTop || 0)
   isVisible.value = y > SCROLL_TRIGGER
+}
+
+function handleViewportChange() {
+  handleScroll()
+  updateViewport()
 }
 
 function scrollToTop() {
@@ -27,7 +42,10 @@ onMounted(() => {
     return
   }
   window.addEventListener("scroll", handleScroll, { passive: true })
-  handleScroll()
+  window.addEventListener("resize", handleViewportChange, { passive: true })
+  window.visualViewport?.addEventListener("scroll", handleViewportChange, { passive: true })
+  window.visualViewport?.addEventListener("resize", handleViewportChange, { passive: true })
+  handleViewportChange()
 })
 
 onBeforeUnmount(() => {
@@ -35,6 +53,9 @@ onBeforeUnmount(() => {
     return
   }
   window.removeEventListener("scroll", handleScroll)
+  window.removeEventListener("resize", handleViewportChange)
+  window.visualViewport?.removeEventListener("scroll", handleViewportChange)
+  window.visualViewport?.removeEventListener("resize", handleViewportChange)
 })
 </script>
 
@@ -43,6 +64,7 @@ onBeforeUnmount(() => {
     v-if="isVisible"
     type="button"
     class="cc-button cc-button-primary cc-button-icon back-to-top noprint"
+    :style="viewportStyle"
     aria-label="Back to top"
     @click="scrollToTop">
     <font-awesome-icon
@@ -54,8 +76,8 @@ onBeforeUnmount(() => {
 <style scoped>
 .back-to-top {
   position: fixed;
-  right: 1.5rem;
-  bottom: 1.5rem;
+  right: var(--cc-space-lg);
+  bottom: var(--cc-space-lg);
   z-index: 80;
 
   display: inline-flex;
