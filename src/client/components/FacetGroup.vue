@@ -57,6 +57,7 @@
         <div
           v-if="showModal"
           class="facet-modal-backdrop"
+          :style="modalViewportStyle"
           @click.self="closeModal">
           <div
             class="facet-modal"
@@ -75,7 +76,7 @@
                 @click="closeModal">
                 <font-awesome-icon
                   icon="times-circle"
-                  size="3x"
+                  size="lg"
                   aria-hidden="true" />
               </button>
             </header>
@@ -123,7 +124,7 @@
 </template>
 
 <script setup>
-import { toRef, computed, ref } from "vue"
+import { toRef, computed, ref, watch } from "vue"
 import { FACET_FIELD_LABELS } from "../constants/facetFieldLabels.js"
 import { state, markFilterRequested } from "../stores/filters.js"
 
@@ -154,6 +155,32 @@ const visibleValues = computed(() => {
 
 const showModal = ref(false)
 const searchTerm = ref("")
+const modalViewportStyle = ref({})
+
+// The modal is teleported outside the mobile drawer, so follow the visible viewport.
+function updateModalViewport() {
+  const viewport = window.visualViewport
+  modalViewportStyle.value = viewport ? {
+    left: `${viewport.offsetLeft}px`,
+    top: `${viewport.offsetTop}px`,
+    width: `${viewport.width}px`,
+    height: `${viewport.height}px`,
+  } : {}
+}
+
+watch(showModal, (open, _, onCleanup) => {
+  if (!open || typeof window === "undefined") {
+    return
+  }
+
+  updateModalViewport()
+  window.visualViewport?.addEventListener("scroll", updateModalViewport)
+  window.visualViewport?.addEventListener("resize", updateModalViewport)
+  onCleanup(() => {
+    window.visualViewport?.removeEventListener("scroll", updateModalViewport)
+    window.visualViewport?.removeEventListener("resize", updateModalViewport)
+  })
+})
 
 const filteredValues = computed(() => {
   if (!searchTerm.value) {
@@ -310,28 +337,6 @@ function onRow(value) {
   z-index: 50;
 }
 
-@media (max-width: 767px) {
-  .facet-item {
-    box-sizing: border-box;
-    gap: var(--cc-space-sm);
-    text-align: left;
-    white-space: normal;
-  }
-
-  .facet-item__label {
-    min-width: 0;
-    overflow-wrap: anywhere;
-  }
-
-  .arrow {
-    flex-shrink: 0;
-  }
-
-  .facet-modal-backdrop {
-    z-index: 110;
-  }
-}
-
 .facet-modal {
   position: fixed;
   top: 15vh;
@@ -423,6 +428,82 @@ function onRow(value) {
 
 .facet-modal-list__item .facet-value {
   flex: 1;
+}
+
+@media (max-width: 767px) {
+  .facet-item {
+    box-sizing: border-box;
+    gap: var(--cc-space-sm);
+    text-align: left;
+    white-space: normal;
+  }
+
+  .facet-item__label {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .arrow {
+    flex-shrink: 0;
+  }
+
+  .facet-modal-backdrop {
+    inset: auto;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--cc-space-md);
+    z-index: 110;
+  }
+
+  .facet-modal {
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+    width: 100%;
+    max-width: none;
+    max-height: 100%;
+    border-radius: var(--cc-radius-md);
+    overflow: hidden;
+  }
+
+  .facet-modal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--cc-space-sm);
+    margin: 0;
+    border-bottom: 1px solid var(--cc-border-color-control);
+  }
+
+  .facet-modal__title {
+    font-size: var(--cc-font-size-lg);
+    overflow-wrap: anywhere;
+  }
+
+  .facet-modal-close {
+    position: static;
+    flex: none;
+  }
+
+  .facet-modal__body {
+    min-height: 0;
+  }
+
+  .facet-modal-list__item .facet-value {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .facet-modal-enter-from .facet-modal,
+  .facet-modal-leave-to .facet-modal {
+    transform: translateY(-10px);
+  }
 }
 
 </style>
