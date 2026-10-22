@@ -185,6 +185,16 @@ onBeforeUnmount(() => {
   display: none;
 }
 
+@media (min-width: 768px) {
+  .search-sidebar__area {
+    /* The search grid ends before the footer, so sticky facets stop there. */
+    position: sticky;
+    top: var(--cc-space-lg);
+    max-height: calc(100vh - var(--cc-space-xxl));
+    overflow-y: auto;
+  }
+}
+
 @media (max-width: 767px) {
   .search-sidebar__area {
     display: block;

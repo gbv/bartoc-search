@@ -8,10 +8,22 @@ const SCROLL_TRIGGER = 250 // px before we show the button
 // Keep the fixed button inside the visible viewport when the page is zoomed.
 function updateViewport() {
   const viewport = window.visualViewport
+  const isMobile = window.matchMedia("(max-width: 47.99rem)").matches
+  const rightSpacing = isMobile ? "var(--cc-space-md)" : "var(--cc-space-lg)"
+  const legalTop = isMobile
+    ? document.querySelector(".bartoc-footer__legal")?.getBoundingClientRect().top
+    : undefined
+  // Lift the button above the footer's legal text when scrolling to the bottom.
+  const legalClearance = legalTop != null && legalTop >= 0
+    ? Math.max(0, window.innerHeight - legalTop)
+    : 0
   viewportStyle.value = viewport ? {
-    right: `calc(var(--cc-space-lg) + ${Math.max(0, window.innerWidth - viewport.offsetLeft - viewport.width)}px)`,
-    bottom: `calc(var(--cc-space-lg) + ${Math.max(0, window.innerHeight - viewport.offsetTop - viewport.height)}px)`,
-  } : {}
+    right: `calc(${rightSpacing} + ${Math.max(0, window.innerWidth - viewport.offsetLeft - viewport.width)}px)`,
+    bottom: `max(calc(var(--cc-space-lg) + ${Math.max(0, window.innerHeight - viewport.offsetTop - viewport.height)}px), calc(${legalClearance}px + var(--cc-space-sm)))`,
+  } : {
+    right: rightSpacing,
+    bottom: `max(var(--cc-space-lg), calc(${legalClearance}px + var(--cc-space-sm)))`,
+  }
 }
 
 function handleScroll() {
@@ -20,10 +32,6 @@ function handleScroll() {
   }
   const y = Math.max(window.scrollY || window.pageYOffset || 0, window.visualViewport?.pageTop || 0)
   isVisible.value = y > SCROLL_TRIGGER
-}
-
-function handleViewportChange() {
-  handleScroll()
   updateViewport()
 }
 
@@ -42,10 +50,10 @@ onMounted(() => {
     return
   }
   window.addEventListener("scroll", handleScroll, { passive: true })
-  window.addEventListener("resize", handleViewportChange, { passive: true })
-  window.visualViewport?.addEventListener("scroll", handleViewportChange, { passive: true })
-  window.visualViewport?.addEventListener("resize", handleViewportChange, { passive: true })
-  handleViewportChange()
+  window.addEventListener("resize", handleScroll, { passive: true })
+  window.visualViewport?.addEventListener("scroll", handleScroll, { passive: true })
+  window.visualViewport?.addEventListener("resize", handleScroll, { passive: true })
+  handleScroll()
 })
 
 onBeforeUnmount(() => {
@@ -53,9 +61,9 @@ onBeforeUnmount(() => {
     return
   }
   window.removeEventListener("scroll", handleScroll)
-  window.removeEventListener("resize", handleViewportChange)
-  window.visualViewport?.removeEventListener("scroll", handleViewportChange)
-  window.visualViewport?.removeEventListener("resize", handleViewportChange)
+  window.removeEventListener("resize", handleScroll)
+  window.visualViewport?.removeEventListener("scroll", handleScroll)
+  window.visualViewport?.removeEventListener("resize", handleScroll)
 })
 </script>
 

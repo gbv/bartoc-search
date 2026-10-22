@@ -498,6 +498,13 @@ onMounted(async () => {
   display: none;
 }
 
+@media (min-width: 768px) {
+  .search-bar__area {
+    width: 100%;
+    max-width: 55rem;
+  }
+}
+
 @media (max-width: 767px) {
   .search-view__wrapper {
     grid-template-columns: minmax(0, 1fr);

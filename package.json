@@ -88,7 +88,7 @@
     "@fortawesome/fontawesome-svg-core": "^7.3.0",
     "@fortawesome/free-solid-svg-icons": "^7.3.0",
     "@fortawesome/vue-fontawesome": "^3.3.0",
-    "@gbv/bartoc-components": "github:gbv/bartoc-components#v0.2.0",
+    "@gbv/bartoc-components": "github:gbv/bartoc-components#v0.5.0",
     "bullmq": "^5.53.2",
     "compression": "^1.8.0",
     "cors": "^2.8.5",

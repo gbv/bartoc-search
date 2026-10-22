@@ -1,13 +1,7 @@
 <template>
-  <!--
-    Sidebar showing all facet groups.
-    It becomes fixed when the user scrolls past its original position.
-  -->
-  <div 
+  <div
     v-if="!errorMessage"
-    ref="sidebarEl"
-    :class="['sidebar', { 'sidebar--fixed': isFixed }]"
-    :style="isFixed ? { top: topOffset + 'px' } : {}">
+    class="sidebar">
     <div class="facets__wrapper">
       <div
         v-for="field in Object.keys(FACET_FIELD_LABELS)"
@@ -27,7 +21,7 @@
 </template>
 
 <script setup>
-import { toRefs, ref, onMounted, onBeforeUnmount } from "vue"
+import { toRefs } from "vue"
 import FacetGroup from "./FacetGroup.vue"
 import { FACET_FIELD_LABELS } from "../constants/facetFieldLabels.js"
 import { state, updateFilter, toggleGroup } from "../stores/filters.js"
@@ -41,70 +35,6 @@ const props = defineProps({
 
 const emit = defineEmits(["update-filters", "modal-toggle"])
 const { facets, errorMessage } = toRefs(props)
-
-
-// --- Sticky / fixed sidebar behavior ---
-
-// Reference to the root sidebar element in the DOM
-const sidebarEl = ref(null)
-// Whether the sidebar is currently fixed (true) or behaves normally in the flow (false)
-const isFixed = ref(false)
-// Current top offset in pixels when the sidebar is fixed
-const topOffset = ref(0)
-// Target top offset when fixed (distance from the top of the viewport)
-const FIXED_TOP = 80
-// Y-position (in page coordinates) of the sidebar in its normal layout position
-const baseTop = ref(0)
-
-// Update fixed / relative state based on current scroll position
-function handleScroll() {
-  if (window.innerWidth <= 767) {
-    isFixed.value = false
-    topOffset.value = 0
-    return
-  }
-
-  const y = window.scrollY || window.pageYOffset || 0
-  if (y > baseTop.value) {
-    // User scrolled past the original top of the sidebar → switch to fixed
-    isFixed.value = true
-    // Move the sidebar down smoothly up to FIXED_TOP
-    const delta = Math.min(FIXED_TOP, y - baseTop.value)
-    topOffset.value = delta
-  } else {
-    // Above the original position → back to relative layout
-    isFixed.value = false
-    topOffset.value = 0
-  }
-}
-
-// Re-measure the sidebar after switching between the mobile and desktop layouts.
-function handleResize() {
-  if (sidebarEl.value && window.innerWidth > 767) {
-    const rect = sidebarEl.value.getBoundingClientRect()
-    baseTop.value = rect.top + window.scrollY
-  }
-  handleScroll()
-}
-
-// On mount: measure the initial position of the sidebar and install scroll listener
-onMounted(() => {
-  if (sidebarEl.value) {
-    const rect = sidebarEl.value.getBoundingClientRect()
-    
-    // Convert from viewport coordinates to page coordinates
-    baseTop.value = rect.top + window.scrollY
-  }
-  window.addEventListener("scroll", handleScroll, { passive: true })
-  window.addEventListener("resize", handleResize, { passive: true })
-  handleScroll()
-})
-
-// Clean up listener when component is destroyed
-onBeforeUnmount(() => {
-  window.removeEventListener("scroll", handleScroll)
-  window.removeEventListener("resize", handleResize)
-})
 
 
 function updateFilters(field, values) {
@@ -142,13 +72,6 @@ function updateFilters(field, values) {
   position: relative;
 }
 
-.sidebar--fixed {
-  position: fixed;
-  max-height: calc(100vh - 14rem);
-  overflow-y: auto;
-  transition: top 0.25s ease-out;
-}
-
 @media (max-width: 767px) {
   .sidebar {
     position: static;
@@ -156,9 +79,6 @@ function updateFilters(field, values) {
     min-width: 0;
     max-width: 100%;
     box-sizing: border-box;
-    max-height: none;
-    overflow: visible;
-    transition: none;
   }
 
   .facets__wrapper,

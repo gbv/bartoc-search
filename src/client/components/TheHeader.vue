@@ -4,6 +4,7 @@
     logo-alt="BARTOC Search"
     :nav-links="navLinks"
     :utility-links="utilityLinks"
+    :active-path="activePath"
     :user-can-add="userCanAdd"
     :edit-url="editUrl"
     :print-logo-url="printLogoUrl">
@@ -14,7 +15,8 @@
 </template>
 
 <script setup>
-import { inject, ref, watch } from "vue"
+import { computed, inject, ref, watch } from "vue"
+import { useRoute } from "vue-router"
 import { BartocHeader } from "@gbv/bartoc-components"
 import logoUrl from "../assets/bartoc-logo.svg"
 import printLogoUrl from "../assets/bartoc-logo_for_print.svg"
@@ -51,6 +53,9 @@ const utilityLinks = [
     label: "Contact & Editors",
   },
 ]
+
+const route = useRoute()
+const activePath = computed(() => route.name === "search" ? "/vocabularies" : "")
 
 watch(token, async currentToken => {
   if (!currentToken) {
