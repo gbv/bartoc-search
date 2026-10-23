@@ -6,7 +6,8 @@
       <div
         v-for="field in Object.keys(FACET_FIELD_LABELS)"
         :key="field"
-        class="facet-group">
+        class="facet-group"
+        :class="{ 'facet-group--open': state.openGroups[field] }">
         <FacetGroup
           :field="field"
           :values="facets[field] || []"
@@ -72,6 +73,12 @@ function updateFilters(field, values) {
   position: relative;
 }
 
+@media (min-width: 768px) {
+  .sidebar {
+    padding-top: var(--cc-space-sm);
+  }
+}
+
 @media (max-width: 767px) {
   .sidebar {
     position: static;
@@ -91,8 +98,27 @@ function updateFilters(field, values) {
 
 .facet-group {
   display: block;
-  margin-bottom: var(--cc-space-md);
-  padding-left: 0;
+  position: relative;
+  border-bottom: var(--cc-border-width) solid var(--cc-border-color-control);
   color: var(--cc-color-text);
+}
+
+.facet-group--open::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: calc(var(--cc-border-width) + var(--cc-border-width-strong));
+  background: var(--cc-color-primary);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.facets__wrapper {
+  background: var(--cc-color-surface);
+}
+
+.facet-group:last-child {
+  border-bottom: 0;
 }
 </style>
