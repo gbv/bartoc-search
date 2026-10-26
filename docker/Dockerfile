@@ -10,7 +10,7 @@
 ########################
 # 1) deps (install)
 ########################
-FROM node:20-alpine AS deps
+FROM node:22-alpine AS deps
 
 # Patch Alpine base packages (security fixes) and install tzdata for correct timezone handling.
 RUN apk update && apk upgrade --no-cache && apk add --no-cache tzdata
@@ -29,7 +29,7 @@ RUN npm ci
 ########################
 # 2) build (produce dist/)
 ########################
-FROM node:20-alpine AS build
+FROM node:22-alpine AS build
 
 # tzdata is needed if build or tooling depends on timezone data.
 RUN apk add --no-cache tzdata
@@ -53,7 +53,7 @@ RUN npm run build
 ########################
 # 3) runtime (no rebuild at start)
 ########################
-FROM node:20-alpine AS runtime
+FROM node:22-alpine AS runtime
 
 # Patch Alpine base packages and install tzdata in the final image as well.
 RUN apk update && apk upgrade --no-cache && apk add --no-cache tzdata
