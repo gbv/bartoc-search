@@ -9,9 +9,8 @@
         <input
           type="checkbox"
           :checked="includeEditions"
-          aria-label="Show editions as separate results"
           @change="onIncludeEditionsChange">
-        <span>Show editions as separate results</span>
+        <span>Show matching editions as separate results<span v-if="matchingEditionCount != null"> ({{ matchingEditionCount }})</span></span>
       </label>
     </div>
 
@@ -66,6 +65,7 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  matchingEditionCount: { type: Number, default: undefined },
 })
 
 

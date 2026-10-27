@@ -467,6 +467,7 @@ describe("GET /api/search - editions", () => {
     expect(res.status).toBe(200);
     expect(res.body.response?.numFound).toBe(0);
     expect(res.body.response?.docs ?? []).toEqual([]);
+    expect(res.body.matchingEditionCount).toBe(1);
   });
 
   it("includes edition records when explicitly requested", async () => {
@@ -481,11 +482,17 @@ describe("GET /api/search - editions", () => {
 
     expect(res.status).toBe(200);
     expect(res.body.response?.numFound).toBe(1);
+    expect(res.body.matchingEditionCount).toBe(1);
     expect(res.body.response?.docs).toEqual([
       expect.objectContaining({
         id: "http://bartoc.org/en/node/990002",
         version_of_s: "http://bartoc.org/en/node/990001",
       }),
     ]);
+
+    const filtered = await request(app)
+      .get("/api/search")
+      .query({ search: "marker", field: "title_search", editions: "true", filter: "language:fr" });
+    expect(filtered.body.matchingEditionCount).toBe(0);
   });
 });

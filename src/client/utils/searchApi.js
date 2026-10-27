@@ -29,6 +29,7 @@ export async function fetchSearchResults({ baseQuery, filters, limit, baseUrl })
     docs,
     numFound: response?.numFound || 0,
     facets: data?.facets || {},
+    matchingEditionCount: data?.matchingEditionCount,
     editionsByMain: data?.editionsByMain,
     parentTitles: data?.parentTitles || {},
   }

@@ -221,6 +221,19 @@ export async function createApp(opts?: {
         .limit(limit)
         .facetMissing(true);
 
+      // Count matching editions with the same query and facet filters, regardless of the checkbox.
+      const editionCountOp = new SolrClient().searchOperation
+        .prepareSelect(config.solr.coreName)
+        .for({ toString: () => q, getDefType: () => defType })
+        .filter(new SearchFilter("version_of_s").raw("version_of_s:[* TO *]"))
+        .limit(0);
+      // Apply selected facets to both queries 
+      // i.e. language:de must also limit the edition count.
+      const addFacetFilter = (filter: SearchFilter) => {
+        op.filter(filter);
+        editionCountOp.filter(filter);
+      };
+
       if (editions !== "true") {
         op.filter(
           new SearchFilter("version_of_s")
@@ -250,7 +263,7 @@ export async function createApp(opts?: {
       // If the user selected the “no value” bucket, add a missing‐field filter
       if (facetValues.includes(NO_VALUE)) {
         // -field:[* TO *] -> documents where the field does NOT exist
-        op.filter(
+        addFacetFilter(
           new SearchFilter(facetName)
             .raw(`-${facetName}:[* TO *]`)
         );
@@ -260,12 +273,12 @@ export async function createApp(opts?: {
       facetValues = facetValues.filter(v => v !== NO_VALUE);
 
       if (facetValues.length == 1 && !facetValues.includes(NO_VALUE)) {
-        op.filter(
+        addFacetFilter(
           new SearchFilter(facetName)
             .equals(facetValues[0])
         );
       } else {
-        op.filter(
+        addFacetFilter(
           new SearchFilter(facetName).raw(`{!terms f=${facetName}}${facetValues.join(",")}`)
         );
       }
@@ -283,6 +296,15 @@ export async function createApp(opts?: {
     const rawFacetFields = solrRes.facet_counts?.facet_fields;
     const facets = parseFacetFields(rawFacetFields);
 
+    // The count is optional: keep search results and omit the number if this query fails.
+    let matchingEditionCount;
+    try {
+      const editionCountRes = await editionCountOp.execute<SolrSearchResponse>();
+      matchingEditionCount = editionCountRes.response.numFound;
+    } catch (error) {
+      config.warn?.("Edition count lookup failed:", error);
+    }
+
     // Edition previews are supplementary: search results remain available if this lookup fails.
     let editionsByMain;
     if (solrRes.response.docs.length > 0) {
@@ -296,6 +318,7 @@ export async function createApp(opts?: {
     res.json({
       response: solrRes.response,
       facets,
+      matchingEditionCount,
       parentTitles: await getParentTitles(solrRes.response.docs),
       ...(editionsByMain === undefined ? {} : { editionsByMain }),
     });

@@ -40,12 +40,11 @@ describe("SearchControls", () => {
     ])
   })
   it("emits the edition inclusion setting", async () => {
-    const wrapper = mount(SearchControls)
-    const checkbox = wrapper.get(
-      'input[aria-label="Show editions as separate results"]',
-    )
+    const wrapper = mount(SearchControls, { props: { matchingEditionCount: 2 } })
+    const checkbox = wrapper.get('.edition-toggle input[type="checkbox"]')
 
     expect((checkbox.element as HTMLInputElement).checked).toBe(false)
+    expect(wrapper.get(".edition-toggle__label").text()).toBe("Show matching editions as separate results (2)")
 
     await checkbox.setValue(true)
 
