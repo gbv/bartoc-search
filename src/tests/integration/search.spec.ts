@@ -449,7 +449,7 @@ describe("GET /api/search - editions", () => {
   it("keeps previews when editions are separate results", async () => {
     const res = await request(app)
       .get("/api/search")
-      .query({ search: "editionfamilyfixture", field: "title_search", includeVersions: "true", limit: 10 });
+      .query({ search: "editionfamilyfixture", field: "title_search", editions: "true", limit: 10 });
 
     expect(getIds(res)).toContain("http://bartoc.org/en/node/990002");
     expect(res.body.editionsByMain?.["http://bartoc.org/en/node/990001"]?.total).toBe(5);
@@ -475,7 +475,7 @@ describe("GET /api/search - editions", () => {
       .query({
         search: "marker",
         field: "title_search",
-        includeVersions: "true",
+        editions: "true",
         limit: 10,
       });
 

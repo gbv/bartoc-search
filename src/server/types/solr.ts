@@ -229,7 +229,7 @@ export interface SearchParams {
   filter?: string[];
   format?: string; // e.g. "jskos",
   uri?: string;
-  includeVersions?: string;
+  editions?: string;
 }
 
 /**

@@ -8,9 +8,9 @@
       <label class="edition-toggle__label">
         <input
           type="checkbox"
-          :checked="includeVersions"
+          :checked="includeEditions"
           aria-label="Show editions as separate results"
-          @change="onIncludeVersionsChange">
+          @change="onIncludeEditionsChange">
         <span>Show editions as separate results</span>
       </label>
     </div>
@@ -62,14 +62,14 @@ const props = defineProps({
   lookupUri:{ 
     type: Object, 
     default: null },
-  includeVersions: {
+  includeEditions: {
     type: Boolean,
     default: false,
   },
 })
 
 
-const emit = defineEmits(["remove-badge", "clear-filters", "update:includeVersions"])
+const emit = defineEmits(["remove-badge", "clear-filters", "update:includeEditions"])
 
 const lookupUri = computed(() => props.lookupUri)
 
@@ -103,8 +103,8 @@ const filterGroups = computed(() => {
 function onRemoveBadge(badge) {
   emit("remove-badge", { field: badge.field, value: badge.rawValue })
 }
-function onIncludeVersionsChange(event) {
-  emit("update:includeVersions", event.target.checked)
+function onIncludeEditionsChange(event) {
+  emit("update:includeEditions", event.target.checked)
 }
 
 

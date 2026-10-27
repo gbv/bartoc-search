@@ -49,7 +49,7 @@ describe("SearchControls", () => {
 
     await checkbox.setValue(true)
 
-    expect(wrapper.emitted("update:includeVersions")).toEqual([[true]])
+    expect(wrapper.emitted("update:includeEditions")).toEqual([[true]])
   })
 
 })

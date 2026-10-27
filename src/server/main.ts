@@ -180,7 +180,7 @@ export async function createApp(opts?: {
       sort = SortField.RELEVANCE,
       order = SortOrder.ASC,
       format = "",
-      includeVersions = "false",
+      editions = "false",
     } = req.query as Partial<SearchParams>;
     const searchText = String(search ?? "");
     const searchField = String(field ?? "").trim() || "allfields";
@@ -220,7 +220,7 @@ export async function createApp(opts?: {
         .limit(limit)
         .facetMissing(true);
 
-      if (includeVersions !== "true") {
+      if (editions !== "true") {
         op.filter(
           new SearchFilter("version_of_s")
             .raw("-version_of_s:[* TO *]")

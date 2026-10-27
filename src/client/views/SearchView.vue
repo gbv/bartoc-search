@@ -13,10 +13,10 @@ facets down * into SearchResults and SearchFacetDrawer components. */
     <SearchControls
       class="search-controls__area"
       :lookup-uri="lookupUri"
-      :include-versions="includeVersions"
+      :include-editions="includeEditions"
       @remove-badge="onRemoveFilter"
       @clear-filters="onClearFilters"
-      @update:include-versions="onIncludeVersionsChange" />
+      @update:include-editions="onIncludeEditionsChange" />
     <div class="search-results__area">
       <button
         v-if="results.numFound > 0"
@@ -122,7 +122,7 @@ const pageSize = 10
 // drive everything off this `limit`
 const limit = ref(Number(route.query.limit) || pageSize)
 const activeFilters = state.activeFilters
-const includeVersions = computed(() => route.query.includeVersions === "true")
+const includeEditions = computed(() => route.query.editions === "true")
 
 // results & state
 const results = ref({ docs: [], numFound: 0, editionsByMain: {} })
@@ -359,7 +359,7 @@ function onFilterChange(filters, opts = {}) {
   }
 }
 
-function onIncludeVersionsChange(include) {
+function onIncludeEditionsChange(include) {
   limit.value = pageSize
 
   const newQuery = {
@@ -369,9 +369,9 @@ function onIncludeVersionsChange(include) {
   delete newQuery.start
 
   if (include) {
-    newQuery.includeVersions = "true"
+    newQuery.editions = "true"
   } else {
-    delete newQuery.includeVersions
+    delete newQuery.editions
   }
 
   fetchResults(newQuery, { navigation: NAVIGATION.PUSH })

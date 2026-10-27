@@ -80,14 +80,14 @@ async function mountSearchView() {
           `,
         },
         SearchControls: {
-          props: ["includeVersions"],
-          emits: ["update:includeVersions"],
+          props: ["includeEditions"],
+          emits: ["update:includeEditions"],
           template: `
             <input
-              class="test-include-versions"
+              class="test-include-editions"
               type="checkbox"
-              :checked="includeVersions"
-              @change="$emit('update:includeVersions', $event.target.checked)">
+              :checked="includeEditions"
+              @change="$emit('update:includeEditions', $event.target.checked)">
           `,
         },
         SearchResultActions: {
@@ -182,7 +182,7 @@ describe("SearchView history navigation", () => {
   })
   it("keeps the edition inclusion setting in the route and API request", async () => {
     const { push, wrapper } = await mountSearchView()
-    const checkbox = wrapper.get(".test-include-versions")
+    const checkbox = wrapper.get(".test-include-editions")
 
     expect((checkbox.element as HTMLInputElement).checked).toBe(false)
 
@@ -192,12 +192,12 @@ describe("SearchView history navigation", () => {
     expect(push).toHaveBeenCalledWith({
       name: "search",
       query: expect.objectContaining({
-        includeVersions: "true",
+        editions: "true",
         limit: "10",
       }),
     })
     expect(String(fetchMock.mock.calls.at(-1)?.[0])).toContain(
-      "includeVersions=true",
+      "editions=true",
     )
   })
 
