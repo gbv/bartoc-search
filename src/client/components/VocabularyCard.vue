@@ -48,20 +48,38 @@
             </a>
           </h2>
           <div
-            v-if="typeItems.length"
-            class="kos-type-list">
-            <template
-              v-for="(type, index) in typeItems"
-              :key="type.uri || type.label">
-              <span
-                class="kos-type-list__item"
-                :title="!typeIcon ? type.description || undefined : undefined"
-                :aria-label="!typeIcon && type.description ? `${type.label}: ${type.description}` : undefined"
-                :tabindex="!typeIcon && type.description ? 0 : undefined">
-                {{ type.label }}
-              </span>
-              <span v-if="index < typeItems.length - 1">, </span>
-            </template>
+            v-if="typeItems.length || doc.version_of_s"
+            class="result-heading__context">
+            <span
+              v-if="typeItems.length"
+              class="kos-type-list">
+              <template
+                v-for="(type, index) in typeItems"
+                :key="type.uri || type.label">
+                <span
+                  class="kos-type-list__item"
+                  :title="!typeIcon ? type.description || undefined : undefined"
+                  :aria-label="!typeIcon && type.description ? `${type.label}: ${type.description}` : undefined"
+                  :tabindex="!typeIcon && type.description ? 0 : undefined">
+                  {{ type.label }}
+                </span>
+                <span v-if="index < typeItems.length - 1">, </span>
+              </template>
+            </span>
+            <span
+              v-if="typeItems.length && doc.version_of_s"
+              class="result-heading__separator"
+              aria-hidden="true">·</span>
+            <span
+              v-if="doc.version_of_s"
+              class="result-edition-parent">
+              <font-awesome-icon
+                :icon="faCodeBranch"
+                class="edition-context-icon"
+                aria-hidden="true" />
+              Edition of: <a
+                :href="recordHref(doc.version_of_s)">{{ parentTitle || `BARTOC ${doc.version_of_s.split('/').pop()}` }}</a>
+            </span>
           </div>
         </div>
       </div>
@@ -106,13 +124,6 @@
         <strong>Format: </strong>{{ formatLabels.join(', ') }}
       </li>
     </ul>
-    <p
-      v-if="doc.version_of_s"
-      class="result-edition-parent">
-      <strong>Edition of: </strong><a
-        class="edition-parent-link"
-        :href="recordHref(doc.version_of_s)">{{ parentTitle || `BARTOC ${doc.version_of_s.split('/').pop()}` }}</a>
-    </p>
     <div
       v-if="editions?.total > 0"
       class="result-editions">
@@ -157,7 +168,7 @@ import { SupportedLang } from "../types/lang.js"
 import { computed, onMounted, ref, useId } from "vue"
 import { ItemName } from "jskos-vue"
 import * as jskos from "jskos-tools"
-import { faAddressBook, faListUl, faShareNodes, faSitemap } from "@fortawesome/free-solid-svg-icons"
+import { faAddressBook, faCodeBranch, faListUl, faShareNodes, faSitemap } from "@fortawesome/free-solid-svg-icons"
 import SUPPORTED_LANGUAGES from "../../../data/supported_languages.json"
 import LICENSE_GROUPS from "../../../data/license-groups.json"
 import FORMAT_GROUPS from "../../../data/format-groups.json"
@@ -568,6 +579,35 @@ const titleHref = computed(() => recordHref(props.doc?.id))
   overflow-wrap: anywhere;
 }
 
+.result-heading__context {
+  color: var(--cc-color-muted);
+  font-size: var(--cc-font-size-sm);
+}
+
+.result-heading__separator {
+  margin-inline: var(--cc-space-xs);
+}
+
+.edition-context-icon {
+  color: var(--cc-color-primary);
+  margin-inline-end: var(--cc-space-xs);
+  font-size: var(--cc-font-size-lg);
+}
+
+@media (max-width: 767px) {
+  .result-heading__separator {
+    display: none;
+  }
+
+  .result-edition-parent {
+    display: block;
+  }
+
+  .kos-type-list ~ .result-edition-parent {
+    margin-top: var(--cc-space-xs);
+  }
+}
+
 .result-title {
   font-size: var(--cc-font-size-lg);
   margin: 0 0 var(--cc-space-xs);
@@ -682,11 +722,6 @@ const titleHref = computed(() => recordHref(props.doc?.id))
 .kos-type-list__item:focus-visible {
   outline: 2px solid var(--cc-color-primary);
   outline-offset: 2px;
-}
-
-.result-edition-parent {
-  margin: var(--cc-space-sm) 0;
-  font-size: var(--cc-font-size-sm);
 }
 
 .result-editions {
