@@ -22,6 +22,7 @@ describe("fetchSearchResults", () => {
             numFound: 3,
           },
           facets: { language: { buckets: [] } },
+          parentTitles: { "http://bartoc.org/en/node/21146": "Thesaurus for the Social Sciences" },
         }),
       }
     }))
@@ -52,6 +53,7 @@ describe("fetchSearchResults", () => {
       docs: [{ id: "1" }],
       numFound: 3,
       facets: { language: { buckets: [] } },
+      parentTitles: { "http://bartoc.org/en/node/21146": "Thesaurus for the Social Sciences" },
     })
   })
 

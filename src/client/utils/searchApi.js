@@ -30,5 +30,6 @@ export async function fetchSearchResults({ baseQuery, filters, limit, baseUrl })
     numFound: response?.numFound || 0,
     facets: data?.facets || {},
     editionsByMain: data?.editionsByMain,
+    parentTitles: data?.parentTitles || {},
   }
 }

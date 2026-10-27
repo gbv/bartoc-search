@@ -125,7 +125,7 @@ const activeFilters = state.activeFilters
 const includeEditions = computed(() => route.query.editions === "true")
 
 // results & state
-const results = ref({ docs: [], numFound: 0, editionsByMain: {} })
+const results = ref({ docs: [], numFound: 0, editionsByMain: {}, parentTitles: {} })
 const openModalField = ref(null)
 const mobileFacetsOpen = ref(false)
 const mobileFacetsButton = ref(null)
@@ -227,7 +227,7 @@ async function fetchResults(query, opts = {}) {
     // Back/Forward uses "none" because the route has already changed.
     await updateSearchRoute(urlQuery, navigation)
 
-    const { docs, numFound, facets, editionsByMain } = await fetchSearchResults({
+    const { docs, numFound, facets, editionsByMain, parentTitles } = await fetchSearchResults({
       baseQuery: base,
       filters: apiFilterList,
       limit: limit.value,
@@ -246,6 +246,7 @@ async function fetchResults(query, opts = {}) {
       results.value.editionsByMain = editionsByMain || {}
     }
 
+    results.value.parentTitles = parentTitles
     results.value.facets = facets
   } catch (error) {
     errorMessage.value = `Search failed: ${error.message}`

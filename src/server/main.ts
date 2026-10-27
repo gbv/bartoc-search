@@ -23,6 +23,7 @@ import fsPromises from "node:fs/promises";
 import { parseRepeatableFilters } from "./utils/filters.ts";
 import { buildLuceneWithTrigrams } from "./utils/helpers.ts";
 import { getEditionPreviews } from "./solr/editionPreviews";
+import { getParentTitles } from "./solr/parentTitles";
 
 // Default for workers in the queue processing system with Redis:
 //  - test → OFF
@@ -295,6 +296,7 @@ export async function createApp(opts?: {
     res.json({
       response: solrRes.response,
       facets,
+      parentTitles: await getParentTitles(solrRes.response.docs),
       ...(editionsByMain === undefined ? {} : { editionsByMain }),
     });
 

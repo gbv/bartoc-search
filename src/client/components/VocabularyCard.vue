@@ -694,6 +694,7 @@ const titleHref = computed(() => recordHref(props.doc?.id))
 .result-description {
   display: -webkit-box;
   -webkit-box-orient: vertical;
+  line-clamp: 3;
   -webkit-line-clamp: 3;
   overflow: hidden;
   font-size: var(--cc-font-size-base);
