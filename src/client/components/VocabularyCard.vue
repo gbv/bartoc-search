@@ -67,17 +67,13 @@
               </template>
             </span>
             <span
-              v-if="typeItems.length && doc.version_of_s"
-              class="result-heading__separator"
-              aria-hidden="true">·</span>
-            <span
               v-if="doc.version_of_s"
               class="result-edition-parent">
               <font-awesome-icon
                 :icon="faCodeBranch"
                 class="edition-context-icon"
                 aria-hidden="true" />
-              Edition of: <a
+              <strong>Edition of:</strong> <a
                 :href="recordHref(doc.version_of_s)">{{ parentTitle || `BARTOC ${doc.version_of_s.split('/').pop()}` }}</a>
             </span>
           </div>
@@ -127,7 +123,13 @@
     <div
       v-if="editions?.total > 0"
       class="result-editions">
-      <strong>Editions ({{ editions.total }})</strong>
+      <strong>
+        <font-awesome-icon
+          :icon="faCodeBranch"
+          class="edition-context-icon"
+          aria-hidden="true" />
+        Editions ({{ editions.total }})
+      </strong>
       <ul>
         <li
           v-for="edition in editions.items"
@@ -584,28 +586,23 @@ const titleHref = computed(() => recordHref(props.doc?.id))
   font-size: var(--cc-font-size-sm);
 }
 
-.result-heading__separator {
-  margin-inline: var(--cc-space-xs);
-}
-
 .edition-context-icon {
   color: var(--cc-color-primary);
   margin-inline-end: var(--cc-space-xs);
   font-size: var(--cc-font-size-lg);
 }
 
-@media (max-width: 767px) {
-  .result-heading__separator {
-    display: none;
-  }
+.result-edition-parent {
+  display: block;
+}
 
-  .result-edition-parent {
-    display: block;
-  }
+.result-edition-parent strong {
+  color: var(--cc-color-text);
+  font-weight: var(--cc-font-weight-bold);
+}
 
-  .kos-type-list ~ .result-edition-parent {
-    margin-top: var(--cc-space-xs);
-  }
+.kos-type-list ~ .result-edition-parent {
+  margin-top: var(--cc-space-xs);
 }
 
 .result-title {

@@ -44,7 +44,9 @@ describe("SearchControls", () => {
     const checkbox = wrapper.get('.edition-toggle input[type="checkbox"]')
 
     expect((checkbox.element as HTMLInputElement).checked).toBe(false)
-    expect(wrapper.get(".edition-toggle__label").text()).toBe("Show matching editions as separate results (2)")
+    expect(wrapper.get(".edition-toggle__desktop-text").text()).toBe("Show matching editions as separate results")
+    expect(wrapper.get(".edition-toggle__mobile-text").text()).toBe("Show editions separately")
+    expect(wrapper.get(".edition-toggle__label").text()).toContain("(2)")
 
     await checkbox.setValue(true)
 

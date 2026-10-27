@@ -10,7 +10,15 @@
           type="checkbox"
           :checked="includeEditions"
           @change="onIncludeEditionsChange">
-        <span>Show matching editions as separate results<span v-if="matchingEditionCount != null"> ({{ matchingEditionCount }})</span></span>
+        <font-awesome-icon
+          :icon="faCodeBranch"
+          class="edition-toggle__icon"
+          aria-hidden="true" />
+        <span>
+          <span class="edition-toggle__desktop-text">Show matching editions as separate results</span>
+          <span class="edition-toggle__mobile-text">Show editions separately</span>
+          <span v-if="matchingEditionCount != null"> ({{ matchingEditionCount }})</span>
+        </span>
       </label>
     </div>
 
@@ -51,6 +59,7 @@
 
 <script setup lang="js">
 import { computed } from "vue"
+import { faCodeBranch } from "@fortawesome/free-solid-svg-icons"
 import LookupHint from "./LookupHint.vue"
 import FilterBadge from "./FilterBadge.vue"
 
@@ -119,6 +128,24 @@ function onIncludeEditionsChange(event) {
   display: inline-flex;
   align-items: center;
   gap: var(--cc-space-xs);
+}
+
+.edition-toggle__icon {
+  color: var(--cc-color-primary);
+}
+
+.edition-toggle__mobile-text {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .edition-toggle__desktop-text {
+    display: none;
+  }
+
+  .edition-toggle__mobile-text {
+    display: inline;
+  }
 }
 
 .search-filters {
