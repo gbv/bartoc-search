@@ -48,7 +48,7 @@ describe("SearchControls", () => {
     })
     const select = wrapper.get('.edition-mode select')
 
-    expect(wrapper.get(".edition-mode__count").text()).toBe("(2 matching)")
+    expect(wrapper.get(".edition-mode label").text()).toBe("2 editions")
     expect(wrapper.get(".edition-mode label").attributes("for")).toBe(select.attributes("id"))
     expect(select.findAll("option").map(option => option.attributes("value"))).toEqual(["exclude", "include", "only"])
     expect((select.element as HTMLSelectElement).value).toBe("exclude")
@@ -59,11 +59,11 @@ describe("SearchControls", () => {
     expect(wrapper.emitted("update:editionMode")).toEqual([["include"], ["only"]])
 
     await wrapper.setProps({ editionMode: "only", matchingEditionCount: 0 })
-    expect(wrapper.get(".edition-mode__count").text()).toBe("(0 matching)")
+    expect(wrapper.get(".edition-mode label").text()).toBe("0 editions")
     expect((select.element as HTMLSelectElement).value).toBe("only")
 
-    await wrapper.setProps({ matchingEditionCount: undefined })
-    expect(wrapper.find(".edition-mode__count").exists()).toBe(false)
+    await wrapper.setProps({ matchingEditionCount: undefioned })
+    expect(wrapper.get(".edition-mode label").text()).toBe("editions")
   })
 
   it("renders the selected mode in HTML for direct URLs and reloads", async () => {

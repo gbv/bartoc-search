@@ -9,10 +9,6 @@
         :icon="faCodeBranch"
         class="edition-mode__icon"
         aria-hidden="true" />
-      <label :for="editionModeSelectId">Editions</label>
-      <span
-        v-if="matchingEditionCount != null"
-        class="edition-mode__count">({{ matchingEditionCount }} matching)</span>
       <select
         :id="editionModeSelectId"
         class="cc-form-control edition-mode__select"
@@ -25,6 +21,7 @@
           :selected="editionMode === option.value">
           {{ option.label }}
         </option>
+        <label :for="editionModeSelectId">{{ matchingEditionCount ?? "" }} editions</label>
       </select>
     </div>
 
@@ -33,9 +30,6 @@
     <div
       v-if="filterGroups.length > 0"
       class="search-filters">
-      <p class="search-filters__title">
-        Active filters:
-      </p>
       <div class="action-group badges__wrapper">
         <div
           v-for="group in filterGroups"
@@ -43,7 +37,7 @@
           class="filter-group"
           role="group"
           :aria-label="group.label">
-          <span class="filter-group__label">{{ group.label }}:</span>
+          <span class="filter-group__label">{{ group.label }}</span>
           <FilterBadge
             v-for="badge in group.badges"
             :key="badge.key"
@@ -52,8 +46,8 @@
             @remove-badge="onRemoveBadge(badge)" />
         </div>
         <button
-          class="cc-button cc-button-danger noprint"
-          :aria-label="`Clear Filters`"
+          class="cc-button cc-button-primary noprint"
+          aria-label="Clear Filters"
           type="button"
           @click="emit('clear-filters')">
           Clear Filters
@@ -126,11 +120,6 @@ function onRemoveBadge(badge) {
 <style scoped>
 .search-filters {
   padding-top: var(--cc-space-md);
-}
-
-.search-filters__title {
-  margin: 0 0 var(--cc-space-xs);
-  font-size: var(--cc-font-size-sm);
 }
 
 .badges__wrapper {

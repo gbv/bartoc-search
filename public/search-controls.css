@@ -35,14 +35,6 @@
   flex: none;
 }
 
-.edition-mode__count {
-  min-width: 0;
-  overflow: hidden;
-  color: var(--cc-color-muted);
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
 .edition-mode__select {
   flex: none;
   width: 6.5rem;
