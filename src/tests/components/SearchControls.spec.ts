@@ -1,6 +1,8 @@
 // @vitest-environment happy-dom
 
 import { mount } from "@vue/test-utils"
+import { createSSRApp } from "vue"
+import { renderToString } from "vue/server-renderer"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import SearchControls from "../../client/components/SearchControls.vue"
 
@@ -22,7 +24,7 @@ describe("SearchControls", () => {
       license_group_ss: [],
     })
 
-    const wrapper = mount(SearchControls)
+    const wrapper = mount(SearchControls, { global: { stubs: { "font-awesome-icon": true } } })
     const groups = wrapper.findAll('[role="group"]')
 
     expect(groups).toHaveLength(2)
@@ -39,18 +41,37 @@ describe("SearchControls", () => {
       [{ field: "languages_ss", value: "it" }],
     ])
   })
-  it("emits the edition inclusion setting", async () => {
-    const wrapper = mount(SearchControls, { props: { matchingEditionCount: 2 } })
-    const checkbox = wrapper.get('.edition-toggle input[type="checkbox"]')
+  it("offers the three edition modes and keeps the matching count", async () => {
+    const wrapper = mount(SearchControls, {
+      props: { matchingEditionCount: 2 },
+      global: { stubs: { "font-awesome-icon": true } },
+    })
+    const select = wrapper.get('.edition-mode select')
 
-    expect((checkbox.element as HTMLInputElement).checked).toBe(false)
-    expect(wrapper.get(".edition-toggle__desktop-text").text()).toBe("Show matching editions as separate results")
-    expect(wrapper.get(".edition-toggle__mobile-text").text()).toBe("Show editions separately")
-    expect(wrapper.get(".edition-toggle__label").text()).toContain("(2)")
+    expect(wrapper.get(".edition-mode__count").text()).toBe("(2 matching)")
+    expect(wrapper.get(".edition-mode label").attributes("for")).toBe(select.attributes("id"))
+    expect(select.findAll("option").map(option => option.attributes("value"))).toEqual(["exclude", "include", "only"])
+    expect((select.element as HTMLSelectElement).value).toBe("exclude")
 
-    await checkbox.setValue(true)
+    await select.setValue("include")
+    await select.setValue("only")
 
-    expect(wrapper.emitted("update:includeEditions")).toEqual([[true]])
+    expect(wrapper.emitted("update:editionMode")).toEqual([["include"], ["only"]])
+
+    await wrapper.setProps({ editionMode: "only", matchingEditionCount: 0 })
+    expect(wrapper.get(".edition-mode__count").text()).toBe("(0 matching)")
+    expect((select.element as HTMLSelectElement).value).toBe("only")
+
+    await wrapper.setProps({ matchingEditionCount: undefined })
+    expect(wrapper.find(".edition-mode__count").exists()).toBe(false)
+  })
+
+  it("renders the selected mode in HTML for direct URLs and reloads", async () => {
+    const app = createSSRApp(SearchControls, { editionMode: "only" })
+    app.component("font-awesome-icon", { template: "<span />" })
+
+    const html = await renderToString(app)
+    expect(html).toMatch(/<option value="only" selected(?:\s|>)/)
   })
 
 })

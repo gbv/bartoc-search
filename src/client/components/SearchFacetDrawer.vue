@@ -176,7 +176,6 @@ onBeforeUnmount(() => {
 .search-sidebar__area {
   --facets-transition-duration: 350ms;
 
-  grid-area: sidebar;
   min-width: 320px;
 }
 

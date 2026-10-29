@@ -220,11 +220,11 @@ All query parameters are optional.
 | **order**       | `string` | `desc`       | Sort direction: `asc` or `desc`.                                                             |
 | **start**       | `number` | `0`          | Zero-based index of first result to return (for paging).                                     |
 | **filter**      | `string` |  -           | Facet filters as `filter=<publicKey>:<csvValues>`. Repeat for multiple facets. See the public facet keys in [Solr schema](solr_schema.md#public-facet-keys). |
-| **editions** | `string` | `false` | Set to `true` to include editions as separate search results. |
+| **editions** | `string` | absent | `true` includes editions with main records; `only` returns editions only. |
 
 #### Editions in search results
 
-By default, editions (`versionOf`) are excluded from search results. Set `editions=true` to show them separately; this also changes `response.numFound` and facet counts.
+By default, editions (`versionOf`) are excluded from search results. Set `editions=true` to show them alongside main records, or `editions=only` to return only editions. The selected mode also applies to `response.numFound`, facet counts, and JSKOS downloads. `matchingEditionCount` always counts editions matching the search and filters, independent of the selected mode.
 
 `editionsByMain[mainUri]` adds `{ total, items }` for main records on the current page. `items` lists up to three editions, even if they do not match the query or filters. These previews do not affect result counts. The field is omitted when no results are returned or its lookup fails.
 

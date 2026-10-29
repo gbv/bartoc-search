@@ -495,4 +495,40 @@ describe("GET /api/search - editions", () => {
       .query({ search: "marker", field: "title_search", editions: "true", filter: "language:fr" });
     expect(filtered.body.matchingEditionCount).toBe(0);
   });
+
+  it("returns only matching editions without changing their count", async () => {
+    const query = { search: "editionfamilyfixture", field: "title_search", limit: 20 };
+    const excluded = await request(app).get("/api/search").query(query);
+    const included = await request(app).get("/api/search").query({ ...query, editions: "true" });
+    const only = await request(app).get("/api/search").query({ ...query, editions: "only" });
+
+    expect(excluded.body.response.docs.every((doc: { version_of_s?: string }) => !doc.version_of_s)).toBe(true);
+    expect(included.body.response.numFound).toBeGreaterThan(excluded.body.response.numFound);
+    expect(only.body.response.numFound).toBe(included.body.response.numFound - excluded.body.response.numFound);
+    expect(only.body.response.docs.every((doc: { version_of_s?: string }) => !!doc.version_of_s)).toBe(true);
+    expect(excluded.body.matchingEditionCount).toBe(only.body.response.numFound);
+    expect(included.body.matchingEditionCount).toBe(only.body.response.numFound);
+    expect(only.body.matchingEditionCount).toBe(only.body.response.numFound);
+    expect(only.body.parentTitles["http://bartoc.org/en/node/990001"]).toBeDefined();
+
+    const filtered = await request(app).get("/api/search")
+      .query({ ...query, editions: "only", filter: "language:fr" });
+    expect(filtered.body.matchingEditionCount).toBe(filtered.body.response.numFound);
+
+    const faceted = await request(app).get("/api/search")
+      .query({ ...query, editions: "only", filter: "language:" });
+    expect(faceted.body.facets.languages_ss.find((bucket: { value: string }) => bucket.value === "en")?.count)
+      .toBeLessThanOrEqual(faceted.body.response.numFound);
+
+    const page = await request(app).get("/api/search")
+      .query({ ...query, editions: "only", limit: 1, start: 1, sort: "created", order: "asc" });
+    expect(page.body.response.numFound).toBe(only.body.response.numFound);
+    expect(page.body.response.docs).toHaveLength(1);
+    expect(page.body.response.docs[0].version_of_s).toBeDefined();
+
+    const download = await request(app).get("/api/search")
+      .query({ ...query, editions: "only", format: "jskos" });
+    expect(download.body.length).toBe(only.body.response.numFound);
+    expect(download.body.every((doc: { versionOf?: unknown }) => !!doc.versionOf)).toBe(true);
+  });
 });

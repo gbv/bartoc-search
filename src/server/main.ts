@@ -221,7 +221,7 @@ export async function createApp(opts?: {
         .limit(limit)
         .facetMissing(true);
 
-      // Count matching editions with the same query and facet filters, regardless of the checkbox.
+      // Count matching editions with the same query and facet filters, regardless of the selected mode.
       const editionCountOp = new SolrClient().searchOperation
         .prepareSelect(config.solr.coreName)
         .for({ toString: () => q, getDefType: () => defType })
@@ -234,7 +234,11 @@ export async function createApp(opts?: {
         editionCountOp.filter(filter);
       };
 
-      if (editions !== "true") {
+      // Edition documents have version_of_s. Only keeps them, Exclude removes them,
+      // and Include leaves this field unfiltered so both kinds can match.
+      if (editions === "only") {
+        op.filter(new SearchFilter("version_of_s").raw("version_of_s:[* TO *]"));
+      } else if (editions !== "true") {
         op.filter(
           new SearchFilter("version_of_s")
             .raw("-version_of_s:[* TO *]")

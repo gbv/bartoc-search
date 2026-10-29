@@ -13,11 +13,11 @@ facets down * into SearchResults and SearchFacetDrawer components. */
     <SearchControls
       class="search-controls__area"
       :lookup-uri="lookupUri"
-      :include-editions="includeEditions"
+      :edition-mode="editionMode"
       :matching-edition-count="results.matchingEditionCount"
       @remove-badge="onRemoveFilter"
       @clear-filters="onClearFilters"
-      @update:include-editions="onIncludeEditionsChange" />
+      @update:edition-mode="onEditionModeChange" />
     <div class="search-results__area">
       <button
         v-if="results.numFound > 0"
@@ -123,7 +123,12 @@ const pageSize = 10
 // drive everything off this `limit`
 const limit = ref(Number(route.query.limit) || pageSize)
 const activeFilters = state.activeFilters
-const includeEditions = computed(() => route.query.editions === "true")
+const editionMode = computed(() => {
+  if (route.query.editions === "only") {
+    return "only"
+  }
+  return route.query.editions === "true" ? "include" : "exclude"
+})
 
 // results & state
 const results = ref({ docs: [], numFound: 0, matchingEditionCount: undefined, editionsByMain: {}, parentTitles: {} })
@@ -362,7 +367,7 @@ function onFilterChange(filters, opts = {}) {
   }
 }
 
-function onIncludeEditionsChange(include) {
+function onEditionModeChange(mode) {
   limit.value = pageSize
 
   const newQuery = {
@@ -371,10 +376,10 @@ function onIncludeEditionsChange(include) {
   }
   delete newQuery.start
 
-  if (include) {
-    newQuery.editions = "true"
-  } else {
+  if (mode === "exclude") {
     delete newQuery.editions
+  } else {
+    newQuery.editions = mode === "only" ? "only" : "true"
   }
 
   fetchResults(newQuery, { navigation: NAVIGATION.PUSH })
@@ -474,58 +479,3 @@ onMounted(async () => {
   booted.value = true
 })
 </script>
-
-<style scoped>
-.search-view__wrapper {
-  display: grid;
-  grid-template-columns: minmax(0, 3fr) 400px;
-  grid-template-areas:
-    'search-bar search-bar'
-    'search-controls search-controls'
-    'results sidebar';
-  column-gap: var(--cc-space-lg);
-  align-items: start;
-}
-
-.search-bar__area {
-  grid-area: search-bar;
-  justify-self: center;
-}
-.search-results__area {
-  grid-area: results;
-}
-.search-controls__area {
-  grid-area: search-controls;
-}
-.mobile-facets-trigger {
-  display: none;
-}
-
-@media (min-width: 768px) {
-  .search-bar__area {
-    width: 100%;
-    max-width: 55rem;
-  }
-}
-
-@media (max-width: 767px) {
-  .search-view__wrapper {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas:
-      'search-bar'
-      'search-controls'
-      'results';
-    column-gap: 0;
-  }
-
-  .search-results__area {
-    min-width: 0;
-  }
-
-  .mobile-facets-trigger {
-    display: block;
-    width: 100%;
-    margin-bottom: var(--cc-space-md);
-  }
-}
-</style>

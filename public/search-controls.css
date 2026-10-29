@@ -3,7 +3,7 @@
   flex-direction: column;
   align-items: center;
   width: 100%;
-  padding-bottom: 10px;
+  padding-bottom: var(--cc-space-sm);
 }
 
 .search-filters {
@@ -11,13 +11,48 @@
   margin: 0;
 }
 
-.badges__wrapper,
-.badges-title {
+.badges__wrapper {
   text-align: left;
 }
 
-.badges-title {
-  font-weight: 600;
-  color: var(--cc-color-text);
-  width: 200px;
+/* Keep the server-rendered edition control stable before Vue loads. */
+.edition-mode {
+  display: flex;
+  align-items: center;
+  gap: var(--cc-space-sm);
+  padding-top: var(--cc-space-md);
+  font-size: var(--cc-font-size-sm);
+}
+
+.edition-mode__icon {
+  width: 1.25em;
+  height: 1em;
+  color: var(--cc-color-primary);
+  flex: none;
+}
+
+.edition-mode label {
+  flex: none;
+}
+
+.edition-mode__count {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--cc-color-muted);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.edition-mode__select {
+  flex: none;
+  width: 6.5rem;
+  margin-left: auto;
+}
+
+@media (max-width: 767px) {
+  .edition-mode {
+    align-self: stretch;
+    gap: var(--cc-space-xs);
+    min-width: 0;
+  }
 }

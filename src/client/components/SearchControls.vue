@@ -4,22 +4,28 @@
       v-if="lookupUri"
       :uri="lookupUri.uri"
       :name="lookupUri.name" />
-    <div class="edition-toggle noprint">
-      <label class="edition-toggle__label">
-        <input
-          type="checkbox"
-          :checked="includeEditions"
-          @change="onIncludeEditionsChange">
-        <font-awesome-icon
-          :icon="faCodeBranch"
-          class="edition-toggle__icon"
-          aria-hidden="true" />
-        <span>
-          <span class="edition-toggle__desktop-text">Show matching editions as separate results</span>
-          <span class="edition-toggle__mobile-text">Show editions separately</span>
-          <span v-if="matchingEditionCount != null"> ({{ matchingEditionCount }})</span>
-        </span>
-      </label>
+    <div class="edition-mode noprint">
+      <font-awesome-icon
+        :icon="faCodeBranch"
+        class="edition-mode__icon"
+        aria-hidden="true" />
+      <label :for="editionModeSelectId">Editions</label>
+      <span
+        v-if="matchingEditionCount != null"
+        class="edition-mode__count">({{ matchingEditionCount }} matching)</span>
+      <select
+        :id="editionModeSelectId"
+        class="cc-form-control edition-mode__select"
+        :value="editionMode"
+        @change="emit('update:editionMode', $event.target.value)">
+        <option
+          v-for="option in editionOptions"
+          :key="option.value"
+          :value="option.value"
+          :selected="editionMode === option.value">
+          {{ option.label }}
+        </option>
+      </select>
     </div>
 
 
@@ -58,7 +64,7 @@
 </template>
 
 <script setup lang="js">
-import { computed } from "vue"
+import { computed, useId } from "vue"
 import { faCodeBranch } from "@fortawesome/free-solid-svg-icons"
 import LookupHint from "./LookupHint.vue"
 import FilterBadge from "./FilterBadge.vue"
@@ -70,17 +76,20 @@ const props = defineProps({
   lookupUri:{ 
     type: Object, 
     default: null },
-  includeEditions: {
-    type: Boolean,
-    default: false,
-  },
+  editionMode: { type: String, default: "exclude" },
   matchingEditionCount: { type: Number, default: undefined },
 })
 
 
-const emit = defineEmits(["remove-badge", "clear-filters", "update:includeEditions"])
+const emit = defineEmits(["remove-badge", "clear-filters", "update:editionMode"])
 
 const lookupUri = computed(() => props.lookupUri)
+const editionModeSelectId = useId()
+const editionOptions = [
+  { value: "exclude", label: "Exclude" },
+  { value: "include", label: "Include" },
+  { value: "only", label: "Only" },
+]
 
 /**
  * Convert activeFilters ({ field: [rawValue, ...] }) into display groups.
@@ -112,42 +121,9 @@ const filterGroups = computed(() => {
 function onRemoveBadge(badge) {
   emit("remove-badge", { field: badge.field, value: badge.rawValue })
 }
-function onIncludeEditionsChange(event) {
-  emit("update:includeEditions", event.target.checked)
-}
-
-
 </script>
 
 <style scoped>
-.edition-toggle {
-  padding-top: var(--cc-space-md);
-}
-
-.edition-toggle__label {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--cc-space-xs);
-}
-
-.edition-toggle__icon {
-  color: var(--cc-color-primary);
-}
-
-.edition-toggle__mobile-text {
-  display: none;
-}
-
-@media (max-width: 767px) {
-  .edition-toggle__desktop-text {
-    display: none;
-  }
-
-  .edition-toggle__mobile-text {
-    display: inline;
-  }
-}
-
 .search-filters {
   padding-top: var(--cc-space-md);
 }

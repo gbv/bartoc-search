@@ -1,3 +1,64 @@
+/* Keep the server-rendered search grid stable before Vue's styles load. */
+.search-view__wrapper {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) 400px;
+  grid-template-areas:
+    'search-bar search-bar'
+    'search-controls search-controls'
+    'results sidebar';
+  column-gap: var(--cc-space-lg);
+  align-items: start;
+}
+
+.search-bar__area {
+  grid-area: search-bar;
+  justify-self: center;
+}
+
+.search-controls__area {
+  grid-area: search-controls;
+}
+
+.search-results__area {
+  grid-area: results;
+}
+
+.search-sidebar__area {
+  grid-area: sidebar;
+}
+
+.mobile-facets-trigger {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .search-bar__area {
+    width: 100%;
+    max-width: 55rem;
+  }
+}
+
+@media (max-width: 767px) {
+  .search-view__wrapper {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'search-bar'
+      'search-controls'
+      'results';
+    column-gap: 0;
+  }
+
+  .search-results__area {
+    min-width: 0;
+  }
+
+  .mobile-facets-trigger {
+    display: block;
+    width: 100%;
+    margin-bottom: var(--cc-space-md);
+  }
+}
 
 .search-view-results__wrapper {
   flex: 1 0 auto;
@@ -8,19 +69,24 @@
   min-height: 0;
   height: 100%;
 }
+/* Reserve the usual space, but center the spinner across the whole search view. */
 .search-view-results__loading {
   color: var(--cc-color-text);
   display: flex;
   justify-content: center;
+  min-height: calc(var(--cc-space-xxl) + 2 * var(--cc-space-xl));
   padding-block: var(--cc-space-xl);
 }
 .search-view-results__spinner {
+  position: absolute;
+  left: 50%;
   display: inline-block;
   width: var(--cc-space-xxl);
   aspect-ratio: 1;
   border: var(--cc-space-xs) solid var(--cc-border-color-control);
   border-top-color: var(--cc-color-primary);
   border-radius: 50%;
+  translate: -50% 0;
   animation: search-results-spin 1s linear infinite;
 }
 @keyframes search-results-spin {
