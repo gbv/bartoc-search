@@ -54,7 +54,8 @@
   }
 
   .mobile-facets-trigger {
-    display: block;
+    display: flex;
+    gap: var(--cc-space-sm);
     width: 100%;
     margin-bottom: var(--cc-space-md);
   }

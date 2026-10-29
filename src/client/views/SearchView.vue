@@ -27,6 +27,9 @@ facets down * into SearchResults and SearchFacetDrawer components. */
         :aria-expanded="mobileFacetsOpen"
         aria-controls="mobile-facets-panel"
         @click="mobileFacetsOpen = true">
+        <font-awesome-icon
+          :icon="faSliders"
+          aria-hidden="true" />
         Refine Results
       </button>
       <template v-if="loading || results.numFound > 0">
@@ -77,6 +80,7 @@ facets down * into SearchResults and SearchFacetDrawer components. */
 <script setup>
 import { ref, computed, onMounted, watch } from "vue"
 import { useRouter, useRoute } from "vue-router"
+import { faSliders } from "@fortawesome/free-solid-svg-icons"
 import SearchBar from "../components/SearchBar.vue"
 import SearchControls from "../components/SearchControls.vue"
 import SearchResultActions from "../components/SearchResultActions.vue"
