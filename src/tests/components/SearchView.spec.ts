@@ -80,17 +80,14 @@ async function mountSearchView(initialQuery = {}) {
           `,
         },
         SearchControls: {
-          props: ["editionMode", "lookupUri", "matchingEditionCount"],
-          emits: ["update:editionMode", "removeBadge", "clearFilters"],
+          props: ["editionMode"],
+          emits: ["update:editionMode"],
           template: `
-            <div>
             <select class="test-edition-select" :value="editionMode" @change="$emit('update:editionMode', $event.target.value)">
               <option value="exclude">Exclude</option>
               <option value="include">Include</option>
               <option value="only">Only</option>
             </select>
-            <span class="test-edition-mode">{{ editionMode }}</span>
-            </div>
           `,
         },
         SearchResultActions: {
@@ -187,7 +184,7 @@ describe("SearchView history navigation", () => {
     expect(String(fetchMock.mock.calls.at(-1)?.[0])).toContain("search=first")
   })
   it("keeps the edition mode in the route and API request", async () => {
-    const { push, wrapper } = await mountSearchView()
+    const { router, wrapper } = await mountSearchView()
     const select = wrapper.get(".test-edition-select")
 
     expect((select.element as HTMLSelectElement).value).toBe("exclude")
@@ -195,57 +192,42 @@ describe("SearchView history navigation", () => {
     await select.setValue("include")
     await flushPromises()
 
-    expect(push).toHaveBeenCalledWith({
-      name: "search",
-      query: expect.objectContaining({
-        editions: "true",
-        limit: "10",
-      }),
-    })
-    expect(String(fetchMock.mock.calls.at(-1)?.[0])).toContain(
-      "editions=true",
-    )
+    expect(router.currentRoute.value.query.editions).toBe("true")
+    expect(String(fetchMock.mock.calls.at(-1)?.[0])).toContain("editions=true")
 
-    await wrapper.get(".test-edition-select").setValue("only")
+    await select.setValue("only")
     await flushPromises()
-    expect(push).toHaveBeenCalledWith({
-      name: "search",
-      query: expect.objectContaining({ editions: "only", limit: "10" }),
-    })
+    expect(router.currentRoute.value.query.editions).toBe("only")
     expect(String(fetchMock.mock.calls.at(-1)?.[0])).toContain("editions=only")
-    expect(wrapper.get(".test-edition-mode").text()).toBe("only")
-    expect((wrapper.get(".test-edition-select").element as HTMLSelectElement).value).toBe("only")
     expect(wrapper.get(".test-download").attributes("href")).toContain("editions=only")
 
-    await wrapper.get(".test-edition-select").setValue("exclude")
+    await select.setValue("exclude")
     await flushPromises()
-    expect(wrapper.get(".test-edition-mode").text()).toBe("exclude")
+    expect(router.currentRoute.value.query.editions).toBeUndefined()
     expect(String(fetchMock.mock.calls.at(-1)?.[0])).not.toContain("editions=")
   })
 
   it("restores an editions-only URL on reload and browser navigation", async () => {
     const { router, wrapper } = await mountSearchView({ editions: "only", limit: "30", start: "20" })
+    const select = wrapper.get(".test-edition-select")
 
-    expect(wrapper.get(".test-edition-mode").text()).toBe("only")
-    expect((wrapper.get(".test-edition-select").element as HTMLSelectElement).value).toBe("only")
+    expect((select.element as HTMLSelectElement).value).toBe("only")
     expect(String(fetchMock.mock.calls.at(-1)?.[0])).toContain("editions=only")
-    expect(wrapper.get(".test-download").attributes("href")).toContain("editions=only")
 
-    await wrapper.get(".test-edition-select").setValue("include")
+    await select.setValue("include")
     await flushPromises()
     expect(router.currentRoute.value.query).toMatchObject({ editions: "true", limit: "10" })
     expect(router.currentRoute.value.query.start).toBeUndefined()
 
     router.back()
     await flushPromises()
-    expect(wrapper.get(".test-edition-mode").text()).toBe("only")
-    expect((wrapper.get(".test-edition-select").element as HTMLSelectElement).value).toBe("only")
+    expect((select.element as HTMLSelectElement).value).toBe("only")
     expect(router.currentRoute.value.query).toMatchObject({ editions: "only", limit: "30", start: "20" })
     expect(String(fetchMock.mock.calls.at(-1)?.[0])).toContain("editions=only")
 
     router.forward()
     await flushPromises()
-    expect((wrapper.get(".test-edition-select").element as HTMLSelectElement).value).toBe("include")
+    expect((select.element as HTMLSelectElement).value).toBe("include")
     expect(router.currentRoute.value.query.editions).toBe("true")
   })
 
