@@ -330,7 +330,7 @@ function onCheckbox(e) {
   height: var(--cc-space-md);
   margin: 0;
   border: var(--cc-border-width) solid var(--cc-border-color-control);
-  border-radius: 50%;
+  border-radius: 33%;
   background: var(--cc-color-surface);
   cursor: pointer;
 }
