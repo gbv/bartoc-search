@@ -23,6 +23,8 @@ import { applyLangMap } from "../utils/utils";
 import { getNkosConcepts, loadNkosConcepts } from "../utils/nskosService";
 import { ensureSnapshotForIndexing } from "../utils/updateFromBartoc";
 import { getDirectVersionOfUri } from "../utils/editions";
+import { LuceneQuery } from "./search/LuceneQuery";
+import { SearchFilter } from "./search/SearchFilter";
 
 
 // DDC enricher: loads the precomputed DDC snapshot once at startup.
@@ -113,14 +115,12 @@ export async function bootstrapIndexSolr() {
   let source: string;
 
   try {
-      const localPath = await ensureSnapshotForIndexing(); // e.g. ".../artifacts/current/vocs.enriched.ndjson"
-      await fs.access(localPath, FS.R_OK); // explicit readability check
-      input = createReadStream(localPath);
-      source = localPath;
-      config?.log?.(`Using local vocs snapshot: ${source}`);
-
-    } catch {
-    // Fallback: stream from remote
+    const localPath = await ensureSnapshotForIndexing(); // e.g. ".../artifacts/current/vocs.enriched.ndjson"
+    await fs.access(localPath, FS.R_OK); // explicit readability check
+    input = createReadStream(localPath);
+    source = localPath;
+    config?.log?.(`Using local vocs snapshot: ${source}`);
+  } catch {
     source = config.BARTOC_DUMP;
     const res = await axios.get(source, {
       responseType: "stream",
@@ -129,45 +129,64 @@ export async function bootstrapIndexSolr() {
     input = res.data as NodeJS.ReadableStream;
     config.log?.(`Using remote NDJSON vocs: ${source}`);
   }
-   
+
   // 2) Stream line-by-line → transform → batch to Solr
-  const rl = readline.createInterface({ input, crlfDelay: Infinity });
-
+  const lines = readline.createInterface({ input, crlfDelay: Infinity });
   const BATCH_SIZE = config.solr.batchSize ?? 500;
-  let buffer: SolrDocument[] = [];
-  let total = 0;
+  let documentsToIndex: SolrDocument[] = [];
+  let indexedCount = 0;
+  // Keep record titles as we read the dump. Editions may refer to these later.
+  const recordTitlesByUri = new Map<string, Record<string, string>>();
+  // Wait to index untitled editions until we have seen their main records.
+  const editionsMissingTitle: Array<{ record: ConceptSchemeDocument; mainRecordUri: string }> = [];
 
-  async function flush() {
-    if (buffer.length === 0) return;
-    await addDocuments(config.solr.coreName, buffer);
-    total += buffer.length;
-    buffer = [];
-    if (total % (BATCH_SIZE * 4) === 0) config.log?.(`Indexed ${total} documents so far`);
+  async function flushDocuments() {
+    if (documentsToIndex.length === 0) return;
+    await addDocuments(config.solr.coreName, documentsToIndex);
+    indexedCount += documentsToIndex.length;
+    documentsToIndex = [];
+    if (indexedCount % (BATCH_SIZE * 4) === 0) config.log?.(`Indexed ${indexedCount} documents so far`);
   }
 
-  for await (const line of rl) {
-    const t = line.trim();
-    if (!t) continue;
+  for await (const line of lines) {
+    const lineText = line.trim();
+    if (!lineText) continue;
 
-    let obj: ConceptSchemeDocument;
+    let record: ConceptSchemeDocument;
     try {
-      obj = JSON.parse(t);
+      record = JSON.parse(lineText);
     } catch {
       console.warn("Skipping invalid JSON line");
       continue;
     }
 
-    const solrDoc = transformConceptSchemeToSolr(obj, nKosConceptsDocs);
-    buffer.push(solrDoc);
-
-    if (buffer.length >= BATCH_SIZE) {
-      await flush();
+    // Save a readable title for any record that an edition may refer to.
+    if (record.uri && record.prefLabel && pickTitleSort(record.prefLabel)) {
+      recordTitlesByUri.set(record.uri, record.prefLabel);
     }
-  }
-  await flush();
-  rl.close();
+    // An edition can appear before its parent in the dump. Defer only editions
+    // without their own title; all other records can be indexed now.
+    const mainRecordUri = mainRecordUriForUntitledEdition(record);
+    if (mainRecordUri) {
+      editionsMissingTitle.push({ record, mainRecordUri });
+      continue;
+    }
 
-  config.log?.(`✅ Indexed ${total} documents from ${source}`);
+    documentsToIndex.push(transformConceptSchemeToSolr(record, nKosConceptsDocs));
+    if (documentsToIndex.length >= BATCH_SIZE) await flushDocuments();
+  }
+
+  // Now every main-record title in the dump is available, regardless of order.
+  // If a main record is missing, the normal title fallback still applies.
+  for (const { record, mainRecordUri } of editionsMissingTitle) {
+    const mainRecordTitles = recordTitlesByUri.get(mainRecordUri);
+    documentsToIndex.push(transformConceptSchemeToSolr(record, nKosConceptsDocs, mainRecordTitles));
+    if (documentsToIndex.length >= BATCH_SIZE) await flushDocuments();
+  }
+  await flushDocuments();
+  lines.close();
+
+  config.log?.(`✅ Indexed ${indexedCount} documents from ${source}`);
 }
 
 export async function solrStatus(): Promise<SolrResponse> {
@@ -207,11 +226,61 @@ export async function solrStatus(): Promise<SolrResponse> {
   }
 }
 
-// This  transforms JSKOS records into Solr documents for the
-// "terminologies" core. 
+// Only editions without their own title can borrow their main record's title.
+function mainRecordUriForUntitledEdition(edition: ConceptSchemeDocument): string | undefined {
+  if (pickTitleSort(edition.prefLabel)) return undefined;
+  return getDirectVersionOfUri(edition);
+}
+
+// Build search titles for an edition with no title of its own.
+// Add its version when available, e.g. "European Science Vocabulary 1.3".
+function titleLabelsForIndex(
+  record: ConceptSchemeDocument,
+  mainRecordTitles?: Record<string, string>,
+): Record<string, string> | undefined {
+  // A record's own title always takes precedence over an inherited one.
+  if (pickTitleSort(record.prefLabel)) return record.prefLabel;
+
+  // Callers provide mainRecordTitles only for an untitled edition.
+  if (!mainRecordTitles) return undefined;
+  const editionVersion = typeof record.version === "string" ? record.version.trim() : "";
+  const versionSuffix = editionVersion ? ` ${editionVersion}` : "";
+
+  const titlesByLanguage: Record<string, string> = {};
+  for (const [language, mainRecordTitle] of Object.entries(mainRecordTitles)) {
+    if (typeof mainRecordTitle === "string" && mainRecordTitle.trim()) {
+      titlesByLanguage[language] = `${mainRecordTitle.trim()}${versionSuffix}`;
+    }
+  }
+  return Object.keys(titlesByLanguage).length ? titlesByLanguage : undefined;
+}
+
+// The queue handles one record at a time, so it cannot use the dump's title map.
+// Look up the main record in Solr only when this edition needs its title.
+export async function getMainRecordTitlesForEdition(
+  edition: ConceptSchemeDocument,
+): Promise<Record<string, string> | undefined> {
+  const mainRecordUri = mainRecordUriForUntitledEdition(edition);
+  if (!mainRecordUri) return undefined;
+
+  const searchResult = await solr.searchOperation
+    .prepareSelect(config.solr.coreName)
+    .for(new LuceneQuery())
+    .filter(new SearchFilter("id").equals(mainRecordUri))
+    .field("fullrecord")
+    .limit(1)
+    .execute<SolrSearchResponse>();
+  const mainRecordJson = searchResult.response.docs[0]?.fullrecord;
+  if (!mainRecordJson) return undefined;
+  const mainRecord = JSON.parse(mainRecordJson) as ConceptSchemeDocument;
+  return mainRecord.prefLabel;
+}
+
+// This transforms JSKOS records into Solr documents for the "terminologies" core.
 export function transformConceptSchemeToSolr(
   doc: ConceptSchemeDocument,
   nKosConceptsDocs: ReturnType<typeof getNkosConcepts>,
+  mainRecordTitles?: Record<string, string>,
 ): SolrDocument {
   const solrDoc: Partial<SolrDocument> = {
     access_type_ss: doc.ACCESS?.map(a => a.uri) || [],
@@ -312,16 +381,18 @@ export function transformConceptSchemeToSolr(
     }
   }
 
-  // Adding title_en, title_de based on actually indexed prefLabels
-  if (doc.prefLabel) {
-    for (const label of Object.keys(doc.prefLabel)) {
-       solrDoc[`title_${label}`] = doc.prefLabel[label];
+  // Search and sorting use the derived title, if one was needed. The local
+  // pref_label_* fields and fullrecord below still contain the original JSKOS data.
+  const searchTitles = titleLabelsForIndex(doc, mainRecordTitles);
+  if (searchTitles) {
+    for (const [language, title] of Object.entries(searchTitles)) {
+      solrDoc[`title_${language}`] = title;
     }
   }
 
-  const picked = pickTitleSort(doc.prefLabel, doc.altLabel);
-  if (picked) {
-    solrDoc.title_sort = picked.value;              // single value → stable sorting
+  const preferredTitle = pickTitleSort(searchTitles, doc.altLabel);
+  if (preferredTitle) {
+    solrDoc.title_sort = preferredTitle.value;              // single value → stable sorting
   } else {
     // Final fallback to ensure the field exists (avoid nulls in sort)
     solrDoc.title_sort = doc.uri ?? "";

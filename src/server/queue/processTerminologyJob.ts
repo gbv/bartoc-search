@@ -9,6 +9,7 @@ import { OperationType } from "../types/wsNormalized";
 import {
   addDocuments,
   deleteDocuments,
+  getMainRecordTitlesForEdition,
   transformConceptSchemeToSolr,
 } from "../solr/solr";
 import { getNkosConcepts } from "../utils/nskosService";
@@ -41,9 +42,13 @@ export async function processTerminologyJob(data: SolrJobPayload): Promise<void>
       }
       config.log?.(`[Worker] ${operation} ${id} in Solr…`);
       const nKosConcepts = getNkosConcepts();
+      // The dump builds a title map, but a live update has only this document.
+      // Fetch its main record title before transforming an untitled edition.
+      const mainRecordTitles = await getMainRecordTitlesForEdition(upsert.document);
       const solrDocument: SolrDocument = transformConceptSchemeToSolr(
         upsert.document,
         nKosConcepts,
+        mainRecordTitles,
       );
       await addDocuments(config.solr.coreName, [solrDocument]);
       config.log?.(`[Worker] ${operation} completed for id=${id}`);

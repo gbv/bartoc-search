@@ -6,6 +6,7 @@ import { OperationType } from "../../server/types/wsNormalized";
 const mocks = vi.hoisted(() => ({
   addDocuments: vi.fn(),
   deleteDocuments: vi.fn(),
+  getMainRecordTitlesForEdition: vi.fn(),
   transformConceptSchemeToSolr: vi.fn(),
   getNkosConcepts: vi.fn(),
   log: vi.fn(),
@@ -25,6 +26,7 @@ vi.mock("../../server/conf/conf", () => ({
 vi.mock("../../server/solr/solr", () => ({
   addDocuments: mocks.addDocuments,
   deleteDocuments: mocks.deleteDocuments,
+  getMainRecordTitlesForEdition: mocks.getMainRecordTitlesForEdition,
   transformConceptSchemeToSolr: mocks.transformConceptSchemeToSolr,
 }));
 
@@ -77,6 +79,7 @@ describe("processTerminologyJob", () => {
     expect(mocks.transformConceptSchemeToSolr).toHaveBeenCalledWith(
       document,
       nKosConcepts,
+      undefined,
     );
     expect(mocks.addDocuments).toHaveBeenCalledWith("test-core", [solrDocument]);
     expect(mocks.deleteDocuments).not.toHaveBeenCalled();

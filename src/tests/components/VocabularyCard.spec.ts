@@ -325,6 +325,17 @@ describe("VocabularyCard", () => {
       .toBe("Example main")
   })
 
+  it("shows the main title for an untitled edition without a version", () => {
+    const uri = "http://bartoc.org/en/node/20391"
+    const wrapper = mountVocabularyCard({
+      id: uri,
+      version_of_s: "http://bartoc.org/en/node/20002",
+      fullrecord: JSON.stringify({ uri }),
+    }, undefined, "European Science Vocabulary")
+
+    expect(wrapper.get(".result-title a").text()).toBe("European Science Vocabulary")
+  })
+
   it("uses indexed type URIs when fullrecord is unusable", () => {
     setKosTypeDefinitions({
       "http://w3id.org/nkos/nkostype#thesaurus": {

@@ -37,7 +37,9 @@
           <h2 class="result-title">
             <a :href="titleHref">
               <template v-if="jskosRecord">
+                <template v-if="derivedTitle">{{ derivedTitle }}</template>
                 <ItemName
+                  v-else
                   :item="jskosRecord"
                   :language="lang"
                   :show-notation="false"
@@ -241,6 +243,28 @@ const jskosRecord = computed(() => {
   }
 })
 
+/**
+ * An edition without a local title uses its main record's title, followed by
+ * the version when present. Otherwise ItemName keeps its existing fallback.
+ */
+const derivedTitle = computed(() => {
+  const record = jskosRecord.value
+  const mainRecordTitle = props.parentTitle.trim()
+  if (!record || !props.doc.version_of_s || !mainRecordTitle || mainRecordTitle === props.doc.version_of_s) {
+    return ""
+  }
+
+  const hasLocalTitle = Object.values(record.prefLabel || {}).some(
+    label => typeof label === "string" && label.trim(),
+  )
+  if (hasLocalTitle) {
+    return ""
+  }
+
+  const version = typeof record.version === "string" ? record.version.trim() : ""
+  return version ? `${mainRecordTitle} ${version}` : mainRecordTitle
+})
+
 // Put notation after the label, e.g. "Basic Classification (BK)".
 // Respect the display flag and avoid adding it twice.
 const titleNotation = computed(() => {
@@ -250,7 +274,7 @@ const titleNotation = computed(() => {
   }
 
   const notation = jskos.notation(record)
-  const label = jskos.prefLabel(record, { language: props.lang }) || ""
+  const label = derivedTitle.value || jskos.prefLabel(record, { language: props.lang }) || ""
   return notation && !label.toLowerCase().includes(`(${notation.toLowerCase()})`)
     ? notation
     : ""

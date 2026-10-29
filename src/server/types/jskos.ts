@@ -71,7 +71,7 @@ export interface ConceptSchemeDocument {
     uri: string;
   }>;
 
-  prefLabel: {
+  prefLabel?: {
     [lang: string]: string;
   };
 
@@ -90,6 +90,8 @@ export interface ConceptSchemeDocument {
   uri: string;
 
   url?: string;
+
+  version?: string;
 
   versionOf?: Array<{
     uri: string;
