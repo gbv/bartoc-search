@@ -552,7 +552,7 @@ const titleHref = computed(() => recordHref(props.doc?.id))
   color: var(--cc-color-text);
 
   background-color: var(--cc-color-surface);
-  border: 1px solid var(--cc-border-color);
+  border: 1px solid transparent;
   border-radius: var(--cc-radius-md);
 
   border-left-width: 3px;
@@ -641,7 +641,7 @@ const titleHref = computed(() => recordHref(props.doc?.id))
 
 .result-heading .api-link {
   flex: 0 0 auto;
-  font-size: var(--cc-font-size-sm);
+  font-weight: var(--cc-font-weight-bold);
   white-space: nowrap;
 }
 
