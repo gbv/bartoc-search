@@ -111,7 +111,7 @@ const filterGroups = computed(() => {
       badges: values.map(value => ({
         key: field + "|" + value,
         field,
-        value: valueLabels[value] ?? (value === "-" ? "no value" : value),
+        value: valueLabels[value] ?? (value === "-" ? "— none —" : value),
         rawValue: value,
       })),
     }]

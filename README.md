@@ -242,7 +242,7 @@ By default, editions (`versionOf`) are excluded from search results. Set `editio
   &filter=language:en,es&filter=ddc:3,9
   ```
 
-- Missing (“no value”) bucket: use a single dash `-` as a value:
+- Missing (“— none —”) bucket: use a single dash `-` as a value:
 
   ```
   &filter=api:-

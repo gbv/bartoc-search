@@ -191,7 +191,7 @@ watch(showModal, (open, _, onCleanup) => {
 })
 
 function facetLabel(value) {
-  return facetValues[value] ?? (value === "-" ? "no value" : String(value))
+  return facetValues[value] ?? (value === "-" ? "— none —" : String(value))
 }
 
 const filteredValues = computed(() => {
