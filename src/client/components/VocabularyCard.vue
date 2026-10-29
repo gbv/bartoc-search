@@ -758,4 +758,56 @@ const titleHref = computed(() => recordHref(props.doc?.id))
   background: var(--cc-color-highlight);
   color: var(--cc-color-text);
 }
+
+@media (max-width: 767px) {
+  .result-heading {
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--cc-space-xs);
+  }
+
+  /* Put the icon and Content link above the full-width title. */
+  .result-heading__main,
+  .result-heading__context {
+    display: contents;
+  }
+
+  .kos-type-badge {
+    order: 1;
+    justify-content: flex-start;
+    background: transparent;
+    border: 0;
+  }
+
+  .kos-type-icon {
+    font-size: calc(var(--cc-font-size-xl) + var(--cc-space-sm));
+  }
+
+  .result-heading .api-link {
+    order: 2;
+    margin-inline-start: auto;
+  }
+
+  .result-heading__text {
+    display: flex;
+    flex: 0 0 100%;
+    flex-direction: column;
+    order: 3;
+  }
+
+  .kos-type-list {
+    order: -1;
+    margin-bottom: var(--cc-space-xs);
+    font-weight: var(--cc-font-weight-light);
+  }
+
+  .result-title {
+    margin-bottom: 0;
+  }
+
+  .result-edition-parent {
+    order: 1;
+    margin-top: var(--cc-space-xs);
+  }
+}
 </style>
