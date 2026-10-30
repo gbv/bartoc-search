@@ -8,8 +8,8 @@
     "API": [
       {
         "type": "http://bartoc.org/api-type/jskos",
-        "url": "https://coli-conc.gbv.de/api/",
-        "status": "https://coli-conc.gbv.de/api/status"
+        "url": "https://bartoc.org/api/",
+        "status": "https://bartoc.org/api/status"
       }
     ]
   },

@@ -502,11 +502,15 @@ function dismissTypeTooltip() {
   tooltipDismissed.value = true
 }
 
-// Read the selected-language subject facet as an array.
+// Keep subjects grouped as JSKOS references so each gets its own language fallback.
+// Indexed subject_label_<lang> values are used only when fullrecord is unavailable.
 const subjectList = computed(() => {
-  const key = `subject_${props.lang}`
-  const val = props.doc?.[key]
-  return Array.isArray(val) ? val : []
+  if (jskosRecord.value) {
+    return (Array.isArray(jskosRecord.value.subject) ? jskosRecord.value.subject : [])
+      .map(referenceLabel)
+      .filter(Boolean)
+  }
+  return asStringArray(props.doc?.[`subject_label_${props.lang}`])
 })
 
 // Build the URL for the Solr representation of a record.
