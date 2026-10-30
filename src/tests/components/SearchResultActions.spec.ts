@@ -12,6 +12,7 @@ function mountSearchResultActions(props = {}) {
       downloadUrl: "/api/search?format=jskos",
       ...props,
     },
+    global: { stubs: { "font-awesome-icon": true } },
   })
 }
 
@@ -32,10 +33,11 @@ describe("SearchResultActions", () => {
   it("emits events for expanding results", async () => {
     const wrapper = mountSearchResultActions()
 
-    await wrapper.get("button:nth-of-type(1)").trigger("click")
-    await wrapper.get("button:nth-of-type(2)").trigger("click")
+    await wrapper.get(".search-result-actions__more-mobile").trigger("click")
+    await wrapper.get(".search-result-actions__more-actions").trigger("click")
+    await wrapper.get(".search-result-actions__all").trigger("click")
 
-    expect(wrapper.emitted("load-more")).toHaveLength(1)
+    expect(wrapper.emitted("load-more")).toHaveLength(2)
     expect(wrapper.emitted("show-all")).toHaveLength(1)
   })
 
@@ -51,7 +53,28 @@ describe("SearchResultActions", () => {
     const wrapper = mountSearchResultActions({ showSort: false })
 
     expect(wrapper.find("select").exists()).toBe(false)
+    expect(wrapper.find(".edition-mode").exists()).toBe(false)
     expect(wrapper.text()).toContain("Showing 1 - 10 of 42 results")
+  })
+
+  it("selects an edition mode and displays the matching count", async () => {
+    const wrapper = mountSearchResultActions({ matchingEditionCount: 12 })
+    const radios = wrapper.findAll('.edition-mode input[type="radio"]')
+
+    expect(wrapper.get(".edition-mode legend").text()).toBe("Editions in search results")
+    expect(radios.map(radio => radio.attributes("value"))).toEqual(["exclude", "include", "only"])
+    expect(wrapper.get(".edition-mode__count-desktop").text()).toBe("12 matching")
+
+    await radios[2].setValue()
+    expect(wrapper.emitted("update:editionMode")).toEqual([["only"]])
+
+    await wrapper.setProps({ editionMode: "only", matchingEditionCount: 0 })
+    expect((radios[2].element as HTMLInputElement).checked).toBe(true)
+    expect(wrapper.get(".edition-mode__count-mobile").text()).toBe("0 editions")
+    expect(wrapper.get(".edition-mode__count-desktop").text()).toBe("0 matching")
+
+    await wrapper.setProps({ matchingEditionCount: undefined })
+    expect(wrapper.find(".edition-mode__count").exists()).toBe(false)
   })
 
   it("hides buttons from print output", () => {

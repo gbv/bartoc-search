@@ -1,8 +1,6 @@
 // @vitest-environment happy-dom
 
 import { mount } from "@vue/test-utils"
-import { createSSRApp } from "vue"
-import { renderToString } from "vue/server-renderer"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import SearchControls from "../../client/components/SearchControls.vue"
 
@@ -41,37 +39,4 @@ describe("SearchControls", () => {
       [{ field: "languages_ss", value: "it" }],
     ])
   })
-  it("offers the three edition modes and keeps the matching count", async () => {
-    const wrapper = mount(SearchControls, {
-      props: { matchingEditionCount: 2 },
-      global: { stubs: { "font-awesome-icon": true } },
-    })
-    const select = wrapper.get('.edition-mode select')
-
-    expect(wrapper.get(".edition-mode label").text()).toBe("2 editions")
-    expect(wrapper.get(".edition-mode label").attributes("for")).toBe(select.attributes("id"))
-    expect(select.findAll("option").map(option => option.attributes("value"))).toEqual(["exclude", "include", "only"])
-    expect((select.element as HTMLSelectElement).value).toBe("exclude")
-
-    await select.setValue("include")
-    await select.setValue("only")
-
-    expect(wrapper.emitted("update:editionMode")).toEqual([["include"], ["only"]])
-
-    await wrapper.setProps({ editionMode: "only", matchingEditionCount: 0 })
-    expect(wrapper.get(".edition-mode label").text()).toBe("0 editions")
-    expect((select.element as HTMLSelectElement).value).toBe("only")
-
-    await wrapper.setProps({ matchingEditionCount: undefined })
-    expect(wrapper.get(".edition-mode label").text()).toBe("editions")
-  })
-
-  it("renders the selected mode in HTML for direct URLs and reloads", async () => {
-    const app = createSSRApp(SearchControls, { editionMode: "only" })
-    app.component("font-awesome-icon", { template: "<span />" })
-
-    const html = await renderToString(app)
-    expect(html).toMatch(/<option value="only" selected(?:\s|>)/)
-  })
-
 })

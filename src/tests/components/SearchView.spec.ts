@@ -31,12 +31,12 @@ function searchResponse(total = 30): Promise<Response> {
     json: () => Promise.resolve({
       facets: {},
       response: {
-        docs: [
+        docs: total ? [
           {
             id: "http://bartoc.org/en/node/1",
             title_en: "Example vocabulary",
           },
-        ],
+        ] : [],
         numFound: total,
       },
     }),
@@ -67,6 +67,7 @@ async function mountSearchView(initialQuery = {}) {
     global: {
       plugins: [router],
       stubs: {
+        "font-awesome-icon": true,
         NoResults: true,
         SearchBar: {
           emits: ["lookup-uri", "search"],
@@ -79,33 +80,7 @@ async function mountSearchView(initialQuery = {}) {
             </button>
           `,
         },
-        SearchControls: {
-          props: ["editionMode"],
-          emits: ["update:editionMode"],
-          template: `
-            <select class="test-edition-select" :value="editionMode" @change="$emit('update:editionMode', $event.target.value)">
-              <option value="exclude">Exclude</option>
-              <option value="include">Include</option>
-              <option value="only">Only</option>
-            </select>
-          `,
-        },
-        SearchResultActions: {
-          emits: ["load-more", "show-all", "sort"],
-          props: ["canLoadMore", "downloadUrl", "summary", "sortKey", "showSort"],
-          template: `
-            <div>
-            <button
-              v-if="canLoadMore"
-              class="test-load-more"
-              type="button"
-              @click="$emit('load-more')">
-              More
-            </button>
-            <a class="test-download" :href="downloadUrl">Download</a>
-            </div>
-          `,
-        },
+        SearchControls: true,
         SearchResults: true,
         SearchSidebar: true,
       },
@@ -160,7 +135,7 @@ describe("SearchView history navigation", () => {
     push.mockClear()
     replace.mockClear()
 
-    await wrapper.get(".test-load-more").trigger("click")
+    await wrapper.get(".search-result-actions__more-actions").trigger("click")
     await flushPromises()
 
     expect(push).not.toHaveBeenCalled()
@@ -183,25 +158,26 @@ describe("SearchView history navigation", () => {
     expect(replace).not.toHaveBeenCalled()
     expect(String(fetchMock.mock.calls.at(-1)?.[0])).toContain("search=first")
   })
+
   it("keeps the edition mode in the route and API request", async () => {
     const { router, wrapper } = await mountSearchView()
-    const select = wrapper.get(".test-edition-select")
+    const checkedMode = () => wrapper.get('.edition-mode input:checked').attributes("value")
 
-    expect((select.element as HTMLSelectElement).value).toBe("exclude")
+    expect(checkedMode()).toBe("exclude")
 
-    await select.setValue("include")
+    await wrapper.get('.edition-mode input[value="include"]').setValue()
     await flushPromises()
 
     expect(router.currentRoute.value.query.editions).toBe("true")
     expect(String(fetchMock.mock.calls.at(-1)?.[0])).toContain("editions=true")
 
-    await select.setValue("only")
+    await wrapper.get('.edition-mode input[value="only"]').setValue()
     await flushPromises()
     expect(router.currentRoute.value.query.editions).toBe("only")
     expect(String(fetchMock.mock.calls.at(-1)?.[0])).toContain("editions=only")
-    expect(wrapper.get(".test-download").attributes("href")).toContain("editions=only")
+    expect(wrapper.get(".search-result-actions__download").attributes("href")).toContain("editions=only")
 
-    await select.setValue("exclude")
+    await wrapper.get('.edition-mode input[value="exclude"]').setValue()
     await flushPromises()
     expect(router.currentRoute.value.query.editions).toBeUndefined()
     expect(String(fetchMock.mock.calls.at(-1)?.[0])).not.toContain("editions=")
@@ -209,26 +185,33 @@ describe("SearchView history navigation", () => {
 
   it("restores an editions-only URL on reload and browser navigation", async () => {
     const { router, wrapper } = await mountSearchView({ editions: "only", limit: "30", start: "20" })
-    const select = wrapper.get(".test-edition-select")
+    const checkedMode = () => wrapper.get('.edition-mode input:checked').attributes("value")
 
-    expect((select.element as HTMLSelectElement).value).toBe("only")
+    expect(checkedMode()).toBe("only")
     expect(String(fetchMock.mock.calls.at(-1)?.[0])).toContain("editions=only")
 
-    await select.setValue("include")
+    await wrapper.get('.edition-mode input[value="include"]').setValue()
     await flushPromises()
     expect(router.currentRoute.value.query).toMatchObject({ editions: "true", limit: "10" })
     expect(router.currentRoute.value.query.start).toBeUndefined()
 
     router.back()
     await flushPromises()
-    expect((select.element as HTMLSelectElement).value).toBe("only")
+    expect(checkedMode()).toBe("only")
     expect(router.currentRoute.value.query).toMatchObject({ editions: "only", limit: "30", start: "20" })
     expect(String(fetchMock.mock.calls.at(-1)?.[0])).toContain("editions=only")
 
     router.forward()
     await flushPromises()
-    expect((select.element as HTMLSelectElement).value).toBe("include")
+    expect(checkedMode()).toBe("include")
     expect(router.currentRoute.value.query.editions).toBe("true")
   })
 
+  it("keeps edition selection available when the search has no results", async () => {
+    fetchMock.mockImplementation(() => searchResponse(0))
+    const { wrapper } = await mountSearchView()
+
+    expect(wrapper.find('.edition-mode input[value="exclude"]').exists()).toBe(true)
+    expect(wrapper.find(".search-result-actions__more-actions").exists()).toBe(false)
+  })
 })

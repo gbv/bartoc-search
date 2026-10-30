@@ -13,11 +13,8 @@ facets down * into SearchResults and SearchFacetDrawer components. */
     <SearchControls
       class="search-controls__area"
       :lookup-uri="lookupUri"
-      :edition-mode="editionMode"
-      :matching-edition-count="results.matchingEditionCount"
       @remove-badge="onRemoveFilter"
-      @clear-filters="onClearFilters"
-      @update:edition-mode="onEditionModeChange" />
+      @clear-filters="onClearFilters" />
     <div class="search-results__area">
       <button
         v-if="results.numFound > 0"
@@ -32,16 +29,19 @@ facets down * into SearchResults and SearchFacetDrawer components. */
           aria-hidden="true" />
         Refine Results
       </button>
+      <SearchResultActions
+        :summary="summary"
+        :can-load-more="canLoadMore"
+        :download-url="downloadUrl"
+        :sort-key="sortKey"
+        :show-results="showResultActions"
+        :edition-mode="editionMode"
+        :matching-edition-count="results.matchingEditionCount"
+        @load-more="loadMore"
+        @sort="onSort"
+        @show-all="showAll"
+        @update:edition-mode="onEditionModeChange" />
       <template v-if="loading || results.numFound > 0">
-        <SearchResultActions
-          v-if="showResultActions"
-          :summary="summary"
-          :can-load-more="canLoadMore"
-          :download-url="downloadUrl"
-          :sort-key="sortKey"
-          @load-more="loadMore"
-          @sort="onSort"
-          @show-all="showAll" />
         <SearchResults
           :results="results"
           :loading="loading"

@@ -4,28 +4,6 @@
       v-if="lookupUri"
       :uri="lookupUri.uri"
       :name="lookupUri.name" />
-    <div class="edition-mode noprint">
-      <font-awesome-icon
-        :icon="faCodeBranch"
-        class="edition-mode__icon"
-        aria-hidden="true" />
-      <select
-        :id="editionModeSelectId"
-        class="cc-form-control edition-mode__select"
-        :value="editionMode"
-        @change="emit('update:editionMode', $event.target.value)">
-        <option
-          v-for="option in editionOptions"
-          :key="option.value"
-          :value="option.value"
-          :selected="editionMode === option.value">
-          {{ option.label }}
-        </option>
-      </select>
-      <label :for="editionModeSelectId">{{ matchingEditionCount ?? "" }} editions</label>
-    </div>
-
-
     <!-- Active filter badges -->
     <div
       v-if="filterGroups.length > 0"
@@ -58,8 +36,7 @@
 </template>
 
 <script setup lang="js">
-import { computed, useId } from "vue"
-import { faCodeBranch } from "@fortawesome/free-solid-svg-icons"
+import { computed } from "vue"
 import LookupHint from "./LookupHint.vue"
 import FilterBadge from "./FilterBadge.vue"
 
@@ -70,20 +47,12 @@ const props = defineProps({
   lookupUri:{ 
     type: Object, 
     default: null },
-  editionMode: { type: String, default: "exclude" },
-  matchingEditionCount: { type: Number, default: undefined },
 })
 
 
-const emit = defineEmits(["remove-badge", "clear-filters", "update:editionMode"])
+const emit = defineEmits(["remove-badge", "clear-filters"])
 
 const lookupUri = computed(() => props.lookupUri)
-const editionModeSelectId = useId()
-const editionOptions = [
-  { value: "exclude", label: "Exclude" },
-  { value: "include", label: "Include" },
-  { value: "only", label: "Only" },
-]
 
 /**
  * Convert activeFilters ({ field: [rawValue, ...] }) into display groups.

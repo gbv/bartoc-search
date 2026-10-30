@@ -23,12 +23,56 @@
             {{ opt.label }}
           </option>
         </select>
+        <button
+          v-if="showResults && canLoadMore"
+          class="cc-button cc-button-primary search-result-actions__button search-result-actions__more-mobile"
+          type="button"
+          @click="emit('load-more')">
+          More
+        </button>
       </form>
 
-      <div class="action-group search-result-actions__buttons noprint">
+      <div
+        v-if="showSort"
+        class="edition-mode noprint">
+        <span class="edition-mode__label">Editions:</span>
+        <fieldset class="edition-mode__choices">
+          <legend class="cc-visually-hidden">
+            Editions in search results
+          </legend>
+          <label
+            v-for="option in editionOptions"
+            :key="option.value"
+            class="edition-mode__option">
+            <input
+              type="radio"
+              :name="editionModeName"
+              :value="option.value"
+              :checked="editionMode === option.value"
+              @change="emit('update:editionMode', option.value)">
+            <span>{{ option.label }}</span>
+          </label>
+        </fieldset>
+        <font-awesome-icon
+          :icon="faCodeBranch"
+          class="edition-mode__icon"
+          aria-hidden="true" />
+        <template v-if="matchingEditionCount != null">
+          <span class="edition-mode__count edition-mode__count-mobile">
+            {{ matchingEditionCount }} {{ matchingEditionCount === 1 ? "edition" : "editions" }}
+          </span>
+          <span class="edition-mode__count edition-mode__count-desktop">
+            {{ matchingEditionCount }} matching
+          </span>
+        </template>
+      </div>
+
+      <div
+        v-if="showResults"
+        class="action-group search-result-actions__buttons noprint">
         <button
           v-if="canLoadMore"
-          class="cc-button cc-button-primary search-result-actions__button"
+          class="cc-button cc-button-primary search-result-actions__button search-result-actions__more-actions"
           type="button"
           @click="emit('load-more')">
           More
@@ -57,7 +101,9 @@
       </div>
     </div>
 
-    <span class="search-result-actions__summary">
+    <span
+      v-if="showResults"
+      class="search-result-actions__summary">
       {{ formattedSummary }}
     </span>
   </nav>
@@ -65,6 +111,7 @@
 
 <script setup>
 import { computed, useId } from "vue"
+import { faCodeBranch } from "@fortawesome/free-solid-svg-icons"
 import {
   DEFAULT_SORT_KEY,
   SORT_KEY_TO_SOLR,
@@ -99,11 +146,29 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
+  showResults: {
+    type: Boolean,
+    default: true,
+  },
+  editionMode: {
+    type: String,
+    default: "exclude",
+  },
+  matchingEditionCount: {
+    type: Number,
+    default: undefined,
+  },
 })
 
-const emit = defineEmits([ "load-more", "show-all", "sort" ])
+const emit = defineEmits([ "load-more", "show-all", "sort", "update:editionMode" ])
 const sortOptions = SORT_OPTIONS
 const sortSelectId = `search-result-actions-sort-${useId()}`
+const editionModeName = `search-result-actions-editions-${useId()}`
+const editionOptions = [
+  { value: "exclude", label: "Exclude" },
+  { value: "include", label: "Include" },
+  { value: "only", label: "Only" },
+]
 
 const formattedSummary = computed(() => {
   const { from, to, total } = props.summary
@@ -144,107 +209,3 @@ function printPage() {
   }
 }
 </script>
-
-<style scoped>
-.search-result-actions {
-  display: flex;
-  flex-direction: column;
-  gap: var(--cc-space-xs);
-  width: 100%;
-  margin: var(--cc-space-sm) 0;
-}
-
-.search-result-actions__toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--cc-space-sm);
-}
-
-.search-result-actions__summary {
-  font-size: var(--cc-font-size-sm);
-  font-weight: var(--cc-font-weight-regular);
-  color: var(--cc-color-muted);
-}
-
-.search-result-actions__sort {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--cc-space-sm);
-}
-
-.search-result-actions__sort label {
-  color: var(--cc-color-text);
-  font-size: var(--cc-font-size-sm);
-}
-
-.search-result-actions__sort-label-mobile {
-  display: none;
-}
-
-.search-result-actions__sort-select {
-  width: auto;
-  min-width: 12rem;
-}
-
-.search-result-actions__buttons {
-  justify-content: flex-end;
-  margin-left: auto;
-}
-
-.search-result-actions__button {
-  margin: 0;
-}
-
-@media (max-width: 767px) {
-  .search-result-actions {
-    margin: var(--cc-space-sm) 0;
-    gap: var(--cc-space-xs);
-  }
-
-  .search-result-actions__toolbar {
-    justify-content: flex-start;
-    align-items: center;
-    gap: var(--cc-space-sm);
-  }
-
-  .search-result-actions__summary {
-    order: -1;
-  }
-
-  .search-result-actions__sort {
-    flex: 0 1 auto;
-    flex-wrap: nowrap;
-    gap: var(--cc-space-xs);
-  }
-
-  .search-result-actions__sort-label-desktop {
-    display: none;
-  }
-
-  .search-result-actions__sort-label-mobile {
-    display: inline;
-  }
-
-  .search-result-actions__buttons {
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    margin-left: 0;
-  }
-
-  .search-result-actions__all,
-  .search-result-actions__print,
-  .search-result-actions__download {
-    display: none;
-  }
-}
-
-@media print {
-  .search-result-actions {
-    display: block;
-    margin: 0 0 var(--cc-space-xs);
-  }
-}
-</style>
