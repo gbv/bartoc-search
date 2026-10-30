@@ -28,6 +28,7 @@ describe("SearchControls", () => {
     expect(groups).toHaveLength(2)
     expect(groups[0].attributes("aria-label")).toBe("Language")
     expect(groups[0].findAll('input[type="checkbox"]')).toHaveLength(2)
+    expect(groups[0].get('input[type="checkbox"]').classes()).toContain("cc-checkbox")
     expect(groups[0].text()).toContain("Italian")
     expect(groups[0].text()).toContain("English")
     expect(groups[1].attributes("aria-label")).toBe("Format Group")

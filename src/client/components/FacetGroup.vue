@@ -25,6 +25,7 @@
               :class="{ 'selected-row': props.selected.includes(facet.value) }">
               <input
                 type="checkbox"
+                class="cc-checkbox"
                 :value="facet.value"
                 :aria-label="facetLabel(facet.value)"
                 :checked="props.selected.includes(facet.value)"
@@ -99,6 +100,7 @@
                     :class="{ 'selected-row': props.selected.includes(facet.value) }">
                     <input
                       type="checkbox"
+                      class="cc-checkbox"
                       :value="facet.value"
                       :aria-label="facetLabel(facet.value)"
                       :checked="props.selected.includes(facet.value)"
@@ -314,44 +316,11 @@ function onCheckbox(e) {
   padding-block: var(--cc-space-xs);
 }
 
-/* Inline values and modal values share the same row and checkbox styles. */
+/* Inline and modal values share the same row layout. */
 .facet-option {
   cursor: pointer;
   min-height: var(--cc-touch-target-size);
   padding: var(--cc-space-xs) var(--cc-row-padding-x);
-}
-
-.facet-option input {
-  appearance: none;
-  display: grid;
-  place-content: center;
-  flex: none;
-  width: var(--cc-space-md);
-  height: var(--cc-space-md);
-  margin: 0;
-  border: var(--cc-border-width) solid var(--cc-border-color-control);
-  border-radius: 33%;
-  background: var(--cc-color-surface);
-  cursor: pointer;
-}
-
-.facet-option input:checked {
-  border-color: var(--cc-color-primary);
-  background: var(--cc-color-primary);
-}
-
-.facet-option input::before {
-  content: "";
-  width: calc(var(--cc-space-sm) - var(--cc-border-width-strong));
-  height: var(--cc-space-sm);
-  border-right: var(--cc-border-width-strong) solid var(--cc-color-on-primary);
-  border-bottom: var(--cc-border-width-strong) solid var(--cc-color-on-primary);
-  opacity: 0;
-  transform: translateY(calc(-1 * var(--cc-border-width))) rotate(45deg);
-}
-
-.facet-option input:checked::before {
-  opacity: 1;
 }
 
 .facet-option:hover {
@@ -360,11 +329,6 @@ function onCheckbox(e) {
 
 .facet-option.selected-row {
   background-color: color-mix(in srgb, var(--cc-color-accent) 25%, var(--cc-color-surface));
-}
-
-.facet-option input:focus-visible {
-  outline: var(--cc-border-width-strong) solid var(--cc-color-primary);
-  outline-offset: var(--cc-space-xs);
 }
 
 .facet-count {
@@ -510,12 +474,6 @@ function onCheckbox(e) {
 
 .facet-modal-list {
   color: var(--cc-color-text);
-}
-
-@media (forced-colors: active) {
-  .facet-option input {
-    appearance: auto;
-  }
 }
 
 @media (max-width: 767px) {

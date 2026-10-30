@@ -4,7 +4,7 @@
       v-if="lookupUri"
       :uri="lookupUri.uri"
       :name="lookupUri.name" />
-    <!-- Active filter badges -->
+    <!-- Selected facet filters -->
     <div
       v-if="filterGroups.length > 0"
       class="search-filters">
@@ -106,12 +106,10 @@ function onRemoveBadge(badge) {
   column-gap: var(--cc-space-sm);
   row-gap: var(--cc-space-xs);
   padding: var(--cc-space-xs) var(--cc-space-sm);
-  border: 1px solid var(--cc-border-color);
-  border-radius: var(--cc-radius-sm);
-  background-color: var(--cc-color-surface-muted);
+  background-color: var(--cc-color-surface);
 }
 
 .filter-group__label {
-  font-weight: 600;
+  font-weight: var(--cc-font-weight-regular);
 }
 </style>

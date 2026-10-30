@@ -2,7 +2,7 @@
   <label class="filter-badge">
     <input
       type="checkbox"
-      class="noprint"
+      class="cc-checkbox noprint"
       checked
       :aria-label="label + ': ' + displayValue"
       @change="emit('remove-badge')">
@@ -28,10 +28,10 @@ const displayValue = computed(() => (props.value === "-" ? "No value" : props.va
   display: inline-flex;
   align-items: center;
   gap: var(--cc-space-xs);
+  min-height: var(--cc-touch-target-size);
   padding: var(--cc-space-xs) 0;
   color: var(--cc-color-text);
-  font-size: var(--cc-font-size-sm);
+  font-size: var(--cc-font-size-base);
   cursor: pointer;
-  text-transform: capitalize;
 }
 </style>

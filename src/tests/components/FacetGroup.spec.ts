@@ -36,6 +36,7 @@ describe("FacetGroup", () => {
     await wrapper.setProps({ open: true })
     expect(header.attributes("aria-expanded")).toBe("true")
     expect(wrapper.get('input[aria-label="English"]').element).toHaveProperty("checked", true)
+    expect(wrapper.get('input[aria-label="English"]').classes()).toContain("cc-checkbox")
 
     await header.trigger("click")
     expect(wrapper.emitted("toggle")).toEqual([[true], [false]])
@@ -77,6 +78,7 @@ describe("FacetGroup", () => {
     await wrapper.get(".facet-show-more button").trigger("click")
     const dialog = wrapper.get('[role="dialog"]')
     expect(dialog.findAll('input[type="checkbox"]')).toHaveLength(values.length)
+    expect(dialog.get('input[type="checkbox"]').classes()).toContain("cc-checkbox")
 
     await dialog.get("label").trigger("click")
     expect(wrapper.emitted("change")).toEqual([[["en"]]])
