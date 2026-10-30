@@ -21,8 +21,8 @@
           :selected="editionMode === option.value">
           {{ option.label }}
         </option>
-        <label :for="editionModeSelectId">{{ matchingEditionCount ?? "" }} editions</label>
       </select>
+      <label :for="editionModeSelectId">{{ matchingEditionCount ?? "" }} editions</label>
     </div>
 
 
