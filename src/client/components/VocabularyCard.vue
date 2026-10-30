@@ -96,7 +96,12 @@
         <strong>{{ languageCodes.length === 1 ? 'Language' : 'Languages' }}:</strong>{{ ` ${languageLabels.join(', ')}` }}
       </li>
       <li v-if="subjectList.length">
-        <strong>Subjects: </strong>{{ subjectList.join(', ') }}
+        <strong>Subjects: </strong>{{ subjectList.slice(0, 3).join(', ') }}
+        <template v-if="subjectList.length > 3">
+          · <a
+            :href="titleHref"
+            :aria-label="`View all ${subjectList.length} subjects on BARTOC`">+ {{ subjectList.length - 3 }} more</a>
+        </template>
       </li>
       <li v-if="publisherLabels.length">
         <strong>Published by </strong>{{ publisherLabels.join(', ') }}

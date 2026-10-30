@@ -117,6 +117,28 @@ describe("VocabularyCard", () => {
     expect(wrapper.text()).toContain("Language: Italian")
   })
 
+  it("previews three subjects and links to the full record for the rest", () => {
+    const subject = ["First", "Second", "Third", "Fourth"]
+      .map(label => ({ prefLabel: { en: label } }))
+    const record = {
+      uri: "http://bartoc.org/en/node/1",
+      prefLabel: { en: "Example vocabulary" },
+      subject,
+    }
+    const wrapper = mountVocabularyCard({ fullrecord: JSON.stringify(record) })
+    const row = wrapper.get(".result-details li")
+
+    expect(row.text()).toContain("Subjects: First, Second, Third")
+    expect(row.text()).not.toContain("Fourth")
+    expect(row.get("a").text()).toBe("+ 1 more")
+    expect(row.get("a").attributes("href")).toBe(wrapper.get(".result-title a").attributes("href"))
+
+    const three = mountVocabularyCard({
+      fullrecord: JSON.stringify({ ...record, subject: subject.slice(0, 3) }),
+    })
+    expect(three.find(".result-details a").exists()).toBe(false)
+  })
+
   it("shows publisher names from JSKOS ahead of Solr labels", () => {
     const wrapper = mountVocabularyCard({
       publisher_labels_ss: ["Stale publisher"],
