@@ -62,7 +62,7 @@ describe("SearchControls", () => {
     expect(wrapper.get(".edition-mode label").text()).toBe("0 editions")
     expect((select.element as HTMLSelectElement).value).toBe("only")
 
-    await wrapper.setProps({ matchingEditionCount: undefioned })
+    await wrapper.setProps({ matchingEditionCount: undefined })
     expect(wrapper.get(".edition-mode label").text()).toBe("editions")
   })
 
