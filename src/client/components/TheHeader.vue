@@ -23,7 +23,7 @@ import printLogoUrl from "../assets/bartoc-logo_for_print.svg"
 
 const { token } = inject("login-refs")
 const userCanAdd = ref(false)
-const authBase = "https://bartoc.org"
+const authBase = import.meta.env.DEV ? "https://dev.bartoc.org" : ""
 const editUrl = import.meta.env.DEV ? "https://dev.bartoc.org/edit" : "/edit"
 const navLinks = [
   {

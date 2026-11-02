@@ -75,7 +75,7 @@ describe("TheHeader", () => {
     await flushPromises()
 
     expect(fetchMock).toHaveBeenCalledWith(
-      "https://bartoc.org/api/checkAuth?type=schemes&action=create",
+      "https://dev.bartoc.org/api/checkAuth?type=schemes&action=create",
       {
         headers: {
           Authorization: "Bearer test-token",
