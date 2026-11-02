@@ -9,6 +9,7 @@ import { OperationType } from "../types/wsNormalized";
 import {
   addDocuments,
   deleteDocuments,
+  getIndexedQualityErrorCodes,
   getMainRecordTitlesForEdition,
   transformConceptSchemeToSolr,
 } from "../solr/solr";
@@ -50,6 +51,8 @@ export async function processTerminologyJob(data: SolrJobPayload): Promise<void>
         nKosConcepts,
         mainRecordTitles,
       );
+      const qualityErrorCodes = await getIndexedQualityErrorCodes(upsert.document.uri);
+      if (qualityErrorCodes) solrDocument.quality_error_ss = qualityErrorCodes;
       await addDocuments(config.solr.coreName, [solrDocument]);
       config.log?.(`[Worker] ${operation} completed for id=${id}`);
       break;

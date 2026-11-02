@@ -16,6 +16,7 @@ export const INTERNAL_TO_PUBLIC = {
   format_group_ss: "format",
   address_country_s: "country",
   publisher_labels_ss: "publisher",
+  quality_error_ss: "error",
 }
 
 
@@ -169,7 +170,8 @@ export function setFiltersFromRepeatable(input, { keepEmpty = false } = {}) {
     const vals = Array.from(new Set(valsRaw.filter(v => v && !v.includes(","))))
 
     if (vals.length > 0 || keepEmpty) {
-      out[internal] = vals  // if keepEmpty=true and empty, store []
+      // A URL may repeat the same key; keep all selected values.
+      out[internal] = Array.from(new Set([...(out[internal] || []), ...vals]))
     }
   }
 

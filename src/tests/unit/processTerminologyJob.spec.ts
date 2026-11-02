@@ -6,6 +6,7 @@ import { OperationType } from "../../server/types/wsNormalized";
 const mocks = vi.hoisted(() => ({
   addDocuments: vi.fn(),
   deleteDocuments: vi.fn(),
+  getIndexedQualityErrorCodes: vi.fn(),
   getMainRecordTitlesForEdition: vi.fn(),
   transformConceptSchemeToSolr: vi.fn(),
   getNkosConcepts: vi.fn(),
@@ -26,6 +27,7 @@ vi.mock("../../server/conf/conf", () => ({
 vi.mock("../../server/solr/solr", () => ({
   addDocuments: mocks.addDocuments,
   deleteDocuments: mocks.deleteDocuments,
+  getIndexedQualityErrorCodes: mocks.getIndexedQualityErrorCodes,
   getMainRecordTitlesForEdition: mocks.getMainRecordTitlesForEdition,
   transformConceptSchemeToSolr: mocks.transformConceptSchemeToSolr,
 }));
@@ -53,6 +55,7 @@ const solrDocument = {
 describe("processTerminologyJob", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.getIndexedQualityErrorCodes.mockResolvedValue(undefined);
   });
 
   it.each([
@@ -83,6 +86,27 @@ describe("processTerminologyJob", () => {
     );
     expect(mocks.addDocuments).toHaveBeenCalledWith("test-core", [solrDocument]);
     expect(mocks.deleteDocuments).not.toHaveBeenCalled();
+  });
+
+  it("keeps indexed quality codes when updating a record", async () => {
+    const indexedDocument = { ...solrDocument };
+    mocks.transformConceptSchemeToSolr.mockReturnValue(indexedDocument);
+    mocks.getIndexedQualityErrorCodes.mockResolvedValue(["no-kos-type"]);
+
+    const { processTerminologyJob } = await import(
+      "../../server/queue/processTerminologyJob"
+    );
+    await processTerminologyJob({
+      operation: OperationType.Update,
+      id: document.uri,
+      receivedAt: RECEIVED_AT,
+      document,
+    });
+
+    expect(mocks.getIndexedQualityErrorCodes).toHaveBeenCalledWith(document.uri);
+    expect(mocks.addDocuments).toHaveBeenCalledWith("test-core", [
+      { ...indexedDocument, quality_error_ss: ["no-kos-type"] },
+    ]);
   });
 
   it("processes delete jobs as Solr deletes", async () => {

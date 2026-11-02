@@ -31,6 +31,11 @@
           Clear Filters
         </button>
       </div>
+      <p
+        v-if="hasQualityFilter"
+        class="quality-report-note">
+        From the daily quality report. Recent edits may not be reflected yet.
+      </p>
     </div>
   </div>
 </template>
@@ -70,16 +75,20 @@ const filterGroups = computed(() => {
 
     return [{
       field,
-      label: facetMeta.label ?? field,
+      label: facetMeta.label ?? (field === "quality_error_ss" ? "Quality issue" : field),
       badges: values.map(value => ({
         key: field + "|" + value,
         field,
-        value: valueLabels[value] ?? (value === "-" ? "— none —" : value),
+        value: valueLabels[value] ?? (value === "-" && field !== "quality_error_ss" ? "— none —" : value),
         rawValue: value,
       })),
     }]
   })
 })
+
+const hasQualityFilter = computed(() =>
+  filterGroups.value.some(group => group.field === "quality_error_ss"),
+)
 
 function onRemoveBadge(badge) {
   emit("remove-badge", { field: badge.field, value: badge.rawValue })
@@ -111,5 +120,11 @@ function onRemoveBadge(badge) {
 
 .filter-group__label {
   font-weight: var(--cc-font-weight-regular);
+}
+
+.quality-report-note {
+  margin: var(--cc-space-xs) 0 0;
+  color: var(--cc-color-muted);
+  font-size: var(--cc-font-size-sm);
 }
 </style>

@@ -12,6 +12,7 @@ import { buildDDCLabels } from "./buildDDCLabels";
 import { buildListedInLabels } from "./buildListedInLabels";
 import { buildBartocApiLabels } from "./buildBartocApiLabels";
 import { buildNkosTypeDefinitions } from "./buildNkosTypeDefinitions";
+import { buildQualityErrorCodes } from "./buildQualityErrorCodes";
 import { KEEP_LANGS } from "./helpers";
 import { runJskosEnrich } from "./runJskosEnrich";
 import { spawn } from "node:child_process";
@@ -31,7 +32,8 @@ type Source = {
     | "apiTypes"
     | "accessTypes"
     | "ddcConcepts"
-    | "nkosTypes";
+    | "nkosTypes"
+    | "qualityReport";
   url: string;
   kind: "ndjson" | "json";
   snapDir: string;
@@ -87,6 +89,14 @@ const SOURCES: Record<Source["key"], Source> = {
     kind: "json",
     snapDir: path.join(DATA_DIR, "snapshots", "nkosTypes"),
     metaPath: path.join(DATA_DIR, "artifacts", "nkosTypes.last.json"),
+    ext: ".json",
+  },
+  qualityReport: {
+    key: "qualityReport",
+    url: process.env.QUALITY_REPORT_URL ?? "",
+    kind: "json",
+    snapDir: path.join(DATA_DIR, "snapshots", "qualityReport"),
+    metaPath: path.join(ARTIFACTS, "qualityReport.last.json"),
     ext: ".json",
   },
 };
@@ -339,6 +349,7 @@ async function main(): Promise<void> {
     { meta: accessTypesMeta, notModified: notModifiedAccesstypes },
     { meta: ddcConceptsMeta, notModified: notModifiedDdcConcepts },
     { meta: nkosTypesMeta, notModified: notModifiedNkosTypes },
+    qualityReportResult,
   ] = await Promise.all([
     timed("Fetching vocs", () => fetchSnapshotFor(SOURCES.vocs)),
     timed("Fetching registries", () => fetchSnapshotFor(SOURCES.registries)),
@@ -346,6 +357,7 @@ async function main(): Promise<void> {
     timed("Fetching access types", () => fetchSnapshotFor(SOURCES.accessTypes)),
     timed("Fetching DDC 100 Concepts", () => fetchSnapshotFor(SOURCES.ddcConcepts)),
     timed("Fetching NKOS type concepts", () => fetchSnapshotFor(SOURCES.nkosTypes)),
+    timed("Fetching quality report", () => fetchSnapshotFor(SOURCES.qualityReport)),
   ]);
 
   const parts: string[] = [];
@@ -417,6 +429,10 @@ async function main(): Promise<void> {
     () => buildNkosTypeDefinitions(nkosTypesMeta.snapshotPath, tempDir),
   );
 
+  await timed("Build quality-error-codes.json", () =>
+    buildQualityErrorCodes(qualityReportResult.meta.snapshotPath, tempDir)
+  );
+
   // EARLY EXIT: snapshot unchanged and artifacts already published → do nothing
   if (notModifiedVocs) {
     console.log("Vocs Snapshot unchanged — nothing to do.");
@@ -451,6 +467,7 @@ async function main(): Promise<void> {
     "listed_in.json",
     "bartoc-api-types-labels.json",
     "nkos-type-definitions.json",
+    "quality-error-codes.json",
   ];
 
   // If enrichment succeeded, record the enriched file in the manifest list
@@ -468,6 +485,7 @@ async function main(): Promise<void> {
       apiTypes: { url: SOURCES.apiTypes.url, ...apiTypesMeta },
       accessTypes: { url: SOURCES.accessTypes.url, ...accessTypesMeta },
       ddcConcepts: { url: SOURCES.ddcConcepts.url, ...ddcConceptsMeta },
+      qualityReport: { url: SOURCES.qualityReport.url, ...qualityReportResult.meta },
       nkosTypes: {
         url: SOURCES.nkosTypes.url,
         ...nkosTypesMeta,

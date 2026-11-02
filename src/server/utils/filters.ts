@@ -4,7 +4,7 @@ import { LICENSE_GROUPS } from "../solr/solr";
 
 type PublicKey =
   | "type" | "ddc" | "language" | "in" | "api"
-  | "access" | "license" | "format" | "country" | "publisher";
+  | "access" | "license" | "format" | "country" | "publisher" | "error";
 
 
 // Default mapping for *most* public keys → internal Solr fields.
@@ -20,6 +20,7 @@ const PUBLIC_TO_INTERNAL: Record<PublicKey, string> = {
   format: "format_group_ss",
   country: "address_country_s",
   publisher: "publisher_labels_ss",
+  error: "quality_error_ss",
 };
 
 export function legacyFiltersFromQuery(q: Record<string, unknown>): Record<string, string[]> {

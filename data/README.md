@@ -13,11 +13,16 @@
   files may be versioned when they are configuration rather than source data.
 * Atomic rename prevents serving **partial files**.
 
-### Environment variables (optional)
+### Environment variables
 
 * `BARTOC_DUMP` — default: `https://bartoc.org/data/dumps/latest.ndjson`
 * `DATA_DIR` — default: `data` (root for snapshots/artifacts)
 * `NKOS_TYPES_URL` — default: `https://api.dante.gbv.de/voc/nkostype/top`
+* `QUALITY_REPORT_URL` — required URL for the BARTOC `summary.json` quality
+  report. Local Docker development uses
+  `https://dev.bartoc.org/data/reports/summary.json`; set it to
+  `https://bartoc.org/data/reports/summary.json` in production after the
+  bartoc.org release.
 
 
 All files use UTF-8.  
@@ -35,10 +40,12 @@ data/
 │   │   ├── ddc-labels.json
 │   │   ├── listed_in.json
 │   │   ├── nkos-type-definitions.json
+│   │   ├── quality-error-codes.json
 │   │   └── lookup_entries.json
 │   ├── ddcConcepts.last.json
 │   ├── formats.last.json
 │   ├── nkosTypes.last.json
+│   ├── qualityReport.last.json
 │   ├── registries.last.json
 │   └── vocs.last.json
 ├── license-groups.json
@@ -57,6 +64,8 @@ data/
 │   │   └── 2025-09-02_noetag_ebf3a904e967.json
 │   ├── nkosTypes
 │   │   └── 2025-09-02_noetag_424df8a58e56.json
+│   ├── qualityReport
+│   │   └── YYYY-MM-DD_<etag>_<sha12>.json
 │   ├── registries
 │   │   └── 2025-09-01_W-289a7-o7JZIkS1ruxmbGhHhwmNx8zBspw_6497d5f035b0.json
 │   └── vocs
@@ -94,6 +103,7 @@ data/
    * `listed_in.json`
    * `bartoc-api-types-labels.json`
    * `nkos-type-definitions.json`
+   * `quality-error-codes.json`
    * `artifacts.meta.json` (timestamps, keep-langs, source metadata)
 
 4. **Atomic publish**: rename `<version>__tmp` → `artifacts/current/`.
@@ -101,6 +111,10 @@ data/
 ### Notes
 
 * If a server returns **304 Not Modified**, the previous snapshot is reused.
+* The updater saves `summary.json` as a versioned
+  snapshot, builds a URI-to-codes JSON artifact, and records the source in
+  `artifacts.meta.json`. The next reindex reads the artifact and stores its
+  codes in Solr's `quality_error_ss` field.
 * Enrichment only runs when **vocs** changed; otherwise the last enriched file remains in `artifacts/current/`.
 * Indexing prefers the **enriched** NDJSON if present.
 

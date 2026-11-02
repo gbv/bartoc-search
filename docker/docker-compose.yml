@@ -23,6 +23,7 @@ services:
       # updater/indexer envs
       - DATA_DIR=/usr/src/app/data
       - BARTOC_DUMP=https://bartoc.org/data/dumps/latest.ndjson
+      - QUALITY_REPORT_URL=https://dev.bartoc.org/data/reports/summary.json
     working_dir: /usr/src/app
 
   redis:

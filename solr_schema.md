@@ -22,6 +22,7 @@ Use these public keys in the API `filter` parameter. The server maps them to Sol
 | `format` | `format_group_ss` | Canonical format groups |
 | `country` | `address_country_s` | Country |
 | `publisher` | `publisher_labels_ss` | Publisher display label |
+| `error` | `quality_error_ss` | Quality finding codes from the latest indexed report snapshot; multiple codes match any of them |
 
 ## Field Types
 
@@ -82,6 +83,7 @@ Each field is configured with `indexed`, `stored`, and `multiValued` attributes 
 | `notation_pattern_s`| `string`  |   x    |    ✓   |     x     |  Regex pattern from JSKOS notationPattern |
 | `publisher_uri_ss`     | `string` |    ✓    |    ✓   |    ✓      | Identifier URI of the publisher.  |
 | `publisher_labels_ss`     | `lc_keyword` |    ✓    |    ✓   |    ✓      | Aggregate of all preferred publisher labels. |
+| `quality_error_ss` | `string` | ✓ | ✓ | ✓ | Distinct quality finding codes for this record from the indexed report snapshot. |
 | `pref_labels_ss`   | `string` |    ✓    |    ✓   |      ✓     | Aggregate of all preferred titles (trimmed, de-duplicated). |
 | `subject_uri` | `string` |  ✓  |  ✓  |   ✓   | Subject concept URIs. |
 | `subject_notation` | `lc_keyword` |  ✓  |  ✓  |   ✓   | Subject notations (codes). |
@@ -120,6 +122,14 @@ Each field is configured with `indexed`, `stored`, and `multiValued` attributes 
 `start_date_sort_s` stores the trimmed `startDate`. Previews sort by this field, then `id`; missing dates sort last.
 
 For an existing Solr core, update its active schema and run `npm run reindex`. A persistent core may not pick up changes to the repository configset automatically.
+
+## Quality Finding Codes
+
+`quality_error_ss` contains codes from the `summary.json` snapshot selected by
+`QUALITY_REPORT_URL` during `update-data`. The public `error` filter selects
+records by code, for example `filter=error:no-kos-type`. Multiple codes match
+any of them. This field is not copied into full-text search or shown as a facet.
+The codes reflect the report used for the last reindex, not live validation.
 
 ## DDC Enrichment Fields
 

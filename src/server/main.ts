@@ -254,6 +254,17 @@ export async function createApp(opts?: {
 
     for (const facetName of Object.keys(facetFilters)) {
 
+      if (facetName === "quality_error_ss") {
+        // Quality codes filter results but have no sidebar facet or missing-value bucket.
+        const codes = (facetFilters[facetName] ?? []).map(v => v.trim()).filter(Boolean);
+        if (codes.length) {
+          const filter = new SearchFilter(facetName);
+          const values = codes.map(code => filter.escapeAndQuote(code)).join(" OR ");
+          addFacetFilter(filter.raw(`${facetName}:(${values})`));
+        }
+        continue;
+      }
+
       op.facetOnField(facetName);
       let facetValues = (facetFilters[facetName] ?? [])
         .map(v => v.trim())

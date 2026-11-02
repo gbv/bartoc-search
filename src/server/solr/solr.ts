@@ -16,7 +16,7 @@ import { fileURLToPath } from "url";
 import { ConceptSchemeDocument, GroupEntry } from "../types/jskos";
 import { sleep, mapUriToGroups, extractGroups, applyAgents, 
   applyDistributions, applyPrefLabel, applyPublishers, applySubjectOf, applySubject, pickTitleSort, 
-  loadJSONFileSafe, extractBartocId } from "../utils/utils";
+  loadJSONFile, loadJSONFileSafe, extractBartocId } from "../utils/utils";
 import readline from "readline";
 import { extractDdc, buildDdcAncestorsFromSubjects } from "../utils/ddc";
 import { applyLangMap } from "../utils/utils";
@@ -57,6 +57,30 @@ await loadNkosConcepts();
 const nKosConceptsDocs = getNkosConcepts();
 
 const solr = new SolrClient();
+
+// The updater publishes this map with the other artifacts. Read it once per reindex.
+async function loadQualityErrorCodes(): Promise<Record<string, string[]> | null> {
+  const artifactPath = join(config.ARTIFACTS, "current", "quality-error-codes.json");
+  try {
+    const codes = await loadJSONFile<unknown>(artifactPath);
+    if (!codes || typeof codes !== "object" || Array.isArray(codes)) {
+      throw new Error("Invalid quality-error-codes.json");
+    }
+    return codes as Record<string, string[]>;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
+    throw error;
+  }
+}
+
+// An empty array removes codes that disappeared from the latest report.
+export function applyQualityErrorCodes(
+  doc: SolrDocument,
+  uri: string,
+  codesByUri: Record<string, string[]> | null,
+): void {
+  if (codesByUri) doc.quality_error_ss = codesByUri[uri] ?? [];
+}
 
 export async function connectToSolr(): Promise<void> {
   let pingOk = false;
@@ -109,6 +133,8 @@ export async function connectToSolr(): Promise<void> {
 // Initializes the Solr core with daily dump data from Database even if that is not empty
 export async function bootstrapIndexSolr() {
   config.log?.("Proceeding with initial indexing...");
+
+  const qualityErrorCodes = await loadQualityErrorCodes();
 
   // 1) Pick input stream: local snapshot (preferred) or remote fallback
   let input: NodeJS.ReadableStream;
@@ -172,7 +198,9 @@ export async function bootstrapIndexSolr() {
       continue;
     }
 
-    documentsToIndex.push(transformConceptSchemeToSolr(record, nKosConceptsDocs));
+    const solrDocument = transformConceptSchemeToSolr(record, nKosConceptsDocs);
+    applyQualityErrorCodes(solrDocument, record.uri, qualityErrorCodes);
+    documentsToIndex.push(solrDocument);
     if (documentsToIndex.length >= BATCH_SIZE) await flushDocuments();
   }
 
@@ -180,7 +208,9 @@ export async function bootstrapIndexSolr() {
   // If a main record is missing, the normal title fallback still applies.
   for (const { record, mainRecordUri } of editionsMissingTitle) {
     const mainRecordTitles = recordTitlesByUri.get(mainRecordUri);
-    documentsToIndex.push(transformConceptSchemeToSolr(record, nKosConceptsDocs, mainRecordTitles));
+    const solrDocument = transformConceptSchemeToSolr(record, nKosConceptsDocs, mainRecordTitles);
+    applyQualityErrorCodes(solrDocument, record.uri, qualityErrorCodes);
+    documentsToIndex.push(solrDocument);
     if (documentsToIndex.length >= BATCH_SIZE) await flushDocuments();
   }
   await flushDocuments();
@@ -274,6 +304,19 @@ export async function getMainRecordTitlesForEdition(
   if (!mainRecordJson) return undefined;
   const mainRecord = JSON.parse(mainRecordJson) as ConceptSchemeDocument;
   return mainRecord.prefLabel;
+}
+
+// Queue upserts replace the whole Solr document. Keep codes from the last
+// indexed quality report until the next reindex refreshes them.
+export async function getIndexedQualityErrorCodes(uri: string): Promise<string[] | undefined> {
+  const searchResult = await solr.searchOperation
+    .prepareSelect(config.solr.coreName)
+    .for(new LuceneQuery())
+    .filter(new SearchFilter("id").equals(uri))
+    .field("quality_error_ss")
+    .limit(1)
+    .execute<SolrSearchResponse>();
+  return searchResult.response.docs[0]?.quality_error_ss;
 }
 
 // This transforms JSKOS records into Solr documents for the "terminologies" core.

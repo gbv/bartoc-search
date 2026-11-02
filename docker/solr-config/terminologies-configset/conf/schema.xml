@@ -173,6 +173,9 @@
     <field name="publisher_uri_ss" type="string" indexed="true" stored="true" multiValued="true"/>
     <field name="publisher_labels_ss" type="lc_keyword" indexed="true" stored="true" multiValued="true"/>
 
+    <!-- Exact codes from the periodic BARTOC quality report -->
+    <field name="quality_error_ss" type="string" indexed="true" stored="true" multiValued="true"/>
+
     <!-- startDate field -->
     <field name="start_date_i" type="pint" indexed="true" stored="true"/>
     <field name="start_date_sort_s" type="string" indexed="true" stored="true"/>

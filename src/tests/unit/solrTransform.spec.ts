@@ -1,6 +1,16 @@
 import { describe, expect, it } from "vitest"
 import type { ConceptSchemeDocument } from "../../server/types/jskos"
-import { transformConceptSchemeToSolr } from "../../server/solr/solr"
+import { applyQualityErrorCodes, transformConceptSchemeToSolr } from "../../server/solr/solr"
+import type { SolrDocument } from "../../server/types/solr"
+
+it("clears quality codes missing from the next indexed report", () => {
+  const doc = { id: "http://bartoc.org/en/node/1" } as SolrDocument
+  applyQualityErrorCodes(doc, doc.id, { [doc.id]: ["no-kos-type"] })
+  expect(doc.quality_error_ss).toEqual(["no-kos-type"])
+
+  applyQualityErrorCodes(doc, doc.id, {})
+  expect(doc.quality_error_ss).toEqual([])
+})
 
 describe("transformConceptSchemeToSolr", () => {
   it("indexes the direct main-record URI", () => {

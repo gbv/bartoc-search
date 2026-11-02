@@ -111,6 +111,7 @@ export interface SolrDocument
   notation_pattern_s?: string;
   pref_labels_ss?: string[];
   publisher_labels_ss: string[];
+  quality_error_ss?: string[];
   subject_notation?: string[];
   subject_uri: string[];
   subject_scheme?: string[];
