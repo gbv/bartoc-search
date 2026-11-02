@@ -28,7 +28,7 @@ const displayValue = computed(() => (props.value === "-" ? "No value" : props.va
   display: inline-flex;
   align-items: center;
   gap: var(--cc-space-xs);
-  min-height: var(--cc-touch-target-size);
+  min-height: 2.375rem;
   padding: var(--cc-space-xs) 0;
   color: var(--cc-color-text);
   font-size: var(--cc-font-size-base);

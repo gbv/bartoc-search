@@ -114,7 +114,7 @@ function onRemoveBadge(badge) {
   align-items: center;
   column-gap: var(--cc-space-sm);
   row-gap: var(--cc-space-xs);
-  padding: var(--cc-space-xs) var(--cc-space-sm);
+  padding: 0 var(--cc-space-sm);
   background-color: var(--cc-color-surface);
 }
 
