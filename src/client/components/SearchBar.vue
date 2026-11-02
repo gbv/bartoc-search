@@ -10,7 +10,7 @@
 import { ref, onMounted, inject, watch } from "vue"
 import { useRoute } from "vue-router"
 import { BartocSearchBar } from "@gbv/bartoc-components"
-const namespaces = inject("namespaces")
+const namespaces = inject("namespaces", null)
 
 /**
  * @type {{ searchOnMounted: boolean }}

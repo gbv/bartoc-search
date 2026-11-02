@@ -19,6 +19,7 @@ function mountSearchResultActions(props = {}) {
 describe("SearchResultActions", () => {
   afterEach(() => {
     document.body.className = ""
+    vi.unstubAllGlobals()
     vi.restoreAllMocks()
   })
 
@@ -84,7 +85,8 @@ describe("SearchResultActions", () => {
   })
 
   it("enables restricted print mode while printing", async () => {
-    const print = vi.spyOn(window, "print").mockImplementation(() => {})
+    const print = vi.fn()
+    vi.stubGlobal("print", print)
     const wrapper = mountSearchResultActions()
 
     await wrapper.get(".search-result-actions__print").trigger("click")

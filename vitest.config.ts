@@ -9,7 +9,6 @@ export default defineConfig({
     testTimeout: 120_000,   // Solr boot + indexing
     hookTimeout: 120_000,
     pool: "threads",
-    poolOptions: { threads: { singleThread: true } },
     globals: true,
     reporters: ["default"],
     // coverage (c8)
