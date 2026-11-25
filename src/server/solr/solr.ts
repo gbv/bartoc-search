@@ -122,7 +122,7 @@ export async function connectToSolr(): Promise<void> {
 
   if (config.indexDataAtBoot && pingOk) {
     try {
-      bootstrapIndexSolr();
+      await bootstrapIndexSolr();
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       config.error?.("❌ Failed to index data in Solr at startup:", message);
@@ -319,6 +319,17 @@ export async function getIndexedQualityErrorCodes(uri: string): Promise<string[]
   return searchResult.response.docs[0]?.quality_error_ss;
 }
 
+// Solr date fields need a valid UTC timestamp. Keep the JSKOS value in fullrecord.
+function solrDate(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const timestamp = /^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T00:00:00Z` : value;
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/.test(timestamp)) return undefined;
+
+  // Date parsing can turn February 30 into March 1; reject that too.
+  if (new Date(timestamp).toJSON()?.slice(0, 19) !== timestamp.slice(0, 19)) return undefined;
+  return timestamp;
+}
+
 // This transforms JSKOS records into Solr documents for the "terminologies" core.
 export function transformConceptSchemeToSolr(
   doc: ConceptSchemeDocument,
@@ -340,14 +351,12 @@ export function transformConceptSchemeToSolr(
     examples_ss: doc.EXAMPLES?.map(s => (typeof s === "string" ? s.trim() : "")).filter(Boolean) ?? [],
     extent_s: doc.extent,
     format_type_ss: doc.FORMAT?.map(f => f.uri) || [],
-    created_dt: doc.created,
     id: doc.uri,
     bartoc_id_s: extractBartocId(doc.uri),
     identifier_ss: doc.identifier?.filter((id): id is string => id !== null),
     languages_ss: doc.languages || [],
     license_type_ss: doc.license?.map(lt => lt.uri) || [],
     listed_in_ss: doc.partOf?.map(l => l.uri) || [],        
-    modified_dt: doc.modified,
     namespace_s: doc.namespace,
     notation_ss: doc.notation ?? [],
     notation_examples_ss: doc.notationExamples ?? [],
@@ -358,6 +367,11 @@ export function transformConceptSchemeToSolr(
     url_s: doc.url,
     version_of_s: getDirectVersionOfUri(doc),
   };
+
+  const createdDate = solrDate(doc.created);
+  const modifiedDate = solrDate(doc.modified);
+  if (createdDate) solrDoc.created_dt = createdDate;
+  if (modifiedDate) solrDoc.modified_dt = modifiedDate;
 
   // Extracting License groups
   extractGroups(solrDoc, "license_type_ss", "license_group_ss", LICENSE_GROUPS, mapUriToGroups);

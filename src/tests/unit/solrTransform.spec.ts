@@ -13,6 +13,33 @@ it("clears quality codes missing from the next indexed report", () => {
 })
 
 describe("transformConceptSchemeToSolr", () => {
+  it("maps JSKOS dates to Solr without changing fullrecord", () => {
+    const record: ConceptSchemeDocument = {
+      "@context": "https://gbv.github.io/jskos/context.json",
+      uri: "http://bartoc.org/en/node/10001",
+      created: "2016-12-13",
+      modified: "2022-01-21",
+      type: ["http://www.w3.org/2004/02/skos/core#ConceptScheme"],
+    }
+
+    const dateOnly = transformConceptSchemeToSolr(record, [])
+    expect(dateOnly.created_dt).toBe("2016-12-13T00:00:00Z")
+    expect(dateOnly.modified_dt).toBe("2022-01-21T00:00:00Z")
+    expect(JSON.parse(dateOnly.fullrecord)).toEqual(record)
+
+    const timestamps = transformConceptSchemeToSolr({
+      ...record,
+      created: "2016-12-13T12:34:56Z",
+      modified: "2022-01-21T12:34:56.123Z",
+    }, [])
+    expect(timestamps.created_dt).toBe("2016-12-13T12:34:56Z")
+    expect(timestamps.modified_dt).toBe("2022-01-21T12:34:56.123Z")
+
+    const invalid = transformConceptSchemeToSolr({ ...record, created: "2016-02-30", modified: "2022-01-21T12:34:56" }, [])
+    expect("created_dt" in invalid).toBe(false)
+    expect("modified_dt" in invalid).toBe(false)
+  })
+
   it("indexes the direct main-record URI", () => {
     const edition: ConceptSchemeDocument = {
       "@context": "https://gbv.github.io/jskos/context.json",
