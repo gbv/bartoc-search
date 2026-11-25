@@ -319,6 +319,19 @@ export async function getIndexedQualityErrorCodes(uri: string): Promise<string[]
   return searchResult.response.docs[0]?.quality_error_ss;
 }
 
+//// HOTFIX
+function transformDateToSolr(date: string) {
+  if (date) {
+    try {
+      // TODO: this does not handle timezone yet!!
+      return new Date(date).toISOString();
+    } catch {
+      config.error?.(`Failed to parse date, omitting it: ${date}`);
+    }
+  }
+}
+
+//
 // This transforms JSKOS records into Solr documents for the "terminologies" core.
 export function transformConceptSchemeToSolr(
   doc: ConceptSchemeDocument,
@@ -340,14 +353,14 @@ export function transformConceptSchemeToSolr(
     examples_ss: doc.EXAMPLES?.map(s => (typeof s === "string" ? s.trim() : "")).filter(Boolean) ?? [],
     extent_s: doc.extent,
     format_type_ss: doc.FORMAT?.map(f => f.uri) || [],
-    created_dt: doc.created,
+    created_dt: transformDateToSolr(doc.created),
     id: doc.uri,
     bartoc_id_s: extractBartocId(doc.uri),
     identifier_ss: doc.identifier?.filter((id): id is string => id !== null),
     languages_ss: doc.languages || [],
     license_type_ss: doc.license?.map(lt => lt.uri) || [],
     listed_in_ss: doc.partOf?.map(l => l.uri) || [],        
-    modified_dt: doc.modified,
+    modified_dt: transformDateToSolr(doc.modified),
     namespace_s: doc.namespace,
     notation_ss: doc.notation ?? [],
     notation_examples_ss: doc.notationExamples ?? [],
